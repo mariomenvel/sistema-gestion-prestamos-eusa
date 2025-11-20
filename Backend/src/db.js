@@ -10,7 +10,7 @@ var sequelize = new Sequelize(
     port: process.env.DB_PORT,
     dialect: 'mysql'
   }
-);
+);  
 
 function probarConexion() {
   sequelize.authenticate()
