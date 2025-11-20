@@ -2,6 +2,7 @@ require('dotenv').config();
 var express = require('express');
 var cors = require('cors');
 var db = require('./db');
+var models = require('./models');
 
 var app = express();
 
@@ -13,6 +14,14 @@ app.get('/', function (req, res) {
 });
 
 db.probarConexion();
+
+db.sequelize.sync()
+  .then(function () {
+    console.log('Modelos sincronizados con la base de datos.');
+  })
+  .catch(function (error) {
+    console.error('Error al sincronizar modelos:', error);
+  });
 
 var PORT = process.env.PORT || 3000;
 
