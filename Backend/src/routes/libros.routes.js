@@ -1,7 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var librosController = require('../controllers/libros.controller');
+var librosController = require('../controllers/libros.controller')
+var auth = require('../middleware/auth');
 
-router.get('/', librosController.obtenerLibros);
+router.get('/', auth, librosController.obtenerLibros);
 
 module.exports = router;

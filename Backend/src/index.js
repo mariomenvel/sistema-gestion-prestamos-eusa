@@ -5,6 +5,8 @@ var db = require('./db');
 var models = require('./models');
 var librosRoutes = require('./routes/libros.routes');
 var equiposRoutes = require('./routes/equipos.routes');
+var authRoutes = require('./routes/auth.routes');
+
 
 var app = express();
 app.use(cors());
@@ -16,6 +18,8 @@ app.get('/', function(req, res) {
 
 app.use('/libros', librosRoutes);
 app.use('/equipos', equiposRoutes);
+app.use('/auth', authRoutes);
+
 
 db.probarConexion();
 
