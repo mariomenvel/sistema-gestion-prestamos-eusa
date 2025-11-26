@@ -32,7 +32,8 @@ var Unidad = db.sequelize.define('Unidad', {
 Unidad.associate = function(models) {
   // Una unidad pertenece a un equipo
   Unidad.belongsTo(models.Equipo, {
-    foreignKey: 'equipo_id'
+    foreignKey: 'equipo_id',
+    as: 'equipo'
   });
 
   // Una unidad puede estar en muchas solicitudes

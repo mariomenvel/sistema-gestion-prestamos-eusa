@@ -35,12 +35,14 @@ Equipo.associate = function(models) {
   // Equipo pertenece a una categoría
   Equipo.belongsTo(models.Categoria, {
     foreignKey: 'categoria_codigo',
-    targetKey: 'codigo'
+    targetKey: 'codigo',
+    as: 'categoria'
   });
 
   // Un equipo tiene muchas unidades
   Equipo.hasMany(models.Unidad, {
-    foreignKey: 'equipo_id'
+    foreignKey: 'equipo_id',
+    as: 'unidades'
   });
 };
 

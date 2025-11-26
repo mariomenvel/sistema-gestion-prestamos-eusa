@@ -38,12 +38,15 @@ Libro.associate = function(models) {
   // Libro pertenece a una categoría (por codigo)
   Libro.belongsTo(models.Categoria, {
     foreignKey: 'categoria_codigo',
-    targetKey: 'codigo'
+    targetKey: 'codigo',
+    as: 'categorias'
+
   });
 
   // Libro tiene muchos ejemplares
   Libro.hasMany(models.Ejemplar, {
-    foreignKey: 'libro_id'
+    foreignKey: 'libro_id',
+    as: 'ejemplares'
   });
 };
 

@@ -40,7 +40,8 @@ var Ejemplar = db.sequelize.define('Ejemplar', {
 Ejemplar.associate = function(models) {
   // Un ejemplar pertenece a un libro
   Ejemplar.belongsTo(models.Libro, {
-    foreignKey: 'libro_id'
+    foreignKey: 'libro_id',
+    as: 'libro'
   });
 
   // Un ejemplar puede estar en muchas solicitudes
