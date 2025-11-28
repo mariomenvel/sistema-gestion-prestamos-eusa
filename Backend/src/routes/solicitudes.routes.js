@@ -7,6 +7,15 @@ var roles = require('../middlewares/roles');
 // Crear solicitud: solo alumno o profesor
 router.post('/', auth, roles.alumnoOProfesor, solicitudesController.crearSolicitud);
 
+// Listar solicitudes pendientes (solo PAS)
+router.get('/pendientes', auth, roles.soloPAS, solicitudesController.obtenerSolicitudesPendientes);
+
+// Aprobar solicitud (solo PAS)
+router.put('/:id/aprobar', auth, roles.soloPAS, solicitudesController.aprobarSolicitud);
+
+// Rechazar solicitud (solo PAS)
+router.put('/:id/rechazar', auth, roles.soloPAS, solicitudesController.rechazarSolicitud);
+
 // Ver mis solicitudes: solo usuario logueado (alumno o profesor)
 router.get('/mias', auth, roles.alumnoOProfesor, solicitudesController.obtenerMisSolicitudes);
 

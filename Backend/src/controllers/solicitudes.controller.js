@@ -60,6 +60,120 @@ function crearSolicitud(req, res) {
     });
 }
 
+function obtenerSolicitudesPendientes(req, res) {
+  models.Solicitud.findAll({
+    where: { estado: 'pendiente' },
+    include: [
+      {
+        model: models.Usuario,
+        // usuario que la creó
+      },
+      {
+        model: models.Ejemplar,
+        include: [
+          {
+            model: models.Libro,
+            as: 'libro'
+          }
+        ]
+      },
+      {
+        model: models.Unidad,
+        include: [
+          {
+            model: models.Equipo,
+            as: 'equipo'
+          }
+        ]
+      },
+      {
+        model: models.Usuario,
+        as: 'gestor' // PAS que la gestionó (aún null en pendientes)
+      }
+    ],
+    order: [['creada_en', 'ASC']]
+  })
+    .then(function (solicitudes) {
+      res.json(solicitudes);
+    })
+    .catch(function (error) {
+      console.error('Error al obtener solicitudes pendientes:', error);
+      res.status(500).json({ mensaje: 'Error al obtener solicitudes pendientes' });
+    });
+}
+
+function aprobarSolicitud(req, res) {
+  var solicitudId = req.params.id;
+  var pasId = req.user.id; // el PAS que aprueba
+
+  models.Solicitud.findByPk(solicitudId)
+    .then(function (solicitud) {
+      if (!solicitud) {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      }
+
+      if (solicitud.estado !== 'pendiente') {
+        return res.status(400).json({ mensaje: 'Solo se pueden aprobar solicitudes pendientes' });
+      }
+
+      solicitud.estado = 'aprobada';
+      solicitud.gestionado_por_id = pasId;
+      solicitud.resuelta_en = new Date();
+
+      return solicitud.save();
+    })
+    .then(function (solicitudGuardada) {
+      if (!solicitudGuardada) {
+        return; // ya se respondió antes
+      }
+
+      res.json({
+        mensaje: 'Solicitud aprobada correctamente',
+        solicitud: solicitudGuardada
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al aprobar solicitud:', error);
+      res.status(500).json({ mensaje: 'Error al aprobar la solicitud' });
+    });
+}
+
+function rechazarSolicitud(req, res) {
+  var solicitudId = req.params.id;
+  var pasId = req.user.id;
+
+  models.Solicitud.findByPk(solicitudId)
+    .then(function (solicitud) {
+      if (!solicitud) {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      }
+
+      if (solicitud.estado !== 'pendiente') {
+        return res.status(400).json({ mensaje: 'Solo se pueden rechazar solicitudes pendientes' });
+      }
+
+      solicitud.estado = 'rechazada';
+      solicitud.gestionado_por_id = pasId;
+      solicitud.resuelta_en = new Date();
+
+      return solicitud.save();
+    })
+    .then(function (solicitudGuardada) {
+      if (!solicitudGuardada) {
+        return;
+      }
+
+      res.json({
+        mensaje: 'Solicitud rechazada correctamente',
+        solicitud: solicitudGuardada
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al rechazar solicitud:', error);
+      res.status(500).json({ mensaje: 'Error al rechazar la solicitud' });
+    });
+}
+
 
 function obtenerMisSolicitudes(req, res) {
   var usuarioId = req.user.id;
@@ -100,5 +214,9 @@ function obtenerMisSolicitudes(req, res) {
 
 module.exports = {
   crearSolicitud: crearSolicitud,
-  obtenerMisSolicitudes: obtenerMisSolicitudes
+  obtenerMisSolicitudes: obtenerMisSolicitudes,
+  obtenerSolicitudesPendientes: obtenerSolicitudesPendientes,
+  aprobarSolicitud: aprobarSolicitud,
+  rechazarSolicitud: rechazarSolicitud
 };
+
