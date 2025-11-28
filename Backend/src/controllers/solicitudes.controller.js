@@ -1,4 +1,6 @@
 var models = require('../models');
+var db = require('../db');
+
 
 function crearSolicitud(req, res) {
   // Usuario autenticado (viene del middleware auth)
@@ -106,37 +108,105 @@ function aprobarSolicitud(req, res) {
   var solicitudId = req.params.id;
   var pasId = req.user.id; // el PAS que aprueba
 
-  models.Solicitud.findByPk(solicitudId)
-    .then(function (solicitud) {
-      if (!solicitud) {
-        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
-      }
+  // Usamos una transacción para que todo vaya junto
+  db.sequelize.transaction(function (t) {
+    var solicitudGuardadaGlobal;
+    var prestamoCreadoGlobal;
 
-      if (solicitud.estado !== 'pendiente') {
-        return res.status(400).json({ mensaje: 'Solo se pueden aprobar solicitudes pendientes' });
-      }
+    return models.Solicitud.findByPk(solicitudId, { transaction: t })
+      .then(function (solicitud) {
+        if (!solicitud) {
+          // Forzar rollback devolviendo error
+          throw new Error('NO_ENCONTRADA');
+        }
 
-      solicitud.estado = 'aprobada';
-      solicitud.gestionado_por_id = pasId;
-      solicitud.resuelta_en = new Date();
+        if (solicitud.estado !== 'pendiente') {
+          throw new Error('NO_PENDIENTE');
+        }
 
-      return solicitud.save();
-    })
-    .then(function (solicitudGuardada) {
-      if (!solicitudGuardada) {
-        return; // ya se respondió antes
-      }
+        // Calcular fechas de préstamo
+        var ahora = new Date();
+        var fechaPrevista = new Date();
+        fechaPrevista.setDate(fechaPrevista.getDate() + 7); // TODO: ajustar regla real
 
+        // Tipo de préstamo: 'a' para prof_trabajo, 'b' para uso_propio
+        var tipoPrestamo = (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b';
+
+        var profesorSolicitanteId = null;
+        if (solicitud.tipo === 'prof_trabajo') {
+          profesorSolicitanteId = solicitud.usuario_id; // el propio profesor
+        }
+
+        // Creamos el préstamo
+        return models.Prestamo.create({
+          usuario_id: solicitud.usuario_id,
+          ejemplar_id: solicitud.ejemplar_id || null,
+          unidad_id: solicitud.unidad_id || null,
+          solicitud_id: solicitud.id,
+          tipo: tipoPrestamo,
+          estado: 'activo',
+          fecha_inicio: ahora,
+          fecha_devolucion_prevista: fechaPrevista,
+          fecha_devolucion_real: null,
+          profesor_solicitante_id: profesorSolicitanteId
+        }, { transaction: t })
+          .then(function (prestamoCreado) {
+            prestamoCreadoGlobal = prestamoCreado;
+
+            // Actualizar estado de la solicitud
+            solicitud.estado = 'aprobada';
+            solicitud.gestionado_por_id = pasId;
+            solicitud.resuelta_en = ahora;
+            solicitudGuardadaGlobal = solicitud;
+
+            // Marcar ejemplar/unidad como no_disponible
+            if (solicitud.ejemplar_id) {
+              return models.Ejemplar.findByPk(solicitud.ejemplar_id, { transaction: t })
+                .then(function (ejemplar) {
+                  if (ejemplar) {
+                    ejemplar.estado = 'no_disponible';
+                    return ejemplar.save({ transaction: t });
+                  }
+                });
+            } else if (solicitud.unidad_id) {
+              return models.Unidad.findByPk(solicitud.unidad_id, { transaction: t })
+                .then(function (unidad) {
+                  if (unidad) {
+                    unidad.estado = 'no_disponible';
+                    return unidad.save({ transaction: t });
+                  }
+                });
+            } else {
+              // Ni ejemplar ni unidad (raro), pero seguimos
+              return null;
+            }
+          })
+          .then(function () {
+            // Guardar la solicitud con su nuevo estado
+            return solicitudGuardadaGlobal.save({ transaction: t });
+          });
+      });
+  })
+    .then(function (resultado) {
+      // Si todo fue bien
       res.json({
-        mensaje: 'Solicitud aprobada correctamente',
-        solicitud: solicitudGuardada
+        mensaje: 'Solicitud aprobada y préstamo creado correctamente',
+        // No devolvemos todo, pero podrías añadir más info si quieres
       });
     })
     .catch(function (error) {
-      console.error('Error al aprobar solicitud:', error);
+      if (error.message === 'NO_ENCONTRADA') {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      }
+      if (error.message === 'NO_PENDIENTE') {
+        return res.status(400).json({ mensaje: 'Solo se pueden aprobar solicitudes pendientes' });
+      }
+
+      console.error('Error al aprobar solicitud y crear préstamo:', error);
       res.status(500).json({ mensaje: 'Error al aprobar la solicitud' });
     });
 }
+
 
 function rechazarSolicitud(req, res) {
   var solicitudId = req.params.id;
