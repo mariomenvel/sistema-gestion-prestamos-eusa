@@ -8,6 +8,7 @@ var equiposRoutes = require('./routes/equipos.routes');
 var authRoutes = require('./routes/auth.routes');
 var solicitudesRoutes = require('./routes/solicitudes.routes');
 var prestamosRoutes = require('./routes/prestamos.routes');
+var sancionesRoutes = require('./routes/sanciones.routes');
 
 
 var app = express();
@@ -23,6 +24,7 @@ app.use('/equipos', equiposRoutes);
 app.use('/auth', authRoutes);
 app.use('/solicitudes', solicitudesRoutes);
 app.use('/prestamos', prestamosRoutes);
+app.use('/sanciones', sancionesRoutes);
 
 
 db.probarConexion();

@@ -14,43 +14,65 @@ function crearSolicitud(req, res) {
   var normasAceptadas = req.body.normas_aceptadas;
   var observaciones = req.body.observaciones || null;
 
-  // Validaciones básicas
-  if (!tipo || (tipo !== 'prof_trabajo' && tipo !== 'uso_propio')) {
-    return res.status(400).json({ mensaje: 'Tipo de solicitud inválido' });
-  }
-
-  if (!normasAceptadas) {
-    return res.status(400).json({ mensaje: 'Debe aceptar las normas para crear una solicitud' });
-  }
-
-  // Debe elegir o ejemplar o unidad, pero no ambos a la vez
-  if ((!ejemplarId && !unidadId) || (ejemplarId && unidadId)) {
-    return res.status(400).json({
-      mensaje: 'Debe indicar SOLO ejemplar_id o SOLO unidad_id'
-    });
-  }
-
-  // Para tipo prof_trabajo, tiene que ser profesor
-  if (tipo === 'prof_trabajo' && rol !== 'profesor') {
-    return res.status(403).json({
-      mensaje: 'Solo un profesor puede crear una solicitud de tipo prof_trabajo'
-    });
-  }
-
-  // Crear la solicitud
-  models.Solicitud.create({
-    usuario_id: usuarioId,
-    ejemplar_id: ejemplarId || null,
-    unidad_id: unidadId || null,
-    tipo: tipo,
-    estado: 'pendiente',
-    normas_aceptadas: true,
-    observaciones: observaciones,
-    gestionado_por_id: null,
-    creada_en: new Date(),
-    resuelta_en: null
+  // 1) Comprobar si el usuario tiene sanción activa
+  models.Sancion.findOne({
+    where: {
+      usuario_id: usuarioId,
+      estado: 'activa'
+    }
   })
+    .then(function (sancionActiva) {
+
+      if (sancionActiva) {
+        return res.status(403).json({
+          mensaje: 'No puedes crear nuevas solicitudes porque tienes una sanción activa',
+          sancion: sancionActiva
+        });
+      }
+
+      // 2) Validaciones básicas
+      if (!tipo || (tipo !== 'prof_trabajo' && tipo !== 'uso_propio')) {
+        return res.status(400).json({ mensaje: 'Tipo de solicitud inválido' });
+      }
+
+      if (!normasAceptadas) {
+        return res.status(400).json({ mensaje: 'Debe aceptar las normas para crear una solicitud' });
+      }
+
+      // Debe elegir o ejemplar o unidad, pero no ambos a la vez
+      if ((!ejemplarId && !unidadId) || (ejemplarId && unidadId)) {
+        return res.status(400).json({
+          mensaje: 'Debe indicar SOLO ejemplar_id o SOLO unidad_id'
+        });
+      }
+
+      // Para tipo prof_trabajo, tiene que ser profesor
+      if (tipo === 'prof_trabajo' && rol !== 'profesor') {
+        return res.status(403).json({
+          mensaje: 'Solo un profesor puede crear una solicitud de tipo prof_trabajo'
+        });
+      }
+
+      // 3) Crear la solicitud
+      return models.Solicitud.create({
+        usuario_id: usuarioId,
+        ejemplar_id: ejemplarId || null,
+        unidad_id: unidadId || null,
+        tipo: tipo,
+        estado: 'pendiente',
+        normas_aceptadas: true,
+        observaciones: observaciones,
+        gestionado_por_id: null,
+        creada_en: new Date(),
+        resuelta_en: null
+      });
+    })
     .then(function (solicitud) {
+      if (!solicitud) {
+        // Ya se respondió antes (por sanción, validación, etc.)
+        return;
+      }
+
       res.status(201).json({
         mensaje: 'Solicitud creada correctamente',
         solicitud: solicitud
@@ -61,6 +83,8 @@ function crearSolicitud(req, res) {
       res.status(500).json({ mensaje: 'Error al crear la solicitud' });
     });
 }
+
+
 
 function obtenerSolicitudesPendientes(req, res) {
   models.Solicitud.findAll({
@@ -127,7 +151,7 @@ function aprobarSolicitud(req, res) {
         // Calcular fechas de préstamo
         var ahora = new Date();
         var fechaPrevista = new Date();
-        fechaPrevista.setDate(fechaPrevista.getDate() + 7); // TODO: ajustar regla real
+        fechaPrevista.setDate(fechaPrevista.getHours() + 24);
 
         // Tipo de préstamo: 'a' para prof_trabajo, 'b' para uso_propio
         var tipoPrestamo = (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b';

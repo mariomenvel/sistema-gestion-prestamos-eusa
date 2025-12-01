@@ -1,6 +1,7 @@
 var models = require('../models');
 var db = require('../db');
 
+
 /**
  * Prestamos del usuario (alumno/profesor)
  */
@@ -94,6 +95,7 @@ function devolverPrestamo(req, res) {
 
   db.sequelize.transaction(function (t) {
     var prestamoGlobal;
+    var usuarioIdGlobal;
 
     return models.Prestamo.findByPk(prestamoId, { transaction: t })
       .then(function (prestamo) {
@@ -109,6 +111,7 @@ function devolverPrestamo(req, res) {
         prestamo.fecha_devolucion_real = ahora;
         prestamo.estado = 'cerrado';
         prestamoGlobal = prestamo;
+        usuarioIdGlobal = prestamo.usuario_id;
 
         // Marcar ejemplar/unidad como disponible
         if (prestamo.ejemplar_id) {
@@ -135,11 +138,70 @@ function devolverPrestamo(req, res) {
         if (!prestamoGlobal) {
           return;
         }
+
+        // Guardar el préstamo actualizado
         return prestamoGlobal.save({ transaction: t });
+      })
+      .then(function () {
+        if (!prestamoGlobal) {
+          return;
+        }
+
+        // --- ¿Hubo retraso? ---
+        var fechaPrevista = prestamoGlobal.fecha_devolucion_prevista;
+        var fechaReal = prestamoGlobal.fecha_devolucion_real;
+
+        if (!fechaPrevista || !fechaReal) {
+          return;
+        }
+
+        var msPorDia = 24 * 60 * 60 * 1000;
+        var diffMs = fechaReal.getTime() - fechaPrevista.getTime();
+        var diasRetraso = Math.floor(diffMs / msPorDia);
+
+        // Si NO hay retraso, no se crea sanción
+        if (diasRetraso <= 0) {
+          return;
+        }
+
+        // --- Calcular qué nº de sanción es para este usuario ---
+        return models.Sancion.count({
+          where: { usuario_id: usuarioIdGlobal },
+          transaction: t
+        })
+          .then(function (numSancionesPrevias) {
+            var severidad;
+            var inicio = new Date();
+            var fin = null;
+
+            if (numSancionesPrevias === 0) {
+              severidad = 's1_1sem';
+              fin = new Date(inicio.getTime());
+              fin.setDate(fin.getDate() + 7); // 1 semana
+            } else if (numSancionesPrevias === 1) {
+              severidad = 's2_1mes';
+              fin = new Date(inicio.getTime());
+              fin.setMonth(fin.getMonth() + 1); // 1 mes
+            } else {
+              severidad = 's3_indefinida';
+              fin = null; // indefinida
+            }
+
+            var motivo = 'Retraso en la devolución del préstamo ID ' + prestamoGlobal.id;
+
+            return models.Sancion.create({
+              usuario_id: usuarioIdGlobal,
+              severidad: severidad,
+              estado: 'activa',
+              inicio: inicio,
+              fin: fin,
+              motivo: motivo
+            }, { transaction: t });
+          });
       });
   })
     .then(function () {
-      res.json({ mensaje: 'Préstamo devuelto correctamente' });
+      res.json({ mensaje: 'Préstamo devuelto correctamente (sanción creada si había retraso)' });
     })
     .catch(function (error) {
       if (error.message === 'NO_ENCONTRADO') {
@@ -153,6 +215,7 @@ function devolverPrestamo(req, res) {
       res.status(500).json({ mensaje: 'Error al devolver el préstamo' });
     });
 }
+
 
 /**
  * Ampliar plazo de un préstamo (solo PAS)
