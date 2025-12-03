@@ -11,6 +11,7 @@ var prestamosRoutes = require('./routes/prestamos.routes');
 var sancionesRoutes = require('./routes/sanciones.routes');
 var usuariosRoutes = require('./routes/usuarios.routes');
 var dashboardRoutes = require('./routes/dashboard.routes');
+var reportesRoutes = require('./routes/reportes.routes');
 
 var app = express();
 app.use(cors());
@@ -28,6 +29,7 @@ app.use('/prestamos', prestamosRoutes);
 app.use('/sanciones', sancionesRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/reportes', reportesRoutes);
 
 
 db.probarConexion();
