@@ -167,14 +167,16 @@ function devolverPrestamo(req, res) {
           }
 
           // --- Calcular qué nº de sanción es para este usuario ---
+          var inicioCurso = obtenerInicioCurso();
+
           return models.Sancion.count({
             where: {
               usuario_id: usuarioIdGlobal,
-              cuenta_para_escala: true,
+              // Solo sanciones de este curso
+              inicio: { [db.Sequelize.Op.gte]: inicioCurso },
             },
             transaction: t,
-          })
-          .then(function (numSancionesPrevias) {
+          }).then(function (numSancionesPrevias) {
             var severidad;
             var inicio = new Date();
             var fin = null;
@@ -273,6 +275,23 @@ function ampliarPrestamo(req, res) {
       console.error("Error al ampliar préstamo (PAS):", error);
       res.status(500).json({ mensaje: "Error al ampliar el préstamo" });
     });
+}
+
+// Observa se la sancion es de este curso
+function obtenerInicioCurso() {
+  var hoy = new Date();
+  var year = hoy.getFullYear();
+
+  // INICIO DE CURSO: 1 de septiembre (cámbialo si quieres)
+  var inicio = new Date(year, 8, 1); // Mes 8 = septiembre (0-based)
+
+  // Si todavía no hemos llegado a esa fecha este año,
+  // el curso actual empezó el año anterior
+  if (hoy < inicio) {
+    inicio = new Date(year - 1, 8, 1);
+  }
+
+  return inicio;
 }
 
 module.exports = {

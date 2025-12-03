@@ -13,24 +13,27 @@ function crearSolicitud(req, res) {
   var unidadId = req.body.unidad_id;     // opcional
   var normasAceptadas = req.body.normas_aceptadas;
   var observaciones = req.body.observaciones || null;
+  
+  var inicioCurso = obtenerInicioCurso();
 
   // 1) Comprobar si el usuario tiene sanción activa
   models.Sancion.findOne({
-  where: {
-    usuario_id: usuarioId,
-    estado: 'activa',
-    // Solo sanciones cuyo fin es null o está en el futuro
-    [db.Sequelize.Op.or]: [
-      { fin: null },
-      { fin: { [db.Sequelize.Op.gt]: new Date() } }
-    ]
-  }
-})
+    where: {
+      usuario_id: usuarioId,
+      estado: 'activa',
+      // Solo sanciones cuyo inicio esté en el curso actual
+      inicio: { [db.Sequelize.Op.gte]: inicioCurso },
+      // Y que no hayan terminado todavía
+      [db.Sequelize.Op.or]: [
+        { fin: null },
+        { fin: { [db.Sequelize.Op.gt]: new Date() } }
+      ]
+    }
+  })
     .then(function (sancionActiva) {
-
       if (sancionActiva) {
         return res.status(403).json({
-          mensaje: 'No puedes crear nuevas solicitudes porque tienes una sanción activa',
+          mensaje: 'No puedes crear nuevas solicitudes porque tienes una sanción activa en este curso',
           sancion: sancionActiva
         });
       }
@@ -88,8 +91,6 @@ function crearSolicitud(req, res) {
       res.status(500).json({ mensaje: 'Error al crear la solicitud' });
     });
 }
-
-
 
 function obtenerSolicitudesPendientes(req, res) {
   models.Solicitud.findAll({
@@ -236,7 +237,6 @@ function aprobarSolicitud(req, res) {
     });
 }
 
-
 function rechazarSolicitud(req, res) {
   var solicitudId = req.params.id;
   var pasId = req.user.id;
@@ -272,7 +272,6 @@ function rechazarSolicitud(req, res) {
       res.status(500).json({ mensaje: 'Error al rechazar la solicitud' });
     });
 }
-
 
 function obtenerMisSolicitudes(req, res) {
   var usuarioId = req.user.id;
@@ -310,6 +309,22 @@ function obtenerMisSolicitudes(req, res) {
     });
 }
 
+// Observa se la sancion es de este curso
+function obtenerInicioCurso() {
+  var hoy = new Date();
+  var year = hoy.getFullYear();
+
+  // INICIO DE CURSO: 1 de septiembre (cámbialo si quieres)
+  var inicio = new Date(year, 8, 1); // Mes 8 = septiembre (0-based)
+
+  // Si todavía no hemos llegado a esa fecha este año,
+  // el curso actual empezó el año anterior
+  if (hoy < inicio) {
+    inicio = new Date(year - 1, 8, 1);
+  }
+
+  return inicio;
+}
 
 module.exports = {
   crearSolicitud: crearSolicitud,
