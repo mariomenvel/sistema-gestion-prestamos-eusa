@@ -40,7 +40,14 @@ var Sancion = db.sequelize.define('Sancion', {
   motivo: {
     type: Sequelize.TEXT,
     allowNull: true
-  }
+  },
+
+  cuenta_para_escala: {
+  type: DataTypes.BOOLEAN,
+  allowNull: false,
+  defaultValue: true
+}
+
 
 }, {
   tableName: 'sanciones',

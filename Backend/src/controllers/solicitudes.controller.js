@@ -16,11 +16,16 @@ function crearSolicitud(req, res) {
 
   // 1) Comprobar si el usuario tiene sanción activa
   models.Sancion.findOne({
-    where: {
-      usuario_id: usuarioId,
-      estado: 'activa'
-    }
-  })
+  where: {
+    usuario_id: usuarioId,
+    estado: 'activa',
+    // Solo sanciones cuyo fin es null o está en el futuro
+    [db.Sequelize.Op.or]: [
+      { fin: null },
+      { fin: { [db.Sequelize.Op.gt]: new Date() } }
+    ]
+  }
+})
     .then(function (sancionActiva) {
 
       if (sancionActiva) {
