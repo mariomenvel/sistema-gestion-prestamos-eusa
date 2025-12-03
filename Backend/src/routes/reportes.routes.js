@@ -6,4 +6,9 @@ var roles = require('../middlewares/roles');
 
 router.get('/prestamos', auth, roles.soloPAS, reportesController.obtenerReportePrestamos);
 
+router.get('/solicitudes', auth, roles.soloPAS, reportesController.obtenerReporteSolicitudes);
+
+router.get('/sanciones', auth, roles.soloPAS, reportesController.obtenerReporteSanciones);
+
+
 module.exports = router;
