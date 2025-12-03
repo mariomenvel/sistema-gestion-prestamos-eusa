@@ -2,8 +2,15 @@ var express = require('express');
 var router = express.Router();
 var usuariosController = require('../controllers/usuarios.controller');
 var auth = require('../middlewares/auth');
+var roles = require('../middlewares/roles');
 
-// Obtener perfil del usuario actual (alumno/profesor/PAS)
+// Perfil del usuario actual (alumno/profesor/PAS)
 router.get('/me', auth, usuariosController.obtenerPerfilActual);
+
+// Lista de usuarios (solo PAS)
+router.get('/', auth, roles.soloPAS, usuariosController.listarUsuarios);
+
+// Detalle completo de un usuario (solo PAS)
+router.get('/:id/detalle', auth, roles.soloPAS, usuariosController.obtenerDetalleUsuario);
 
 module.exports = router;
