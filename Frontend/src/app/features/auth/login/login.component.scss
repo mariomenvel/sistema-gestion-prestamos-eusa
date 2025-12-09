@@ -1,0 +1,300 @@
+// ========================================
+// VARIABLES DE DISEÑO - VALORES EXACTOS DE FIGMA
+// ========================================
+
+// Colores
+$color-primary-blue: #0066CC;
+$color-primary-blue-dark: #004D99;
+$color-bg-white: #FFFFFF;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
+$color-border-gray: #6C757D;
+$color-error: #D32F2F;
+
+// Tipografía
+$font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-size-title: 25px;
+$font-size-subtitle: 16px;
+$font-size-label: 14px;
+$font-size-input: 16px;
+$font-size-button: 16px;
+$font-size-link: 14px;
+
+// Border radius
+$radius-card: 16px;
+$radius-input: 8px;
+$radius-button: 8px;
+
+// Dimensiones
+$card-width: 450px;
+$input-width: 350px;
+$input-height: 48px;
+$button-width: 350px;
+$button-height: 48px;
+
+// ========================================
+// CONTENEDOR PRINCIPAL
+// ========================================
+
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(180deg, $color-primary-blue 0%, $color-primary-blue-dark 100%);
+  
+  // Centrar el card
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  font-family: $font-family;
+  overflow: hidden;
+}
+
+// ========================================
+// CARD BLANCO
+// ========================================
+
+.login-card {
+  width: $card-width;
+  min-height: 550px;
+  
+  background: $color-bg-white;
+  box-shadow: 0px 4px 0px 20px rgba(0, 0, 0, 0.1), 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: $radius-card;
+  
+  // Usar flexbox para organizar contenido verticalmente
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  // Padding interno
+  padding: 40px 50px;
+  
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 32px 24px;
+  }
+}
+
+// ========================================
+// LOGO
+// ========================================
+
+.logo {
+  width: 233.6px;
+  height: 80px;
+  margin-bottom: 24px;
+  
+  @media (max-width: 768px) {
+    width: 180px;
+    height: auto;
+  }
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+// ========================================
+// TÍTULOS
+// ========================================
+
+.title {
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 700;
+  font-size: $font-size-title;
+  line-height: 30px;
+  text-align: center;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 700;
+  font-size: $font-size-subtitle;
+  line-height: 19px;
+  text-align: center;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  margin: 0 0 32px 0;
+}
+
+// ========================================
+// FORMULARIO
+// ========================================
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input-group {
+  width: $input-width;
+  margin-bottom: 20px;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+.input-label {
+  display: block;
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 500;
+  font-size: $font-size-label;
+  line-height: 17px;
+  text-align: left;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  margin-bottom: 4px;
+}
+
+.input-field {
+  box-sizing: border-box;
+  width: 100%;
+  height: $input-height;
+  
+  background: $color-bg-white;
+  border: 2px solid $color-border-gray;
+  border-radius: $radius-input;
+  
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 400;
+  font-size: $font-size-input;
+  line-height: 19px;
+  color: $color-text-primary;
+  
+  padding: 0 16px;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 3px rgba($color-primary-blue, 0.1);
+  }
+  
+  &.input-error {
+    border-color: $color-error;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($color-error, 0.1);
+    }
+  }
+}
+
+// Mensajes de error
+.error-message {
+  margin-top: 4px;
+  font-size: 12px;
+  color: $color-error;
+  text-align: left;
+  
+  span {
+    display: block;
+  }
+}
+
+// Alerta de error general
+.error-alert {
+  width: $input-width;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  
+  background-color: rgba($color-error, 0.1);
+  border: 1px solid $color-error;
+  border-radius: $radius-input;
+  
+  font-size: 14px;
+  color: $color-error;
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+// ========================================
+// BOTÓN SUBMIT
+// ========================================
+
+.btn-primary {
+  width: $button-width;
+  height: $button-height;
+  
+  background: $color-primary-blue;
+  border: none;
+  border-radius: $radius-button;
+  
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 600;
+  font-size: $font-size-button;
+  line-height: 19px;
+  text-align: center;
+  color: $color-bg-white;
+  
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  // Espaciado
+  margin-top: 8px;
+  margin-bottom: 16px;
+  
+  &:hover:not(:disabled) {
+    background: darken($color-primary-blue, 5%);
+    box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+// ========================================
+// LINK OLVIDASTE CONTRASEÑA
+// ========================================
+
+.forgot-password {
+  width: 170px;
+  text-align: center;
+}
+
+.link-forgot {
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 400;
+  font-size: $font-size-link;
+  line-height: 17px;
+  color: $color-primary-blue;
+  text-decoration: none;
+  
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: darken($color-primary-blue, 10%);
+    text-decoration: underline;
+  }
+}
