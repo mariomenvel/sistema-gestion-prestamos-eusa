@@ -1,0 +1,115 @@
+// ========================================
+// VARIABLES (del mockup de Figma)
+// ========================================
+
+$color-white: #FFFFFF;
+$color-border: #E0E0E0;
+$color-bg-blue-light: #E3F2FD;
+$color-primary-blue: #0066CC;
+$color-text-secondary: #6C757D;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// SIDEBAR PRINCIPAL
+// ========================================
+
+.sidebar {
+  // Dimensiones según Figma
+  width: 240px;
+  height: calc(100vh - 64px);  // Altura completa menos el header
+  
+  // Estilo según Figma
+  background: $color-white;
+  border-right: 2px solid $color-border;
+  
+  // Posicionamiento
+  position: fixed;
+  top: 64px;  // Debajo del header
+  left: 0;
+  
+  // Overflow por si hay muchos items
+  overflow-y: auto;
+  
+  // Z-index
+  z-index: 90;
+}
+
+// ========================================
+// MENÚ
+// ========================================
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+// ========================================
+// ITEMS DEL MENÚ
+// ========================================
+
+.menu-item {
+  // Dimensiones según Figma: 240px x 48px
+  width: 240px;
+  height: 48px;
+  
+  // Estilo según Figma (estado normal)
+  background: $color-white;
+  border: 2px solid $color-border;
+  
+  // Tipografía según Figma
+  font-family: $font-family;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  
+  // Padding interno
+  padding-left: 24px;
+  
+  // Centrar texto verticalmente
+  display: flex;
+  align-items: center;
+  
+  // Cursor
+  cursor: pointer;
+  
+  // Transición suave
+  transition: all 0.3s ease;
+  
+  // Hover
+  &:hover {
+    background: lighten($color-bg-blue-light, 3%);
+  }
+  
+  // Estado ACTIVO (según Figma)
+  &.active {
+    background: $color-bg-blue-light;
+    color: $color-primary-blue;
+    font-weight: 700;
+    
+    // Sin hover en activo
+    &:hover {
+      background: $color-bg-blue-light;
+    }
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 768px) {
+  .sidebar {
+    // En móvil, ocultar por defecto
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    
+    // Si se añade clase .open, mostrar
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}

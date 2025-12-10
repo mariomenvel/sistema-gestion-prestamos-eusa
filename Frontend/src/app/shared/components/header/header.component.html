@@ -1,1 +1,68 @@
-<p>header works!</p>
+<!-- Header principal -->
+<header class="header">
+  
+  <!-- Logo EUSA (izquierda) -->
+  <div class="header-logo">
+    <img src="assets/images/logo-eusa.png" alt="Logo EUSA" class="logo-image">
+  </div>
+
+  <!-- Buscador (centro) -->
+  <div class="header-search">
+    <input 
+      type="text" 
+      class="search-input" 
+      placeholder="Buscar"
+      disabled
+    >
+  </div>
+
+  <!-- Acciones (derecha) -->
+  <div class="header-actions">
+    
+    <!-- Icono de Notificaciones -->
+    <button class="icon-button" title="Notificaciones" disabled>
+      <span class="icon">🔔</span>
+    </button>
+
+    <!-- Icono de Configuración -->
+    <button class="icon-button" title="Configuración" disabled>
+      <span class="icon">⚙️</span>
+    </button>
+
+    <!-- Icono de Perfil con menú desplegable -->
+    <div class="profile-container">
+      <button 
+        class="icon-button profile-button" 
+        (click)="toggleProfileMenu()"
+        title="Perfil"
+      >
+        <span class="icon">👤</span>
+      </button>
+
+      <!-- Menú desplegable del perfil -->
+      <div class="profile-menu" *ngIf="isProfileMenuOpen">
+        <div class="profile-info">
+          <div class="profile-initials">{{ userInitials }}</div>
+          <div class="profile-details">
+            <div class="profile-name">{{ fullName }}</div>
+            <div class="profile-email">{{ currentUser?.email }}</div>
+          </div>
+        </div>
+        
+        <hr class="profile-divider">
+        
+        <button class="profile-menu-item" (click)="goToProfile()">
+          <span class="menu-icon">👤</span>
+          Mi Perfil
+        </button>
+        
+        <button class="profile-menu-item logout" (click)="onLogout()">
+          <span class="menu-icon">🚪</span>
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</header>

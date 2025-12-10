@@ -1,0 +1,79 @@
+// ========================================
+// VARIABLES
+// ========================================
+
+$header-height: 64px;
+$sidebar-width: 240px;
+$bg-color: #EEEEEE;
+
+// ========================================
+// CONTENEDOR PRINCIPAL
+// ========================================
+
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  
+  display: flex;
+  flex-direction: column;
+}
+
+// ========================================
+// CONTENEDOR DE CONTENIDO
+// ========================================
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+// ========================================
+// ÁREA DE CONTENIDO PRINCIPAL
+// ========================================
+
+.main-content {
+  // Ocupa el espacio restante
+  flex: 1;
+  
+  // Posicionamiento
+  margin-left: $sidebar-width;  // Dejar espacio para el sidebar
+  margin-top: $header-height;   // Dejar espacio para el header
+  
+  // Fondo según Figma
+  background: $bg-color;
+  
+  // Scroll interno
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  // Padding interno
+  padding: 24px;
+  
+  // Altura
+  height: calc(100vh - #{$header-height});
+  
+  // Clase para cuando NO hay sidebar (login)
+  &.full-width {
+    margin-left: 0;
+    margin-top: 0;
+    height: 100vh;
+    padding: 0;
+    background: transparent;
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    
+    &:not(.full-width) {
+      padding: 16px;
+    }
+  }
+}

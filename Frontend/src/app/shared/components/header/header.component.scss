@@ -1,0 +1,313 @@
+// ========================================
+// VARIABLES (del mockup de Figma)
+// ========================================
+
+$color-white: #FFFFFF;
+$color-border: #E0E0E0;
+$color-bg-blue-light: #E3F2FD;
+$color-primary-blue: #0066CC;
+$color-text-disabled: #9E9E9E;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// HEADER PRINCIPAL
+// ========================================
+
+.header {
+  // Dimensiones según Figma
+  position: relative;
+  width: 100%;
+  height: 64px;
+  
+  // Estilo según Figma
+  background: $color-white;
+  border-bottom: 2px solid $color-border;
+  
+  // Flexbox para organizar elementos
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  
+  // Z-index para que esté sobre el contenido
+  z-index: 100;
+}
+
+// ========================================
+// LOGO (izquierda)
+// ========================================
+
+.header-logo {
+  // Dimensiones según Figma: 116.8px x 40px
+  width: 116.8px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+// ========================================
+// BUSCADOR (centro)
+// ========================================
+
+.header-search {
+  // Posición central
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.search-input {
+  // Dimensiones según Figma: 400px x 40px
+  width: 100%;
+  max-width: 400px;
+  height: 40px;
+  
+  // Estilo según Figma
+  background: $color-bg-blue-light;
+  border: 2px solid $color-primary-blue;
+  border-radius: 20px;
+  
+  // Tipografía
+  font-family: $font-family;
+  font-size: 16px;
+  color: $color-text-primary;
+  
+  // Padding interno
+  padding: 0 20px;
+  
+  // Placeholder
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  // Focus
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($color-primary-blue, 0.1);
+  }
+  
+  // Disabled (por ahora el buscador no funciona)
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+// ========================================
+// ACCIONES (derecha)
+// ========================================
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+// ========================================
+// BOTONES DE ICONOS
+// ========================================
+
+.icon-button {
+  // Dimensiones según Figma: 32x32px
+  width: 32px;
+  height: 32px;
+  
+  // Estilo según Figma
+  background: $color-bg-blue-light;
+  border: 1px solid $color-primary-blue;
+  border-radius: 16px;
+  
+  // Centrar icono
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  // Cursor
+  cursor: pointer;
+  
+  // Transición
+  transition: all 0.3s ease;
+  
+  // Hover
+  &:hover:not(:disabled) {
+    background: darken($color-bg-blue-light, 5%);
+    transform: scale(1.05);
+  }
+  
+  // Disabled
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+// ========================================
+// PERFIL CON DROPDOWN
+// ========================================
+
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  // Mismo estilo que otros icon-button
+  // pero sin el disabled
+}
+
+// Menú desplegable
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  
+  width: 280px;
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  padding: 16px;
+  
+  // Animación de entrada
+  animation: slideDown 0.2s ease;
+  
+  // Z-index para estar sobre otros elementos
+  z-index: 1000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Información del usuario en el menú
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile-initials {
+  width: 48px;
+  height: 48px;
+  background: $color-primary-blue;
+  color: $color-white;
+  border-radius: 50%;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.profile-details {
+  flex: 1;
+}
+
+.profile-name {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-primary;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 12px;
+  color: $color-text-secondary;
+}
+
+.profile-divider {
+  border: none;
+  border-top: 1px solid $color-border;
+  margin: 12px 0;
+}
+
+// Items del menú
+.profile-menu-item {
+  width: 100%;
+  padding: 10px 12px;
+  
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  font-family: $font-family;
+  font-size: 14px;
+  color: $color-text-primary;
+  text-align: left;
+  
+  cursor: pointer;
+  transition: background 0.2s ease;
+  
+  &:hover {
+    background: $color-bg-blue-light;
+  }
+  
+  // Item de logout con color diferente
+  &.logout {
+    color: #D32F2F;
+    
+    &:hover {
+      background: rgba(#D32F2F, 0.1);
+    }
+  }
+}
+
+.menu-icon {
+  font-size: 16px;
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 12px;
+  }
+  
+  .header-search {
+    max-width: 300px;
+  }
+  
+  .search-input {
+    max-width: 200px;
+  }
+  
+  .header-actions {
+    gap: 12px;
+  }
+}
