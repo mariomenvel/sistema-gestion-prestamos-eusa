@@ -181,11 +181,18 @@ cerrarModalRechazar(): void {
    * Obtiene el nombre del usuario
    */
   getNombreUsuario(solicitud: Solicitud): string {
-    if (solicitud.usuario) {
-      return solicitud.usuario.nombre || solicitud.usuario.email;
-    }
-    return 'Usuario desconocido';
+    const usuario = (solicitud as any).Usuario || solicitud.usuario;
+     if (usuario) {
+    // Concatenar nombre y apellidos si existen
+    const nombreCompleto = usuario.apellidos 
+      ? `${usuario.nombre} ${usuario.apellidos}` 
+      : usuario.nombre;
+    
+    return nombreCompleto || usuario.email;
   }
+    
+  return 'Usuario desconocido';
+}
 
   /**
  * Obtiene el nombre del material
