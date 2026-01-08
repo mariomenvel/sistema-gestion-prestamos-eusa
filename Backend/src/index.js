@@ -12,6 +12,8 @@ var sancionesRoutes = require('./routes/sanciones.routes');
 var usuariosRoutes = require('./routes/usuarios.routes');
 var dashboardRoutes = require('./routes/dashboard.routes');
 var reportesRoutes = require('./routes/reportes.routes');
+var unidadesRoutes = require('./routes/unidades.routes');
+
 
 var app = express();
 app.use(cors());
@@ -30,6 +32,7 @@ app.use('/sanciones', sancionesRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/reportes', reportesRoutes);
+app.use('/unidades', unidadesRoutes);
 
 
 db.probarConexion();
