@@ -249,27 +249,27 @@ getNombreMaterial(solicitud: Solicitud): string {
 
   // ===== MÉTODOS PRIVADOS =====
   
-  /**
-   * Carga todas las solicitudes pendientes
-   */
-  private cargarSolicitudes(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
+ /**
+ * Carga todas las solicitudes
+ */
+private cargarSolicitudes(): void {
+  this.isLoading = true;
+  this.errorMessage = '';
 
-    this.solicitudesService.getSolicitudesPendientes().subscribe({
-      next: (solicitudes) => {
-        console.log('📋 Solicitudes recibidas:', solicitudes);
-        this.solicitudes = solicitudes;
-        this.aplicarFiltros();
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('❌ Error al cargar solicitudes:', err);
-        this.errorMessage = 'Error al cargar las solicitudes';
-        this.isLoading = false;
-      }
-    });
-  }
+  this.solicitudesService.getAllSolicitudes().subscribe({
+    next: (solicitudes) => {
+      console.log('📋 Solicitudes recibidas:', solicitudes);
+      this.solicitudes = solicitudes;
+      this.aplicarFiltros();
+      this.isLoading = false;
+    },
+    error: (err) => {
+      console.error('❌ Error al cargar solicitudes:', err);
+      this.errorMessage = 'Error al cargar las solicitudes';
+      this.isLoading = false;
+    }
+  });
+}
 
   /**
    * Aplica todos los filtros activos

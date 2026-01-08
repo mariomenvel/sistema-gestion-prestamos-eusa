@@ -34,14 +34,21 @@ export class SolicitudesService {
   }
 
   // --- Funciones exclusivas para PAS ---
+/**
+ * Obtiene todas las solicitudes pendientes.
+ * Endpoint: GET /solicitudes/pendientes
+ */
+getSolicitudesPendientes(): Observable<Solicitud[]> {
+  return this.apiService.get<Solicitud[]>('/solicitudes/pendientes');
+}
 
-  /**
-   * Obtiene todas las solicitudes pendientes.
-   * Endpoint: GET /solicitudes/pendientes
-   */
-  getSolicitudesPendientes(): Observable<Solicitud[]> {
-    return this.apiService.get<Solicitud[]>('/solicitudes/pendientes');
-  }
+/**
+ * Obtiene TODAS las solicitudes (pendientes, aprobadas, rechazadas).
+ * Endpoint: GET /solicitudes
+ */
+getAllSolicitudes(): Observable<Solicitud[]> {
+  return this.apiService.get<Solicitud[]>('/solicitudes');
+}
 
   /**
    * Aprueba una solicitud.
