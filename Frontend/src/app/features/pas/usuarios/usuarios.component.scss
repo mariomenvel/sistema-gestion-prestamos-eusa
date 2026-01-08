@@ -1,0 +1,438 @@
+// ========================================
+// VARIABLES
+// ========================================
+
+$color-primary-blue: #0066CC;
+$color-info-blue-light: #E3F2FD;
+$color-success-green: #4CAF50;
+
+$color-white: #FFFFFF;
+$color-bg-gray: #EEEEEE;
+$color-bg-light: #F5F5F5;
+$color-border: #E0E0E0;
+$color-border-input: #CCCCCC;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// CONTENEDOR PRINCIPAL
+// ========================================
+
+.usuarios {
+  width: 100%;
+  max-width: 1152px;
+  margin: 0 auto;
+  padding-top: 24px;
+  padding-bottom: 40px;
+}
+
+// ========================================
+// TÍTULO PRINCIPAL
+// ========================================
+
+.page-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 39px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  margin: 0 0 32px 0;
+}
+
+// ========================================
+// BARRA DE BÚSQUEDA
+// ========================================
+
+.busqueda {
+  margin-bottom: 20px;
+}
+
+.input-busqueda {
+  width: 500px;
+  height: 44px;
+  padding: 0 48px 0 16px;
+  
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 22px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 2px rgba($color-primary-blue, 0.1);
+  }
+}
+
+// ========================================
+// TABLA
+// ========================================
+
+.table-container {
+  background: $color-white;
+  border: 1px solid $color-border;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  
+  overflow: hidden;
+  max-height: 600px;
+}
+
+// Header de la tabla
+.table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1.5fr 0.8fr 0.8fr;
+  gap: 16px;
+  
+  background: $color-primary-blue;
+  border-radius: 8px 8px 0 0;
+  
+  padding: 16px 24px;
+  
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.th {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-white;
+}
+
+// Body de la tabla
+.table-body {
+  max-height: 550px;
+  overflow-y: auto;
+  background: $color-white;
+  
+  // Scrollbar personalizada
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $color-info-blue-light;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $color-primary-blue;
+    border-radius: 4px;
+    
+    &:hover {
+      background: darken($color-primary-blue, 10%);
+    }
+  }
+}
+
+// Fila de la tabla
+.table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1.5fr 0.8fr 0.8fr;
+  gap: 16px;
+  align-items: center;
+  
+  padding: 8px 24px;
+  border-bottom: 1px solid $color-border;
+  
+  cursor: pointer;
+  transition: background 0.2s ease;
+  
+  &:hover {
+    background: rgba($color-info-blue-light, 0.5);
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.td {
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nombre-clickeable {
+  color: $color-text-primary;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ========================================
+// ESTADOS (Loading, Error, Empty)
+// ========================================
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  min-height: 400px;
+  padding: 40px;
+  
+  p {
+    font-family: $font-family;
+    font-size: 16px;
+    color: $color-text-secondary;
+    text-align: center;
+    margin: 0;
+  }
+  
+  &.error p {
+    color: #F44336;
+  }
+}
+
+// ========================================
+// MODAL
+// ========================================
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  background: rgba(0, 0, 0, 0.45);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 704px;
+  max-height: 90vh;
+  
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 12px;
+  
+  box-shadow: 0px 12px 48px rgba(0, 0, 0, 0.3);
+  
+  padding: 40px 24px 24px 24px;
+  
+  overflow-y: auto;
+  
+  // Scrollbar personalizada
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $color-bg-light;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $color-text-disabled;
+    border-radius: 3px;
+  }
+}
+
+.modal-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29px;
+  letter-spacing: -0.03em;
+  color: $color-primary-blue;
+  
+  margin: 0 0 40px 0;
+}
+
+// ========================================
+// FORMULARIO
+// ========================================
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+}
+
+.field-input,
+.field-select {
+  height: 41px;
+  padding: 0 16px;
+  
+  background: $color-bg-light;
+  border: 1px solid $color-border-input;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 2px rgba($color-primary-blue, 0.1);
+  }
+  
+  &:disabled {
+    background: #E9ECEF;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+}
+
+.field-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23212121' d='M1.41 0L6 4.59L10.59 0L12 1.41l-6 6l-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+// ========================================
+// ACCIONES DEL MODAL
+// ========================================
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  
+  margin-top: 32px;
+}
+
+.btn-cancelar,
+.btn-guardar {
+  height: 44px;
+  padding: 0 24px;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: -0.03em;
+  
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-cancelar {
+  min-width: 120px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  color: $color-text-primary;
+  
+  &:hover:not(:disabled) {
+    background: $color-bg-light;
+  }
+}
+
+.btn-guardar {
+  min-width: 134px;
+  
+  background: $color-primary-blue;
+  border: none;
+  color: $color-white;
+  
+  box-shadow: 0px 4px 16px rgba(0, 102, 204, 0.25);
+  
+  &:hover:not(:disabled) {
+    background: darken($color-primary-blue, 8%);
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 20px rgba(0, 102, 204, 0.35);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 1200px) {
+  .input-busqueda {
+    width: 100%;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1.2fr 1.8fr 1.2fr 0.8fr 0.8fr;
+  }
+  
+  .modal-card {
+    width: 90%;
+    max-width: 704px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .table-header,
+  .table-row {
+    min-width: 900px;
+  }
+  
+  .modal-card {
+    width: 95%;
+    padding: 24px 16px;
+  }
+}

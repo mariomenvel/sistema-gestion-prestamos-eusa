@@ -27,6 +27,16 @@ $bg-color: #EEEEEE;
   display: flex;
   flex: 1;
   overflow: hidden;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+// ========================================
+// ROUTER OUTLET (no debe ocupar espacio)
+// ========================================
+
+router-outlet {
+  display: none;  // El router-outlet no debe renderizar nada visualmente
 }
 
 // ========================================
@@ -34,36 +44,37 @@ $bg-color: #EEEEEE;
 // ========================================
 
 .main-content {
-  // Ocupa el espacio restante
-  flex: 1;
+  //Position fixed para evitar espacios
+  position: fixed;
+  top: $header-height;      // 64px desde arriba
+  left: $sidebar-width;     // 240px desde la izquierda
+  right: 0;                 // Hasta el borde derecho
+  bottom: 0;                // Hasta el borde inferior
   
-  // Posicionamiento
-  margin-left: $sidebar-width;  // Dejar espacio para el sidebar
-  margin-top: $header-height;   // Dejar espacio para el header
+  // SIN margins 
+  margin: 0;
   
-  // Fondo según Figma
+  // Fondo 
   background: $bg-color;
   
   // Scroll interno
   overflow-y: auto;
   overflow-x: hidden;
   
-  // Padding interno
-  padding: 24px;
+  // Padding SOLO a los lados y abajo
+  padding: 0 16px 16px 16px;
   
-  // Altura
-  height: calc(100vh - #{$header-height});
+  // Box sizing
+  box-sizing: border-box;
   
   // Clase para cuando NO hay sidebar (login)
   &.full-width {
-    margin-left: 0;
-    margin-top: 0;
-    height: 100vh;
+    top: 0;
+    left: 0;
     padding: 0;
     background: transparent;
   }
 }
-
 // ========================================
 // RESPONSIVE
 // ========================================

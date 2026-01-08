@@ -53,4 +53,13 @@ export class UsuariosService {
   getDetalleUsuario(id: number): Observable<DetalleUsuarioResponse> {
     return this.apiService.get<DetalleUsuarioResponse>(`/usuarios/${id}/detalle`);
   }
+
+  /**
+ * Actualiza los datos de un usuario.
+ * Endpoint: PUT /usuarios/:id
+ * Auth: Requerido + soloPAS
+ */
+actualizarUsuario(id: number, datos: Partial<Usuario>): Observable<any> {
+  return this.apiService.put(`/usuarios/${id}`, datos);
+}
 }

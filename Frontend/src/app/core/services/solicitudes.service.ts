@@ -30,7 +30,7 @@ export class SolicitudesService {
    * Endpoint: GET /solicitudes/mis
    */
   getMisSolicitudes(): Observable<Solicitud[]> {
-    return this.apiService.get<Solicitud[]>('/solicitudes/mios');
+    return this.apiService.get<Solicitud[]>('/solicitudes/mias');
   }
 
   // --- Funciones exclusivas para PAS ---

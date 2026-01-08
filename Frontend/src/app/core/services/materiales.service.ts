@@ -12,26 +12,49 @@ export class MaterialesService {
 
   constructor(private apiService: ApiService) { }
 
-  //  LIBROS 
+  // ===== LIBROS =====
 
-  // Obtener todos los libros (GET /libros) con sus categorías y ejemplares
+  /**
+   * Obtener todos los libros (GET /libros) con sus categorías y ejemplares
+   */
   getLibros(): Observable<Libro[]> {
     return this.apiService.get<Libro[]>('/libros');
   }
 
-  // Obtener un libro por ID 
+  /**
+   * Obtener un libro por ID 
+   */
   getLibroById(id: number): Observable<Libro> {
     return this.apiService.get<Libro>(`/libros/${id}`);
   }
 
-  // EQUIPOS
+  /**
+   * Eliminar un libro por ID
+   */
+  eliminarLibro(id: number): Observable<any> {
+    return this.apiService.delete(`/libros/${id}`);
+  }
 
-  // Obtener todos los equipos (GET /equipos) con sus categorías y unidades incluidas
+  // ===== EQUIPOS =====
+
+  /**
+   * Obtener todos los equipos (GET /equipos) con sus categorías y unidades incluidas
+   */
   getEquipos(): Observable<Equipo[]> {
     return this.apiService.get<Equipo[]>('/equipos');
   }
 
+  /**
+   * Obtener un equipo por ID
+   */
   getEquipoById(id: number): Observable<Equipo> {
     return this.apiService.get<Equipo>(`/equipos/${id}`);
+  }
+
+  /**
+   * Eliminar un equipo por ID
+   */
+  eliminarEquipo(id: number): Observable<any> {
+    return this.apiService.delete(`/equipos/${id}`);
   }
 }

@@ -1,1 +1,186 @@
-<p>solicitar-prestamo works!</p>
+<!-- Modal Overlay -->
+<div class="modal-overlay" *ngIf="isOpen" (click)="cerrarModal()">
+  
+  <!-- Modal Container -->
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <h2 class="modal-title">Solicitar Préstamo Material</h2>
+        <p class="modal-subtitle">Material Seleccionado</p>
+      </div>
+      <button 
+        class="btn-close"
+        (click)="cerrarModal()"
+        type="button"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      
+      <!-- Card Material Seleccionado -->
+      <div class="material-card" *ngIf="material">
+        <div class="material-image">
+          <img 
+            *ngIf="material.imagenUrl" 
+            [src]="material.imagenUrl" 
+            [alt]="material.titulo"
+          >
+          <div *ngIf="!material.imagenUrl" class="image-placeholder">
+            {{ material.tipo === 'libro' ? '📚' : '📷' }}
+          </div>
+        </div>
+        
+        <div class="material-info">
+          <h3 class="material-title">{{ material.titulo }}</h3>
+          <p class="material-category">{{ material.categoria }} - {{ material.marcaModelo }}</p>
+          <span 
+            class="badge"
+            [class.badge-disponible]="material.disponible"
+          >
+            Disponible
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <form class="solicitud-form">
+        
+        <!-- Fila: Tipo de Solicitud + Fecha -->
+        <div class="form-row">
+          
+          <!-- Tipo de Solicitud -->
+          <div class="form-group">
+            <label class="form-label required">Tipo de Solicitud</label>
+            
+            <label class="radio-label">
+              <input 
+                type="radio" 
+                name="tipo"
+                [value]="'prof_trabajo'"
+                [(ngModel)]="tipoSolicitud"
+                (change)="cambiarTipo('prof_trabajo')"
+              >
+              <span class="radio-text">Tipo A - Trabajo Académico</span>
+            </label>
+            
+            <label class="radio-label">
+              <input 
+                type="radio" 
+                name="tipo"
+                [value]="'uso_propio'"
+                [(ngModel)]="tipoSolicitud"
+                (change)="cambiarTipo('uso_propio')"
+              >
+              <span class="radio-text">Tipo B - Uso Personal</span>
+            </label>
+          </div>
+
+          <!-- Fecha de Solicitud -->
+          <div class="form-group">
+            <label class="form-label">Fecha de Solicitud:</label>
+            <div class="input-with-icon">
+              <input 
+                type="text" 
+                class="form-input"
+                [value]="fechaSolicitud"
+                readonly
+              >
+              <span class="input-icon">📅</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Campos Condicionales para Tipo A -->
+        <div class="tipo-a-fields" *ngIf="tipoSolicitud === 'prof_trabajo'">
+          
+          <!-- Nombre del Profesor -->
+          <div class="form-group">
+            <label class="form-label required">Nombre del Profesor</label>
+            <input 
+              type="text" 
+              class="form-input"
+              placeholder="Escribe el nombre del profesor"
+              [(ngModel)]="nombreProfesor"
+              name="nombreProfesor"
+            >
+          </div>
+
+          <!-- Asignatura -->
+          <div class="form-group">
+            <label class="form-label required">Asignatura</label>
+            <input 
+              type="text" 
+              class="form-input"
+              placeholder="Escribe el nombre de la asignatura"
+              [(ngModel)]="asignatura"
+              name="asignatura"
+            >
+          </div>
+
+        </div>
+
+        <!-- Cuadro Informativo -->
+        <div class="info-box">
+          <div class="info-header">
+            <span class="info-icon">ℹ️</span>
+            <h4 class="info-title">INFORMACIÓN SOBRE RECOGIDA Y DEVOLUCIÓN:</h4>
+          </div>
+          <ul class="info-list">
+            <li>Recogida: Después de las 15:00h del día solicitado</li>
+            <li>Devolución: Día lectivo siguiente de 8:30 a 9:00 AM</li>
+          </ul>
+          <a 
+            href="javascript:void(0)" 
+            class="info-link"
+            (click)="verNormasCompletas()"
+          >
+            Ver normas completas de solicitud de material
+          </a>
+        </div>
+
+        <!-- Checkbox Normas -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="normasAceptadas"
+              name="normasAceptadas"
+            >
+            <span class="checkbox-text">
+              He leído y acepto las normas de préstamos
+              <span class="required-asterisk">*</span>
+            </span>
+          </label>
+          <p class="warning-text" *ngIf="!normasAceptadas">
+            Primero debes ver las normas completas
+          </p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-message" *ngIf="errorSolicitud">
+          {{ errorSolicitud }}
+        </div>
+
+        <!-- Botón Solicitar -->
+        <button 
+          type="button"
+          class="btn-solicitar"
+          [disabled]="!formularioValido || enviandoSolicitud"
+          (click)="enviarSolicitud()"
+        >
+          {{ enviandoSolicitud ? 'Enviando...' : 'Solicitar' }}
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</div>

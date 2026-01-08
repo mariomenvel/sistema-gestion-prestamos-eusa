@@ -13,4 +13,7 @@ router.get('/', auth, roles.soloPAS, usuariosController.listarUsuarios);
 // Detalle completo de un usuario (solo PAS)
 router.get('/:id/detalle', auth, roles.soloPAS, usuariosController.obtenerDetalleUsuario);
 
+// Actualizar usuario (solo PAS)
+router.put('/:id', auth, roles.soloPAS, usuariosController.actualizarUsuario);
+
 module.exports = router;

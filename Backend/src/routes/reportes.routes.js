@@ -10,5 +10,13 @@ router.get('/solicitudes', auth, roles.soloPAS, reportesController.obtenerReport
 
 router.get('/sanciones', auth, roles.soloPAS, reportesController.obtenerReporteSanciones);
 
+// Estadísticas
+router.get('/libro-mas-prestado', auth, roles.soloPAS, reportesController.obtenerLibroMasPrestado);
+
+router.get('/material-mas-prestado', auth, roles.soloPAS, reportesController.obtenerMaterialMasPrestado);
+
+router.get('/usuario-mas-solicita', auth, roles.soloPAS, reportesController.obtenerUsuarioMasSolicita);
+
+router.get('/top5-materiales', auth, roles.soloPAS, reportesController.obtenerTop5Materiales);
 
 module.exports = router;

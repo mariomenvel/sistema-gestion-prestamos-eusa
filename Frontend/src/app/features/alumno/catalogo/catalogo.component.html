@@ -1,1 +1,179 @@
-<p>catalogo works!</p>
+
+<div class="catalogo">
+  
+  <!-- TÍTULO -->
+  <h1 class="catalogo-title">Catálogo</h1>
+
+  <!-- BARRA DE BÚSQUEDA Y FILTROS RÁPIDOS -->
+  <div class="search-filters-row">
+    
+    <!-- Barra de búsqueda -->
+    <div class="search-bar">
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar Libros, cámaras, micrófonos..."
+        [(ngModel)]="textoBusqueda"
+        (keyup.enter)="buscar()"
+      >
+      <button class="search-icon" (click)="buscar()">🔍</button>
+    </div>
+
+    <!-- Filtros rápidos -->
+    <div class="quick-filters">
+      <button 
+        class="filter-btn"
+        [class.active]="filtroTipoActivo === 'todos'"
+        (click)="cambiarFiltroTipo('todos')"
+      >
+        Todos
+      </button>
+      
+      <button 
+        class="filter-btn"
+        [class.active]="filtroTipoActivo === 'libros'"
+        (click)="cambiarFiltroTipo('libros')"
+      >
+        Libros
+      </button>
+      
+      <button 
+        class="filter-btn"
+        [class.active]="filtroTipoActivo === 'equipos'"
+        (click)="cambiarFiltroTipo('equipos')"
+      >
+        Material Audiovisual
+      </button>
+    </div>
+
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="catalogo-content">
+    
+    <!-- PANEL LATERAL DE FILTROS -->
+    <aside class="filters-panel">
+      <h2 class="filters-title">Filtros</h2>
+
+      <!-- Tipo de Material -->
+      <div class="filter-section">
+        <h3 class="filter-section-title">Tipo de Material</h3>
+        <div class="filter-divider"></div>
+        
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [checked]="filtroTipoActivo === 'libros'"
+            (change)="cambiarFiltroTipo('libros')"
+          >
+          <span>Libros</span>
+        </label>
+        
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [checked]="filtroTipoActivo === 'equipos'"
+            (change)="cambiarFiltroTipo('equipos')"
+          >
+          <span>Material Audiovisual</span>
+        </label>
+      </div>
+
+      <!-- Categorías -->
+      <div class="filter-section">
+        <h3 class="filter-section-title">Categorías</h3>
+        <div class="filter-divider"></div>
+        
+        <label 
+          class="checkbox-label" 
+          *ngFor="let categoria of categoriasFiltradas"
+        >
+          <input 
+            type="checkbox" 
+            [checked]="isCategoriaSeleccionada(categoria.codigo)"
+            (change)="toggleCategoria(categoria.codigo)"
+          >
+          <span>{{ categoria.nombre }}</span>
+        </label>
+      </div>
+    </aside>
+
+    <!-- GRID DE MATERIALES -->
+    <main class="materials-grid">
+      
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-state">
+        Cargando materiales...
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMessage" class="error-state">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="!isLoading && !errorMessage && materialesFiltrados.length === 0" class="empty-state">
+        No se encontraron materiales con los filtros seleccionados.
+      </div>
+
+      <!-- Cards de materiales -->
+      <article 
+        class="material-card"
+        *ngFor="let material of materialesFiltrados"
+      >
+        
+        <!-- Imagen -->
+        <div class="material-image">
+          <img 
+            *ngIf="material.imagenUrl" 
+            [src]="material.imagenUrl" 
+            [alt]="material.titulo"
+          >
+          <div *ngIf="!material.imagenUrl" class="image-placeholder">
+            {{ material.tipo === 'libro' ? '📚' : '📷' }}
+          </div>
+        </div>
+
+        <!-- Información -->
+        <div class="material-info">
+          <h3 class="material-title">{{ material.titulo }}</h3>
+          <p class="material-category">{{ material.categoria }}</p>
+          <p class="material-brand">{{ material.marcaModelo }}</p>
+          <p class="material-description">{{ material.descripcion }}</p>
+        </div>
+
+        <!-- Badge disponibilidad -->
+        <div class="material-badge">
+          <span 
+            class="badge"
+            [class.badge-disponible]="material.disponible"
+            [class.badge-no-disponible]="!material.disponible"
+          >
+            {{ material.disponible ? 'Disponible' : 'No disponible' }}
+          </span>
+        </div>
+
+        <!-- Botón Solicitar -->
+        <button 
+          class="btn-solicitar"
+          [disabled]="!material.disponible"
+          (click)="solicitarPrestamo(material)"
+        >
+          Solicitar
+        </button>
+
+      </article>
+
+    </main>
+
+  </div>
+
+</div>
+
+<!-- Modal Solicitar Préstamo -->
+<app-solicitar-prestamo
+  [isOpen]="mostrarModalSolicitud"
+  [material]="materialSeleccionado"
+  (close)="cerrarModalSolicitud()"
+  (solicitudCreada)="onSolicitudCreada()"
+></app-solicitar-prestamo>

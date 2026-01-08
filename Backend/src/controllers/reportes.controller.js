@@ -176,9 +176,203 @@ function obtenerReporteSanciones(req, res) {
     });
 }
 
+/**
+ * Obtiene el libro más prestado
+ */
+function obtenerLibroMasPrestado(req, res) {
+  var db = require('../db');
+  
+  db.sequelize.query(`
+    SELECT 
+      l.id,
+      l.titulo,
+      l.autor,
+      COUNT(p.id) as total_prestamos
+    FROM libros l
+    INNER JOIN ejemplares e ON e.libro_id = l.id
+    INNER JOIN prestamos p ON p.ejemplar_id = e.id
+    GROUP BY l.id, l.titulo, l.autor
+    ORDER BY total_prestamos DESC
+    LIMIT 1
+  `, {
+    type: Sequelize.QueryTypes.SELECT
+  })
+    .then(function(resultados) {
+      if (resultados.length === 0) {
+        return res.json({
+          titulo: 'Sin datos',
+          autor: 'No hay préstamos registrados',
+          totalPrestamos: 0
+        });
+      }
+
+      var libro = resultados[0];
+      res.json({
+        titulo: libro.titulo,
+        autor: libro.autor || 'Autor desconocido',
+        totalPrestamos: parseInt(libro.total_prestamos)
+      });
+    })
+    .catch(function(error) {
+      console.error('Error al obtener libro más prestado:', error);
+      res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
+    });
+}
+
+/**
+ * Obtiene el material (equipo) más prestado
+ */
+function obtenerMaterialMasPrestado(req, res) {
+  var db = require('../db');
+  
+  db.sequelize.query(`
+    SELECT 
+      eq.id,
+      eq.marca,
+      eq.modelo,
+      cat.nombre as categoria,
+      COUNT(p.id) as total_prestamos
+    FROM equipos eq
+    INNER JOIN unidades u ON u.equipo_id = eq.id
+    INNER JOIN prestamos p ON p.unidad_id = u.id
+    LEFT JOIN categorias cat ON cat.codigo = eq.categoria_codigo
+    GROUP BY eq.id, eq.marca, eq.modelo, cat.nombre
+    ORDER BY total_prestamos DESC
+    LIMIT 1
+  `, {
+    type: Sequelize.QueryTypes.SELECT
+  })
+    .then(function(resultados) {
+      if (resultados.length === 0) {
+        return res.json({
+          nombre: 'Sin datos',
+          categoria: 'No hay préstamos registrados',
+          totalPrestamos: 0
+        });
+      }
+
+      var material = resultados[0];
+      res.json({
+        nombre: material.marca + ' ' + material.modelo,
+        categoria: material.categoria || 'Sin categoría',
+        totalPrestamos: parseInt(material.total_prestamos)
+      });
+    })
+    .catch(function(error) {
+      console.error('Error al obtener material más prestado:', error);
+      res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
+    });
+}
+/**
+ * Obtiene el tipo de estudios que más solicita material
+ */
+function obtenerUsuarioMasSolicita(req, res) {
+  var db = require('../db');
+  
+  db.sequelize.query(`
+    SELECT 
+      u.tipo_estudios,
+      COUNT(s.id) as total_solicitudes
+    FROM usuarios u
+    INNER JOIN solicitudes s ON s.usuario_id = u.id
+    WHERE u.tipo_estudios IS NOT NULL
+    GROUP BY u.tipo_estudios
+    ORDER BY total_solicitudes DESC
+    LIMIT 1
+  `, {
+    type: Sequelize.QueryTypes.SELECT
+  })
+    .then(function(resultados) {
+      if (resultados.length === 0) {
+        return res.json({
+          nombre: 'Sin datos',
+          curso: '-',
+          totalSolicitudes: 0
+        });
+      }
+
+      var tipo = resultados[0];
+      
+      // Convertir tipo_estudios a texto legible
+      var nombreGrado = '';
+      if (tipo.tipo_estudios === 'grado_uni') {
+        nombreGrado = 'GRADO UNIVERSITARIO';
+      } else if (tipo.tipo_estudios === 'grado_sup') {
+        nombreGrado = 'GRADO SUPERIOR';
+      } else if (tipo.tipo_estudios === 'master') {
+        nombreGrado = 'MÁSTER';
+      } else {
+        nombreGrado = tipo.tipo_estudios.toUpperCase();
+      }
+      
+      res.json({
+        nombre: nombreGrado,
+        curso: '-',
+        totalSolicitudes: parseInt(tipo.total_solicitudes)
+      });
+    })
+    .catch(function(error) {
+      console.error('Error al obtener tipo de estudios que más solicita:', error);
+      res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
+    });
+}
+
+/**
+ * Obtiene el top 5 de materiales más demandados
+ */
+function obtenerTop5Materiales(req, res) {
+  var db = require('../db');
+  
+  db.sequelize.query(`
+    SELECT 
+      eq.marca,
+      eq.modelo,
+      cat.nombre as categoria,
+      COUNT(p.id) as total_prestamos
+    FROM equipos eq
+    INNER JOIN unidades u ON u.equipo_id = eq.id
+    INNER JOIN prestamos p ON p.unidad_id = u.id
+    LEFT JOIN categorias cat ON cat.codigo = eq.categoria_codigo
+    GROUP BY eq.id, eq.marca, eq.modelo, cat.nombre
+    ORDER BY total_prestamos DESC
+    LIMIT 5
+  `, {
+    type: Sequelize.QueryTypes.SELECT
+  })
+    .then(function(resultados) {
+      var top5 = resultados.map(function(item, index) {
+        return {
+          posicion: index + 1,
+          nombre: item.marca + ' ' + item.modelo,
+          categoria: item.categoria || 'Sin categoría',
+          totalPrestamos: parseInt(item.total_prestamos)
+        };
+      });
+
+      // Si hay menos de 5, completar con datos vacíos
+      while (top5.length < 5) {
+        top5.push({
+          posicion: top5.length + 1,
+          nombre: 'Sin datos',
+          categoria: '-',
+          totalPrestamos: 0
+        });
+      }
+
+      res.json(top5);
+    })
+    .catch(function(error) {
+      console.error('Error al obtener top 5 materiales:', error);
+      res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
+    });
+}
 
 module.exports = {
   obtenerReportePrestamos: obtenerReportePrestamos,
   obtenerReporteSolicitudes: obtenerReporteSolicitudes,
-  obtenerReporteSanciones: obtenerReporteSanciones
+  obtenerReporteSanciones: obtenerReporteSanciones,
+  obtenerLibroMasPrestado: obtenerLibroMasPrestado,
+  obtenerMaterialMasPrestado: obtenerMaterialMasPrestado,
+  obtenerUsuarioMasSolicita: obtenerUsuarioMasSolicita,
+  obtenerTop5Materiales: obtenerTop5Materiales
 };

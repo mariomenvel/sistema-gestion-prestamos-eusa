@@ -12,7 +12,7 @@ import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { LoginComponent } from './features/auth/login/login.component';
 
 // Alumno Components
-import { DashboardComponent } from './features/alumno/dashboard/dashboard.component';
+import { DashboardComponent as AlumnoDashboardComponent } from './features/alumno/dashboard/dashboard.component';
 import { CatalogoComponent } from './features/alumno/catalogo/catalogo.component';
 import { MisPrestamosComponent } from './features/alumno/mis-prestamos/mis-prestamos.component';
 import { MiPerfilComponent } from './features/alumno/mi-perfil/mi-perfil.component';
@@ -20,6 +20,7 @@ import { SolicitarPrestamoComponent } from './features/alumno/modales/solicitar-
 import { NormasComponent } from './features/alumno/modales/normas/normas.component';
 
 // PAS Components
+import { DashboardComponent as PasDashboardComponent } from './features/pas/dashboard/dashboard.component';
 import { SolicitudesComponent } from './features/pas/solicitudes/solicitudes.component';
 import { PrestamosActivosComponent } from './features/pas/prestamos-activos/prestamos-activos.component';
 import { MaterialesComponent } from './features/pas/materiales/materiales.component';
@@ -34,6 +35,7 @@ import { PerfilAlumnoComponent } from './features/pas/modales/perfil-alumno/perf
 import { HeaderComponent } from './shared/components/header/header.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -41,13 +43,14 @@ import { ModalComponent } from './shared/components/modal/modal.component';
     // Auth
     LoginComponent,
     // Alumno
-    DashboardComponent,
+    AlumnoDashboardComponent,
     CatalogoComponent,
     MisPrestamosComponent,
     MiPerfilComponent,
     SolicitarPrestamoComponent,
     NormasComponent,
     // PAS
+    PasDashboardComponent,
     SolicitudesComponent,
     PrestamosActivosComponent,
     MaterialesComponent,
@@ -66,7 +69,8 @@ import { ModalComponent } from './shared/components/modal/modal.component';
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,     
-    ReactiveFormsModule,   
+    ReactiveFormsModule,
+    CommonModule,   
     FormsModule        
   ],
   providers: [

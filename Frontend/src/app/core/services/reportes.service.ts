@@ -1,22 +1,42 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpParams } from '@angular/common/http';
 import { ApiService } from './api.service';
-import { Prestamo } from '../models/prestamo.model';
-import { Solicitud } from '../models/solicitud.model';
-import { Sancion } from '../models/sancion.model';
 
 /**
- * Interface para los filtros comunes de reportes.
- * Todos los campos son opcionales para permitir filtrado flexible.
+ * Interfaz para libro más prestado
  */
-export interface FiltrosReporte {
-  desde?: string;      // Fecha de inicio (formato: YYYY-MM-DD)
-  hasta?: string;      // Fecha de fin (formato: YYYY-MM-DD)
-  usuario_id?: number; // ID del usuario a filtrar
-  estado?: string;     // Estado del registro (ej: 'activo', 'pendiente')
-  tipo?: string;       // Tipo del registro (ej: 'a', 'b', 'uso_propio')
-  severidad?: string;  // Solo para sanciones (ej: 's1_1sem')
+export interface LibroMasPrestado {
+  titulo: string;
+  autor: string;
+  totalPrestamos: number;
+}
+
+/**
+ * Interfaz para material más prestado
+ */
+export interface MaterialMasPrestado {
+  nombre: string;
+  categoria: string;
+  totalPrestamos: number;
+}
+
+/**
+ * Interfaz para usuario/grado que más solicita
+ */
+export interface UsuarioMasSolicita {
+  nombre: string;
+  curso: string;
+  totalSolicitudes: number;
+}
+
+/**
+ * Interfaz para item del Top 5
+ */
+export interface Top5Item {
+  posicion: number;
+  nombre: string;
+  categoria: string;
+  totalPrestamos: number;
 }
 
 @Injectable({
@@ -27,76 +47,30 @@ export class ReportesService {
   constructor(private apiService: ApiService) { }
 
   /**
-   * Genera un reporte de préstamos con filtros opcionales.
-   * Endpoint: GET /reportes/prestamos
-   * Auth: Requerido + soloPAS
-   * 
-   * @param filtros Objeto con filtros opcionales (desde, hasta, usuario_id, estado, tipo)
-   * @returns Observable con array de préstamos que cumplen los filtros
-   * 
-   * @example
-   * // Préstamos del mes de noviembre
-   * getReportePrestamos({ desde: '2024-11-01', hasta: '2024-11-30' })
-   * 
-   * @example
-   * // Préstamos activos de un usuario específico
-   * getReportePrestamos({ usuario_id: 5, estado: 'activo' })
+   * Obtiene el libro más prestado
    */
-  getReportePrestamos(filtros?: FiltrosReporte): Observable<Prestamo[]> {
-    let params = new HttpParams();
-    
-    if (filtros) {
-      if (filtros.desde) params = params.set('desde', filtros.desde);
-      if (filtros.hasta) params = params.set('hasta', filtros.hasta);
-      if (filtros.usuario_id) params = params.set('usuario_id', filtros.usuario_id.toString());
-      if (filtros.estado) params = params.set('estado', filtros.estado);
-      if (filtros.tipo) params = params.set('tipo', filtros.tipo);
-    }
-    
-    return this.apiService.get<Prestamo[]>('/reportes/prestamos', params);
+  getLibroMasPrestado(): Observable<LibroMasPrestado> {
+    return this.apiService.get<LibroMasPrestado>('/reportes/libro-mas-prestado');
   }
 
   /**
-   * Genera un reporte de solicitudes con filtros opcionales.
-   * Endpoint: GET /reportes/solicitudes
-   * Auth: Requerido + soloPAS
-   * 
-   * @param filtros Objeto con filtros opcionales (desde, hasta, usuario_id, estado, tipo)
-   * @returns Observable con array de solicitudes que cumplen los filtros
+   * Obtiene el material más prestado
    */
-  getReporteSolicitudes(filtros?: FiltrosReporte): Observable<Solicitud[]> {
-    let params = new HttpParams();
-    
-    if (filtros) {
-      if (filtros.desde) params = params.set('desde', filtros.desde);
-      if (filtros.hasta) params = params.set('hasta', filtros.hasta);
-      if (filtros.usuario_id) params = params.set('usuario_id', filtros.usuario_id.toString());
-      if (filtros.estado) params = params.set('estado', filtros.estado);
-      if (filtros.tipo) params = params.set('tipo', filtros.tipo);
-    }
-    
-    return this.apiService.get<Solicitud[]>('/reportes/solicitudes', params);
+  getMaterialMasPrestado(): Observable<MaterialMasPrestado> {
+    return this.apiService.get<MaterialMasPrestado>('/reportes/material-mas-prestado');
   }
 
   /**
-   * Genera un reporte de sanciones con filtros opcionales.
-   * Endpoint: GET /reportes/sanciones
-   * Auth: Requerido + soloPAS
-   * 
-   * @param filtros Objeto con filtros opcionales (desde, hasta, usuario_id, estado, severidad)
-   * @returns Observable con array de sanciones que cumplen los filtros
+   * Obtiene el usuario que más solicita
    */
-  getReporteSanciones(filtros?: FiltrosReporte): Observable<Sancion[]> {
-    let params = new HttpParams();
-    
-    if (filtros) {
-      if (filtros.desde) params = params.set('desde', filtros.desde);
-      if (filtros.hasta) params = params.set('hasta', filtros.hasta);
-      if (filtros.usuario_id) params = params.set('usuario_id', filtros.usuario_id.toString());
-      if (filtros.estado) params = params.set('estado', filtros.estado);
-      if (filtros.severidad) params = params.set('severidad', filtros.severidad);
-    }
-    
-    return this.apiService.get<Sancion[]>('/reportes/sanciones', params);
+  getUsuarioMasSolicita(): Observable<UsuarioMasSolicita> {
+    return this.apiService.get<UsuarioMasSolicita>('/reportes/usuario-mas-solicita');
+  }
+
+  /**
+   * Obtiene el top 5 de materiales más demandados
+   */
+  getTop5Materiales(): Observable<Top5Item[]> {
+    return this.apiService.get<Top5Item[]>('/reportes/top5-materiales');
   }
 }

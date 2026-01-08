@@ -1,0 +1,727 @@
+// ========================================
+// VARIABLES
+// ========================================
+
+$color-primary-blue: #0066CC;
+$color-info-blue-light: #E3F2FD;
+$color-success-green: #4CAF50;
+$color-success-green-dark: #2E7D32;
+$color-success-green-light: #E8F5E9;
+$color-warning-orange: #FF9800;
+$color-warning-orange-dark: #E65100;
+$color-warning-orange-light: #FFF3E0;
+$color-error-red: #F44336;
+$color-error-red-dark: #C62828;
+$color-error-red-light: #FFEBEE;
+
+$color-white: #FFFFFF;
+$color-bg-gray: #EEEEEE;
+$color-bg-light: #F5F5F5;
+$color-border: #E0E0E0;
+$color-border-dark: #999999;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// CONTENEDOR PRINCIPAL
+// ========================================
+
+.solicitudes {
+  width: 100%;
+  max-width: 1152px;
+  margin: 0 auto;
+  padding-top: 24px;
+  padding-bottom: 40px;
+}
+
+// ========================================
+// TÍTULO
+// ========================================
+
+.page-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 39px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  margin: 0 0 24px 0;
+}
+
+// ========================================
+// TABS DE FILTRO
+// ========================================
+
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+
+.tab {
+  height: 36px;
+  padding: 0 24px;
+  
+  background: $color-bg-light;
+  border: 2px solid $color-border;
+  border-radius: 6px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: darken($color-bg-light, 5%);
+  }
+  
+  &.active {
+    background: $color-primary-blue;
+    border-color: $color-border;
+    color: $color-white;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 17px;
+  }
+}
+
+// ========================================
+// BARRA DE FILTROS
+// ========================================
+
+.filters-bar {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+// Barra de búsqueda
+.search-box {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: $color-text-primary;
+  
+  box-sizing: border-box;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+}
+
+// Selectores de filtro
+.filter-select {
+  height: 44px;
+  padding: 0 16px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  
+  cursor: pointer;
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+}
+
+// Botón limpiar filtros
+.btn-limpiar {
+  height: 44px;
+  padding: 0 20px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  &:hover {
+    background: $color-bg-light;
+  }
+}
+
+// ========================================
+// TABLA
+// ========================================
+
+.table-container {
+  background: $color-white;
+  border: 2px solid $color-border;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  
+  overflow: hidden;
+}
+
+// Header de la tabla
+.table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 0.8fr 1.2fr 1fr 1.5fr;
+  gap: 16px;
+  
+  background: $color-bg-light;
+  border-bottom: 2px solid $color-border;
+  
+  padding: 16px 24px;
+}
+
+.th {
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+}
+
+// Body de la tabla
+.table-body {
+  min-height: 400px;
+}
+
+// Fila de la tabla
+.table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 0.8fr 1.2fr 1fr 1.5fr;
+  gap: 16px;
+  align-items: center;
+  
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba($color-border, 0.5);
+  
+  transition: background 0.2s ease;
+  
+  &:hover {
+    background: rgba($color-info-blue-light, 0.3);
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.td {
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ========================================
+// BADGES DE ESTADO
+// ========================================
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  min-width: 100px;
+  height: 28px;
+  padding: 0 12px;
+  
+  border-radius: 14px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 15px;
+  
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.badge-pendiente {
+  background: $color-warning-orange-light;
+  border: 2px solid $color-warning-orange;
+  color: $color-warning-orange-dark;
+}
+
+.badge-aprobada {
+  background: $color-success-green-light;
+  border: 2px solid $color-success-green;
+  color: $color-success-green-dark;
+}
+
+.badge-rechazada {
+  background: $color-error-red-light;
+  border: 2px solid $color-error-red;
+  color: $color-error-red-dark;
+}
+
+// ========================================
+// BOTONES DE ACCIÓN
+// ========================================
+
+.td-acciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-aprobar,
+.btn-rechazar {
+  width: 80px;
+  height: 28px;
+  
+  border: none;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 15px;
+  color: $color-white;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-aprobar {
+  background: $color-success-green;
+  
+  &:hover {
+    background: darken($color-success-green, 8%);
+  }
+}
+
+.btn-rechazar {
+  background: $color-error-red;
+  
+  &:hover {
+    background: darken($color-error-red, 8%);
+  }
+}
+
+.sin-acciones {
+  color: $color-text-disabled;
+  font-size: 16px;
+}
+
+// ========================================
+// ESTADOS (Loading, Error, Empty)
+// ========================================
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  min-height: 300px;
+  
+  font-family: $font-family;
+  font-size: 16px;
+  color: $color-text-secondary;
+  text-align: center;
+  
+  &.error {
+    color: $color-error-red;
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 1200px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr 1.5fr 0.7fr 1fr 0.8fr 1.3fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .table-header,
+  .table-row {
+    min-width: 900px;
+  }
+}
+
+// ========================================
+// MODALES
+// ========================================
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  background: rgba(0, 0, 0, 0.5);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  z-index: 1000;
+}
+
+.modal-card {
+  position: relative;
+  width: 500px;
+  max-height: 90vh;
+  
+  background: $color-white;
+  border: 3px solid #999999;
+  border-radius: 12px;
+  
+  box-shadow: 0px 12px 48px rgba(0, 0, 0, 0.35);
+  
+  padding: 40px 24px 24px 24px;
+  
+  overflow-y: auto;
+}
+
+// Botón cerrar (X)
+.btn-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  
+  width: 32px;
+  height: 32px;
+  
+  background: $color-info-blue-light;
+  border: 1px solid $color-primary-blue;
+  border-radius: 16px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 22px;
+  color: $color-text-secondary;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: darken($color-info-blue-light, 5%);
+  }
+}
+
+// Título del modal
+.modal-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29px;
+  color: $color-primary-blue;
+  
+  margin: 0 0 24px 0;
+}
+
+// ========================================
+// INFORMACIÓN DE LA SOLICITUD
+// ========================================
+
+.info-solicitud {
+  margin-bottom: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  
+  margin-bottom: 16px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.info-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+}
+
+.info-value {
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-primary;
+}
+
+// ========================================
+// CAMPOS DE FORMULARIO
+// ========================================
+
+.campo-fecha,
+.campo-motivo {
+  margin-bottom: 24px;
+}
+
+.campo-label {
+  display: block;
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 17px;
+  letter-spacing: -0.03em;
+  color: $color-text-secondary;
+  
+  margin-bottom: 8px;
+  
+  .required {
+    color: #DC3545;
+    margin-left: 4px;
+  }
+}
+
+.campo-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  
+  background: $color-bg-light;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: $color-text-primary;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+}
+
+.campo-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  
+  background: $color-bg-light;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: $color-text-primary;
+  
+  resize: vertical;
+  min-height: 80px;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+}
+
+.campo-ayuda {
+  margin: 8px 0 0 0;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 15px;
+  color: $color-text-secondary;
+}
+
+// ========================================
+// BOTONES DEL MODAL
+// ========================================
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  
+  margin-top: 24px;
+}
+
+.btn-cancelar,
+.btn-confirmar {
+  height: 44px;
+  padding: 0 24px;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: -0.03em;
+  
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancelar {
+  min-width: 110px;
+  
+  background: $color-white;
+  border: 3px solid $color-border;
+  color: $color-text-secondary;
+  
+  &:hover {
+    background: $color-bg-light;
+  }
+}
+
+.btn-confirmar {
+  min-width: 136px;
+  
+  border: none;
+  color: $color-white;
+  
+  &.success {
+    background: #28A745;
+    box-shadow: 0px 4px 16px rgba(40, 167, 69, 0.25);
+    
+    &:hover {
+      background: darken(#28A745, 8%);
+      transform: translateY(-2px);
+      box-shadow: 0px 6px 20px rgba(40, 167, 69, 0.35);
+    }
+  }
+  
+  &.danger {
+    background: #DC3545;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.25);
+    
+    &:hover {
+      background: darken(#DC3545, 8%);
+      transform: translateY(-2px);
+      box-shadow: 0px 6px 20px rgba(220, 53, 69, 0.35);
+    }
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 768px) {
+  .modal-card {
+    width: 95%;
+    max-width: 500px;
+    padding: 32px 16px 16px 16px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    
+    .btn-cancelar,
+    .btn-confirmar {
+      width: 100%;
+    }
+  }
+}

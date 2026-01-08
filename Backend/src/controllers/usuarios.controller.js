@@ -121,8 +121,62 @@ function obtenerDetalleUsuario(req, res) {
     });
 }
 
+// ACTUALIZAR DATOS DE UN USUARIO (solo PAS)
+function actualizarUsuario(req, res) {
+  var usuarioId = req.params.id;
+  var datos = req.body;
+
+  // Campos permitidos para actualizar
+  var camposActualizables = {
+    nombre: datos.nombre,
+    apellidos: datos.apellidos,
+    email: datos.email,
+    tipo_estudios: datos.tipo_estudios,
+    fecha_inicio_est: datos.fecha_inicio_est,
+    fecha_fin_prev: datos.fecha_fin_prev,
+    estado_perfil: datos.estado_perfil
+  };
+
+  // Eliminar campos undefined
+  Object.keys(camposActualizables).forEach(function(key) {
+    if (camposActualizables[key] === undefined) {
+      delete camposActualizables[key];
+    }
+  });
+
+  models.Usuario.findByPk(usuarioId)
+    .then(function(usuario) {
+      if (!usuario) {
+        return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+      }
+
+      return usuario.update(camposActualizables);
+    })
+    .then(function(usuarioActualizado) {
+      res.json({
+        mensaje: 'Usuario actualizado correctamente',
+        usuario: {
+          id: usuarioActualizado.id,
+          email: usuarioActualizado.email,
+          nombre: usuarioActualizado.nombre,
+          apellidos: usuarioActualizado.apellidos,
+          rol: usuarioActualizado.rol,
+          estado_perfil: usuarioActualizado.estado_perfil,
+          tipo_estudios: usuarioActualizado.tipo_estudios,
+          fecha_inicio_est: usuarioActualizado.fecha_inicio_est,
+          fecha_fin_prev: usuarioActualizado.fecha_fin_prev
+        }
+      });
+    })
+    .catch(function(error) {
+      console.error('Error al actualizar usuario:', error);
+      res.status(500).json({ mensaje: 'Error al actualizar el usuario' });
+    });
+}
+
 module.exports = {
   obtenerPerfilActual: obtenerPerfilActual,
   listarUsuarios: listarUsuarios,
-  obtenerDetalleUsuario: obtenerDetalleUsuario
+  obtenerDetalleUsuario: obtenerDetalleUsuario,
+  actualizarUsuario: actualizarUsuario
 };

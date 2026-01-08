@@ -1,6 +1,6 @@
 var models = require('../models');
 var db = require('../db');
-
+var Sequelize = require('sequelize');
 
 function crearSolicitud(req, res) {
   // Usuario autenticado (viene del middleware auth)
@@ -22,11 +22,11 @@ function crearSolicitud(req, res) {
       usuario_id: usuarioId,
       estado: 'activa',
       // Solo sanciones cuyo inicio esté en el curso actual
-      inicio: { [db.Sequelize.Op.gte]: inicioCurso },
+      inicio: { [Sequelize.Op.gte]: inicioCurso },
       // Y que no hayan terminado todavía
-      [db.Sequelize.Op.or]: [
+      [Sequelize.Op.or]: [
         { fin: null },
-        { fin: { [db.Sequelize.Op.gt]: new Date() } }
+        { fin: {[Sequelize.Op.gt]: new Date() } }
       ]
     }
   })
@@ -54,12 +54,12 @@ function crearSolicitud(req, res) {
         });
       }
 
-      // Para tipo prof_trabajo, tiene que ser profesor
+    /*  // Para tipo prof_trabajo, tiene que ser profesor
       if (tipo === 'prof_trabajo' && rol !== 'profesor') {
         return res.status(403).json({
           mensaje: 'Solo un profesor puede crear una solicitud de tipo prof_trabajo'
         });
-      }
+      }*/
 
       // 3) Crear la solicitud
       return models.Solicitud.create({
@@ -83,7 +83,7 @@ function crearSolicitud(req, res) {
 
       res.status(201).json({
         mensaje: 'Solicitud creada correctamente',
-        solicitud: solicitud
+        solicitud: solicitud.toJSON()
       });
     })
     .catch(function (error) {
@@ -163,9 +163,9 @@ function aprobarSolicitud(req, res) {
         var tipoPrestamo = (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b';
 
         var profesorSolicitanteId = null;
-        if (solicitud.tipo === 'prof_trabajo') {
+        /*if (solicitud.tipo === 'prof_trabajo') {
           profesorSolicitanteId = solicitud.usuario_id; // el propio profesor
-        }
+        }*/
 
         // Creamos el préstamo
         return models.Prestamo.create({

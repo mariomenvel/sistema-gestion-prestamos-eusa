@@ -1,1 +1,103 @@
-<p>dashboard works!</p>
+<!-- Dashboard Alumno -->
+<div class="dashboard">
+
+  <!-- Título principal -->
+  <h1 class="dashboard-title">Dashboard</h1>
+
+  <!-- Cards de métricas -->
+  <div class="metrics-cards">
+    
+    <!-- Card: Préstamos Activos -->
+    <div class="metric-card">
+      <div class="metric-number number-blue">{{ prestamosActivos }}</div>
+      <div class="metric-label">Préstamos Activos</div>
+    </div>
+
+    <!-- Card: Pendientes de Aprobación -->
+    <div class="metric-card">
+      <div class="metric-number number-orange">{{ solicitudesPendientes }}</div>
+      <div class="metric-label">Pendientes de Aprobación</div>
+    </div>
+
+    <!-- Card: Sanciones Activas -->
+    <div class="metric-card">
+      <div class="metric-number number-green">{{ sancionesActivas }}</div>
+      <div class="metric-label">Sanciones Activas</div>
+    </div>
+
+  </div>
+
+  <!-- Sección de préstamos -->
+  <div class="prestamos-section">
+    
+    <!-- Título de sección -->
+    <h2 class="section-title">Mis Préstamos Activos</h2>
+
+    <!-- Tabla de préstamos -->
+    <div class="prestamos-table">
+      
+      <!-- Header de la tabla -->
+      <div class="table-header">
+        <div class="th th-material">Material</div>
+        <div class="th th-tipo">Tipo</div>
+        <div class="th th-fecha">Fecha Préstamo</div>
+        <div class="th th-fecha">Fecha Devolución</div>
+        <div class="th th-estado">Estado</div>
+      </div>
+
+      <!-- Filas de la tabla -->
+      <div class="table-body">
+        
+        <!-- Si no hay préstamos -->
+        <div class="empty-state" *ngIf="prestamos.length === 0">
+          <p>No tienes préstamos activos</p>
+        </div>
+
+        <!-- Fila por cada préstamo -->
+        <div 
+          class="table-row" 
+          *ngFor="let prestamo of prestamos"
+        >
+          <!-- Columna: Material -->
+          <div class="td td-material">
+            <div class="material-info">
+              <div class="material-icon">📷</div>
+              <span>{{ prestamo.material }}</span>
+            </div>
+          </div>
+
+          <!-- Columna: Tipo -->
+          <div class="td td-tipo">{{ prestamo.tipo }}</div>
+
+          <!-- Columna: Fecha Préstamo -->
+          <div class="td td-fecha">{{ prestamo.fechaPrestamo }}</div>
+
+          <!-- Columna: Fecha Devolución -->
+          <div class="td td-fecha">{{ prestamo.fechaDevolucion }}</div>
+
+          <!-- Columna: Estado -->
+          <div class="td td-estado">
+            <span 
+              class="badge"
+              [ngClass]="getEstadoClass(prestamo.estado)"
+            >
+              {{ getEstadoTexto(prestamo.estado) }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Botón Solicitar Préstamo -->
+    <button 
+      class="btn-solicitar"
+      (click)="solicitarPrestamo()"
+    >
+      Solicitar Préstamo
+    </button>
+
+  </div>
+
+</div>

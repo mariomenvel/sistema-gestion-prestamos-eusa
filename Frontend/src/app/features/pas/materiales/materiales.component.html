@@ -1,1 +1,124 @@
-<p>materiales works!</p>
+<!-- Gestión de Materiales PAS -->
+<div class="materiales">
+
+  <!-- Header con título y botón -->
+  <div class="header">
+    <h1 class="page-title">Gestión de Materiales</h1>
+    <button class="btn-anadir" (click)="abrirModalAnadirMaterial()">
+      Añadir Material
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+
+    <!-- Barra de búsqueda -->
+    <div class="busqueda">
+      <input type="text" class="input-busqueda" placeholder="Buscar por nombre, código, marca..."
+        [(ngModel)]="textoBusqueda" (input)="buscar()" />
+    </div>
+
+    <!-- Filtro Categoría -->
+    <div class="filtro">
+      <select class="select-filtro" [(ngModel)]="filtroCategoria" (change)="aplicarFiltros()">
+        <option value="">Todas las categorías</option>
+        <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
+          {{ getNombreCategoriaPorCodigo(catCodigo) }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Filtro Estado -->
+    <div class="filtro">
+      <select class="select-filtro" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponible</option>
+        <option value="no_disponible">No disponible</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Tabla de materiales -->
+  <div class="table-container">
+
+    <!-- Header tabla -->
+    <div class="table-header">
+      <div class="th th-codigo">Código</div>
+      <div class="th th-nombre">Nombre</div>
+      <div class="th th-categoria">Categoría</div>
+      <div class="th th-marca">Marca</div>
+      <div class="th th-modelo">Modelo</div>
+      <div class="th th-estado">Estado</div>
+      <div class="th th-acciones">Acciones</div>
+    </div>
+
+    <!-- Body tabla -->
+    <div class="table-body">
+
+      <!-- Loading -->
+      <div class="empty-state" *ngIf="isLoading">
+        <p>Cargando materiales...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="empty-state error" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Sin materiales (Equipos) -->
+      <div class="empty-state"
+        *ngIf="!isLoading && !errorMessage && tipoActivo === 'equipos' && equiposFiltrados.length === 0">
+        <p>No hay equipos disponibles</p>
+      </div>
+
+      <!-- Sin materiales (Libros) -->
+      <div class="empty-state"
+        *ngIf="!isLoading && !errorMessage && tipoActivo === 'libros' && librosFiltrados.length === 0">
+        <p>No hay libros disponibles</p>
+      </div>
+
+      <!-- FILAS DE EQUIPOS -->
+      <ng-container *ngIf="tipoActivo === 'equipos'">
+        <div class="table-row" *ngFor="let equipo of equiposFiltrados">
+          <!-- Código -->
+          <div class="td td-codigo">
+            {{ equipo.categoria_codigo }}{{ equipo.id }}
+          </div>
+
+          <!-- Nombre -->
+          <div class="td td-nombre">
+            {{ equipo.marca }} {{ equipo.modelo }}
+          </div>
+
+          <!-- Categoría -->
+          <div class="td td-categoria">
+            {{ getNombreCategoria(equipo) }}
+          </div>
+
+          <!-- Marca -->
+          <div class="td td-marca">
+            {{ equipo.marca }}
+          </div>
+
+          <!-- Modelo -->
+          <div class="td td-modelo">
+            {{ equipo.modelo }}
+          </div>
+
+          <!-- Estado -->
+          <div class="td td-estado">
+            <span class="badge" [class.badge-disponible]="tieneDisponibles(equipo)"
+              [class.badge-no-disponible]="!tieneDisponibles(equipo)">
+              {{ tieneDisponibles(equipo) ? 'Disponible' : 'No Disponible' }}
+            </span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="td td-acciones">
+            <button class="btn-eliminar" (click)="eliminarMaterial(equipo, 'equipo')" title="Eliminar equipo">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </ng-container>

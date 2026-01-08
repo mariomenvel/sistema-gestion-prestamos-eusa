@@ -51,22 +51,23 @@ export class AuthService {
    * Función para iniciar sesión.
    * Conecta con auth.controller.js del backend.
    */
-  login(credentials: { email: string; password: string }): Observable<boolean> { //Una observable es una "promesa" de que se recibirá un valor en el futuro (la respuesta del servidor)
-    return this.http.post<LoginResponse>(`${this.API_URL}/auth/login`, credentials) //Llamada post con las credenciales.<LoginResponse> le dice a TypeScript qué tipo de objeto espera recibir. 
-      .pipe(//tubería para encadenar las operaciones con la respuesta antes de devolverla.
-        tap((response) => {
-          // Si el backend responde con éxito, guardamos los datos  
-          if (response.token && response.usuario) {
-            this.setSession(response.token, response.usuario);
-          }
-        }),
-        map(() => true), // Convertimos la respuesta en un booleano "True" (Éxito)
-        catchError((error) => {
-          console.error('Error en login:', error);
-          return of(false); // Si falla, devolvemos "False"
-        })
-      );
-  }
+ login(credentials: { email: string; password: string }): Observable<boolean> {
+  return this.http.post<LoginResponse>(`${this.API_URL}/auth/login`, credentials)
+    .pipe(
+      tap((response) => {
+        // Si el backend responde con éxito, guardamos los datos  
+        if (response.token && response.usuario) {
+          this.setSession(response.token, response.usuario);
+        }
+      }),
+      map(() => true), // Convertimos la respuesta en un booleano "True" (Éxito)
+      catchError((error) => {
+        console.error('Error en login:', error);
+        // Lanzamos el error para que el componente lo capture
+        throw error;
+      })
+    );
+}
 
   /**
    * Cierra la sesión y borra los datos.

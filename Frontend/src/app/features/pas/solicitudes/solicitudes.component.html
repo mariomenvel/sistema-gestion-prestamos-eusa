@@ -1,1 +1,311 @@
-<p>solicitudes works!</p>
+<!-- Gestión de Solicitudes PAS -->
+<div class="solicitudes">
+
+  <!-- Título principal -->
+  <h1 class="page-title">Gestión de Solicitudes</h1>
+
+  <!-- Tabs de filtro por estado -->
+  <div class="tabs-container">
+    <button 
+      class="tab"
+      [class.active]="filtroEstadoActivo === 'todas'"
+      (click)="cambiarFiltroEstado('todas')"
+    >
+      Todas
+    </button>
+    
+    <button 
+      class="tab"
+      [class.active]="filtroEstadoActivo === 'pendiente'"
+      (click)="cambiarFiltroEstado('pendiente')"
+    >
+      Pendientes
+    </button>
+    
+    <button 
+      class="tab"
+      [class.active]="filtroEstadoActivo === 'aprobada'"
+      (click)="cambiarFiltroEstado('aprobada')"
+    >
+      Aprobadas
+    </button>
+    
+    <button 
+      class="tab"
+      [class.active]="filtroEstadoActivo === 'rechazada'"
+      (click)="cambiarFiltroEstado('rechazada')"
+    >
+      Rechazadas
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="filters-bar">
+    
+    <!-- Barra de búsqueda -->
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input"
+        placeholder="Buscar por alumno, material..."
+        [(ngModel)]="textoBusqueda"
+        (input)="buscar()"
+      >
+    </div>
+
+    <!-- Filtro Tipo de Solicitud -->
+    <select class="filter-select" [(ngModel)]="filtroTipo" (change)="buscar()">
+      <option value="">Tipo de Solicitud</option>
+      <option value="prof_trabajo">Tipo A</option>
+      <option value="uso_propio">Tipo B</option>
+    </select>
+
+    <!-- Filtro Fecha (placeholder por ahora) -->
+    <select class="filter-select" [(ngModel)]="filtroFecha" (change)="buscar()">
+      <option value="">Filtro por Fecha</option>
+      <option value="hoy">Hoy</option>
+      <option value="semana">Esta semana</option>
+      <option value="mes">Este mes</option>
+    </select>
+
+    <!-- Botón Limpiar Filtros -->
+    <button class="btn-limpiar" (click)="limpiarFiltros()">
+      Limpiar Filtros
+    </button>
+
+  </div>
+
+  <!-- Tabla de solicitudes -->
+  <div class="table-container">
+    
+    <!-- Header de la tabla -->
+    <div class="table-header">
+      <div class="th th-alumno">Alumno</div>
+      <div class="th th-material">Material</div>
+      <div class="th th-tipo">Tipo</div>
+      <div class="th th-fecha">Fecha Solicitud</div>
+      <div class="th th-estado">Estado</div>
+      <div class="th th-acciones">Acciones</div>
+    </div>
+
+    <!-- Body de la tabla -->
+    <div class="table-body">
+      
+      <!-- Loading -->
+      <div class="empty-state" *ngIf="isLoading">
+        Cargando solicitudes...
+      </div>
+
+      <!-- Error -->
+      <div class="empty-state error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Sin resultados -->
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && solicitudesFiltradas.length === 0">
+        No hay solicitudes para mostrar
+      </div>
+
+      <!-- Filas de solicitudes -->
+      <div 
+        class="table-row"
+        *ngFor="let solicitud of solicitudesFiltradas"
+      >
+        
+        <!-- Columna: Alumno -->
+        <div class="td td-alumno">
+          {{ getNombreUsuario(solicitud) }}
+        </div>
+
+        <!-- Columna: Material -->
+        <div class="td td-material">
+          {{ getNombreMaterial(solicitud) }}
+        </div>
+
+        <!-- Columna: Tipo -->
+        <div class="td td-tipo">
+          {{ getTipoTexto(solicitud.tipo) }}
+        </div>
+
+        <!-- Columna: Fecha -->
+        <div class="td td-fecha">
+          {{ formatearFecha(solicitud.creada_en) }}
+        </div>
+
+        <!-- Columna: Estado -->
+        <div class="td td-estado">
+          <span 
+            class="badge"
+            [ngClass]="getEstadoClass(solicitud.estado)"
+          >
+            {{ getEstadoTexto(solicitud.estado) }}
+          </span>
+        </div>
+
+        <!-- Columna: Acciones -->
+        <div class="td td-acciones">
+          <!-- Solo mostrar botones si está pendiente -->
+          <ng-container *ngIf="solicitud.estado === 'pendiente'">
+            <button 
+              class="btn-aprobar"
+              (click)="abrirModalAprobar(solicitud)"
+            >
+              Aprobar
+            </button>
+            
+            <button 
+              class="btn-rechazar"
+              (click)="abrirModalRechazar(solicitud)"
+            >
+              Rechazar
+            </button>
+          </ng-container>
+          
+          <!-- Si no está pendiente, mostrar guiones -->
+          <span *ngIf="solicitud.estado !== 'pendiente'" class="sin-acciones">
+            —
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL APROBAR SOLICITUD -->
+<div class="modal-overlay" *ngIf="mostrarModalAprobar" (click)="cerrarModalAprobar()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalAprobar()">
+      ✕
+    </button>
+
+    <!-- Título -->
+    <h2 class="modal-title">Aprobar Solicitud</h2>
+
+    <!-- Información de la solicitud -->
+    <div class="info-solicitud" *ngIf="solicitudSeleccionada">
+      
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">Alumno:</span>
+          <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
+        </div>
+        
+        <div class="info-item">
+          <span class="info-label">Tipo:</span>
+          <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">Material:</span>
+          <span class="info-value">{{ getNombreMaterial(solicitudSeleccionada) }}</span>
+        </div>
+        
+        <div class="info-item">
+          <span class="info-label">Fecha Solicitud:</span>
+          <span class="info-value">{{ formatearFecha(solicitudSeleccionada.creada_en) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Campo fecha de devolución (solo para Tipo A) -->
+    <div class="campo-fecha" *ngIf="solicitudSeleccionada?.tipo === 'prof_trabajo'">
+      <label class="campo-label">
+        Fecha de devolución <span class="required">*</span>
+      </label>
+      <input 
+        type="date" 
+        class="campo-input"
+        [(ngModel)]="fechaDevolucion"
+        placeholder="DD/MM/AAAA"
+      />
+      <p class="campo-ayuda">Establece la fecha en la que el alumno debe devolver el material</p>
+    </div>
+
+    <!-- Botones -->
+    <div class="modal-actions">
+      <button class="btn-cancelar" (click)="cerrarModalAprobar()">
+        Cancelar
+      </button>
+      <button class="btn-confirmar success" (click)="confirmarAprobacion()">
+        Confirmar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL RECHAZAR SOLICITUD -->
+<div class="modal-overlay" *ngIf="mostrarModalRechazar" (click)="cerrarModalRechazar()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalRechazar()">
+      ✕
+    </button>
+
+    <!-- Título -->
+    <h2 class="modal-title">Rechazar Solicitud</h2>
+
+    <!-- Información de la solicitud -->
+    <div class="info-solicitud" *ngIf="solicitudSeleccionada">
+      
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">Alumno:</span>
+          <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
+        </div>
+        
+        <div class="info-item">
+          <span class="info-label">Tipo:</span>
+          <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">Material:</span>
+          <span class="info-value">{{ getNombreMaterial(solicitudSeleccionada) }}</span>
+        </div>
+        
+        <div class="info-item">
+          <span class="info-label">Fecha Solicitud:</span>
+          <span class="info-value">{{ formatearFecha(solicitudSeleccionada.creada_en) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Campo motivo de rechazo -->
+    <div class="campo-motivo">
+      <label class="campo-label">
+        Motivo de rechazo <span class="required">*</span>
+      </label>
+      <textarea 
+        class="campo-textarea"
+        rows="3"
+        placeholder="Ej: Material no disponible, solicitud duplicada, datos incorrectos..."
+        [(ngModel)]="motivoRechazo"
+      ></textarea>
+    </div>
+
+    <!-- Botones -->
+    <div class="modal-actions">
+      <button class="btn-cancelar" (click)="cerrarModalRechazar()">
+        Cancelar
+      </button>
+      <button class="btn-confirmar danger" (click)="confirmarRechazo()">
+        Confirmar
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,1 +1,88 @@
-<p>reportes works!</p>
+<!-- Reportes y Estadísticas PAS -->
+<div class="reportes">
+
+  <!-- Título principal -->
+  <h1 class="page-title">Reportes y Estadísticas</h1>
+
+  <!-- Cards de estadísticas principales -->
+  <div class="stats-cards">
+    
+    <!-- Card: Libro Más Prestado -->
+    <div class="stat-card">
+      <p class="card-label">Libro Más Prestado</p>
+      <h2 class="card-title">{{ libroMasPrestado.titulo }}</h2>
+      <p class="card-subtitle">{{ libroMasPrestado.autor }}</p>
+      <p class="card-value card-value-blue">{{ libroMasPrestado.totalPrestamos }} préstamos</p>
+    </div>
+
+    <!-- Card: Material Audiovisual Más Prestado -->
+    <div class="stat-card">
+      <p class="card-label">Material Audiovisual Más Prestado</p>
+      <h2 class="card-title">{{ materialMasPrestado.nombre }}</h2>
+      <p class="card-subtitle">Categoría: {{ materialMasPrestado.categoria }}</p>
+      <p class="card-value card-value-green">{{ materialMasPrestado.totalPrestamos }} préstamos</p>
+    </div>
+
+    <!-- Card: Grado que más Solicita Material -->
+    <div class="stat-card">
+      <p class="card-label">Grado que más Solicita Material</p>
+      <h2 class="card-title">{{ gradoMasSolicita.nombre }}</h2>
+      <p class="card-subtitle">Curso: {{ gradoMasSolicita.curso }}</p>
+      <p class="card-value card-value-orange">{{ gradoMasSolicita.totalSolicitudes }} solicitudes</p>
+    </div>
+
+  </div>
+
+  <!-- Sección Top 5 -->
+  <div class="top5-section">
+    
+    <!-- Título de sección -->
+    <h2 class="section-title">Top 5 Material Más Demandado</h2>
+
+    <!-- Tabla Top 5 -->
+    <div class="top5-table">
+      
+      <!-- Header tabla -->
+      <div class="table-header">
+        <div class="th th-posicion">Posición</div>
+        <div class="th th-material">Material</div>
+        <div class="th th-categoria">Categoría</div>
+        <div class="th th-total">Total Préstamos</div>
+      </div>
+
+      <!-- Body tabla -->
+      <div class="table-body">
+        
+        <!-- Filas del Top 5 -->
+        <div 
+          class="table-row" 
+          *ngFor="let item of top5Materiales"
+        >
+          <!-- Posición -->
+          <div class="td td-posicion">
+            <span class="numero-posicion">{{ item.posicion }}</span>
+          </div>
+
+          <!-- Material -->
+          <div class="td td-material">
+            {{ item.nombre }}
+          </div>
+
+          <!-- Categoría -->
+          <div class="td td-categoria">
+            {{ item.categoria }}
+          </div>
+
+          <!-- Total Préstamos -->
+          <div class="td td-total">
+            <span class="numero-prestamos">{{ item.totalPrestamos }}</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

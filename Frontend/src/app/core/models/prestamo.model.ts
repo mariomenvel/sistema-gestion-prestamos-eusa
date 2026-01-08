@@ -17,9 +17,16 @@ export interface Prestamo {
   unidad_id?: number;
   solicitud_id?: number;
 
-  // Datos anidados (Include)
+  // Datos anidados (Include) - Sequelize usa MAYÚSCULA INICIAL
   usuario?: Usuario;
+  
+  // Minúscula (por si acaso)
   ejemplar?: Ejemplar;
   unidad?: Unidad;
   solicitud?: Solicitud;
+  
+  // Mayúscula (lo que realmente devuelve Sequelize)
+  Ejemplar?: Ejemplar;
+  Unidad?: Unidad;
+  Solicitud?: Solicitud;
 }

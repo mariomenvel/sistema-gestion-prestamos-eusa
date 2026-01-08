@@ -1,0 +1,315 @@
+// ========================================
+// VARIABLES (del mockup de Figma)
+// ========================================
+
+$color-primary-blue: #0066CC;
+$color-warning-orange: #E65100;
+$color-success-green: #28A745;
+$color-success-green-dark: #2E7D32;
+$color-success-green-light: #E8F5E9;
+
+$color-white: #FFFFFF;
+$color-bg-gray: #EEEEEE;
+$color-border: #E0E0E0;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// CONTENEDOR PRINCIPAL
+// ========================================
+
+.dashboard {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 16px;
+    padding-bottom: 60px;
+}
+
+// ========================================
+// TÍTULO PRINCIPAL
+// ========================================
+
+.dashboard-title {
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 39px;
+    color: $color-text-primary;
+    margin: 0 0 24px 0;
+}
+
+// ========================================
+// CARDS DE MÉTRICAS
+// ========================================
+
+.metrics-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 280px);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.metric-card {
+    width: 280px;
+    height: 120px;
+    background: $color-white;
+    border: 2px solid $color-border;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+}
+
+.metric-number {
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 58px;
+}
+
+.number-blue {
+    color: $color-primary-blue;
+}
+
+.number-orange {
+    color: $color-warning-orange;
+}
+
+.number-green {
+    color: $color-success-green;
+}
+
+.metric-label {
+    font-family: $font-family;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-text-secondary;
+    text-align: center;
+}
+
+// ========================================
+// SECCIÓN DE PRÉSTAMOS
+// ========================================
+
+.prestamos-section {
+    margin-top: 32px;
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    letter-spacing: -0.03em;
+    color: $color-text-secondary;
+    margin: 0 0 16px 0;
+}
+
+// ========================================
+// TABLA DE PRÉSTAMOS
+// ========================================
+
+.prestamos-table {
+    background: $color-white;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+// Header de la tabla
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr;
+    gap: 16px;
+
+    background: $color-primary-blue;
+    padding: 16px 20px;
+    border-bottom: 1px solid $color-border;
+}
+
+.th {
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-white;
+}
+
+// Body de la tabla
+.table-body {
+    min-height: 100px;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr;
+    gap: 16px;
+
+    padding: 20px;
+    border-bottom: 1px solid $color-border;
+
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: rgba($color-primary-blue, 0.02);
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.td {
+    font-family: $font-family;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-text-primary;
+
+    display: flex;
+    align-items: center;
+}
+
+// Columna de material con icono
+.material-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.material-icon {
+    width: 48px;
+    height: 48px;
+    background: $color-bg-gray;
+    border: 2px solid $color-border;
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+// Estado vacío
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: $color-text-secondary;
+    font-size: 14px;
+}
+
+// ========================================
+// BADGES DE ESTADO
+// ========================================
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 16px;
+    border-radius: 14px;
+
+    font-family: $font-family;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+.badge-activo {
+    background: $color-success-green-light;
+    border: 2px solid $color-success-green;
+    color: $color-success-green-dark;
+}
+
+.badge-vencido {
+    background: #FFEBEE;
+    border: 2px solid #D32F2F;
+    color: #C62828;
+}
+
+.badge-devuelto {
+    background: #F5F5F5;
+    border: 2px solid #9E9E9E;
+    color: #616161;
+}
+
+// ========================================
+// BOTÓN SOLICITAR PRÉSTAMO
+// ========================================
+
+.btn-solicitar {
+    width: 220px;
+    height: 44px;
+
+    background: $color-primary-blue;
+    border: none;
+    border-radius: 4px;
+
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+    color: $color-white;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    display: block;
+    margin-top: 16px;
+
+    &:hover {
+        background: darken($color-primary-blue, 8%);
+        box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 1024px) {
+    .metrics-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .metrics-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-card {
+        width: 100%;
+    }
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .th,
+    .td {
+        padding: 8px 0;
+    }
+}

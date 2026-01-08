@@ -21,8 +21,12 @@ export interface Solicitud {
   creada_en: string;
   resuelta_en?: string;
 
-  // Relaciones
+  // Relaciones (minúscula - según el modelo)
   usuario?: Usuario;
   ejemplar?: Ejemplar;
   unidad?: Unidad;
+
+  // Relaciones (mayúscula - lo que devuelve Sequelize)
+  Ejemplar?: Ejemplar;
+  Unidad?: Unidad;
 }

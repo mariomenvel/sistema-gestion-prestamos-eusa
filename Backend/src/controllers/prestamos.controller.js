@@ -1,5 +1,6 @@
 var models = require("../models");
 var db = require("../db");
+var Sequelize = require('sequelize');
 
 /**
  * Prestamos del usuario (alumno/profesor)
@@ -173,7 +174,7 @@ function devolverPrestamo(req, res) {
             where: {
               usuario_id: usuarioIdGlobal,
               // Solo sanciones de este curso
-              inicio: { [db.Sequelize.Op.gte]: inicioCurso },
+              inicio: { [Sequelize.Op.gte]: inicioCurso },
             },
             transaction: t,
           }).then(function (numSancionesPrevias) {

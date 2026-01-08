@@ -1,1 +1,90 @@
-<p>prestamos-activos works!</p>
+<!-- Préstamos Activos PAS -->
+<div class="prestamos-activos">
+
+  <!-- Encabezado -->
+  <div class="header">
+    <h1 class="page-title">Préstamos Activos</h1>
+    <p class="page-subtitle">Listado de todos los préstamos activos pendientes de devolución</p>
+  </div>
+
+  <!-- Tabla de préstamos -->
+  <div class="table-container">
+    
+    <!-- Header de la tabla -->
+    <div class="table-header">
+      <div class="th th-alumno">Alumno</div>
+      <div class="th th-material">Material</div>
+      <div class="th th-fecha-prestamo">Fecha Préstamo</div>
+      <div class="th th-fecha-devolucion">Fecha Devolución</div>
+      <div class="th th-accion">Acción</div>
+    </div>
+
+    <!-- Body de la tabla -->
+    <div class="table-body">
+      
+      <!-- Loading -->
+      <div class="empty-state" *ngIf="isLoading">
+        <p>Cargando préstamos...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="empty-state error" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Sin préstamos -->
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && prestamos.length === 0">
+        <p>No hay préstamos activos</p>
+      </div>
+
+      <!-- Filas de préstamos -->
+      <div 
+        class="table-row" 
+        *ngFor="let prestamo of prestamos"
+        [class.vencido]="esVencido(prestamo)"
+      >
+        <!-- Columna: Alumno -->
+        <div class="td td-alumno">
+          {{ getNombreUsuario(prestamo) }}
+        </div>
+
+        <!-- Columna: Material -->
+        <div class="td td-material">
+          {{ getNombreMaterial(prestamo) }}
+        </div>
+
+        <!-- Columna: Fecha Préstamo -->
+        <div class="td td-fecha-prestamo">
+          {{ formatearFecha(prestamo.fecha_inicio) }}
+        </div>
+
+        <!-- Columna: Fecha Devolución -->
+        <div class="td td-fecha-devolucion">
+          <span class="fecha-wrapper">
+            <span 
+              class="icono-calendario"
+              [class.vencido]="esVencido(prestamo)"
+            >
+              📅
+            </span>
+            {{ formatearFecha(prestamo.fecha_devolucion_prevista) }}
+          </span>
+        </div>
+
+        <!-- Columna: Acción -->
+        <div class="td td-accion">
+          <button 
+            class="btn-devolucion"
+            (click)="registrarDevolucion(prestamo)"
+          >
+            Registrar Devolución
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

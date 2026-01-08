@@ -142,8 +142,17 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         // Error de red o del servidor
         this.isLoading = false;
-        this.errorMessage = error.message || 'Error al conectar con el servidor';
-        console.error(' Error en login:', error);
+
+        // Extraer mensaje del backend (error.error.mensaje) o usar mensaje genérico
+        if (error.error && error.error.mensaje) {
+          this.errorMessage = error.error.mensaje;
+        } else if (error.status === 403) {
+          this.errorMessage = 'Acceso denegado. Contacta con administración.';
+        } else {
+          this.errorMessage = 'Error al conectar con el servidor';
+        }
+
+        console.error('❌ Error en login:', error);
       }
     });
   }
