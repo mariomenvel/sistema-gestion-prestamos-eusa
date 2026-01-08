@@ -326,11 +326,33 @@ function obtenerInicioCurso() {
   return inicio;
 }
 
+function obtenerTodasLasSolicitudes(req, res) {
+  models.Solicitud.findAll({
+    include: [
+      { model: models.Usuario },
+      { model: models.Ejemplar },
+      { model: models.Unidad }
+    ],
+    order: [['creada_en', 'DESC']]
+  })
+    .then(function (solicitudes) {
+      res.json(solicitudes);
+    })
+    .catch(function (error) {
+      console.error('Error al obtener todas las solicitudes:', error);
+      res.status(500).json({
+        mensaje: 'Error al obtener las solicitudes'
+      });
+    });
+}
+
+
 module.exports = {
   crearSolicitud: crearSolicitud,
   obtenerMisSolicitudes: obtenerMisSolicitudes,
   obtenerSolicitudesPendientes: obtenerSolicitudesPendientes,
   aprobarSolicitud: aprobarSolicitud,
-  rechazarSolicitud: rechazarSolicitud
+  rechazarSolicitud: rechazarSolicitud,
+  obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes
 };
 

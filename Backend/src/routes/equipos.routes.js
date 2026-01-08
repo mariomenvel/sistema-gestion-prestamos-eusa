@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var equiposController = require('../controllers/equipos.controller');
+var auth = require('../middlewares/auth');
 
 // Obtener todos los equipos
 router.get('/', equiposController.obtenerEquipos);

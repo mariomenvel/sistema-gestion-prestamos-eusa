@@ -19,5 +19,8 @@ router.put('/:id/rechazar', auth, roles.soloPAS, solicitudesController.rechazarS
 // Ver mis solicitudes: solo usuario logueado (alumno o profesor)
 router.get('/mias', auth, roles.alumnoOProfesor, solicitudesController.obtenerMisSolicitudes);
 
+// Todas las solicitudes (pendientes y no pendientes)
+router.get('/', auth, roles.soloPAS, solicitudesController.obtenerTodasLasSolicitudes);
+
 
 module.exports = router;
