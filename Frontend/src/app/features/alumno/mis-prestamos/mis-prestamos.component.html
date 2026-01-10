@@ -1,1 +1,90 @@
-<p>mis-prestamos works!</p>
+<!-- Mis Préstamos Alumno -->
+<div class="mis-prestamos">
+
+  <!-- Título principal -->
+  <h1 class="page-title">Mis Préstamos</h1>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-box">
+    <input 
+      type="text" 
+      class="search-input"
+      placeholder="Buscar por material..."
+      [(ngModel)]="textoBusqueda"
+      (input)="buscar()"
+    >
+  </div>
+
+  <!-- Tabla de préstamos -->
+  <div class="table-container">
+    
+    <!-- Header de la tabla -->
+    <div class="table-header">
+      <div class="th th-material">Material</div>
+      <div class="th th-tipo">Tipo</div>
+      <div class="th th-fecha-prestamo">Fecha Préstamo</div>
+      <div class="th th-fecha-devolucion">Fecha Devolución</div>
+      <div class="th th-estado">Estado</div>
+    </div>
+
+    <!-- Body de la tabla -->
+    <div class="table-body">
+      
+      <!-- Loading -->
+      <div class="empty-state" *ngIf="isLoading">
+        Cargando préstamos...
+      </div>
+
+      <!-- Error -->
+      <div class="empty-state error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Sin resultados -->
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && prestamosFiltrados.length === 0">
+        No tienes préstamos
+      </div>
+
+      <!-- Filas de préstamos -->
+      <div 
+        class="table-row"
+        *ngFor="let prestamo of prestamosFiltrados"
+      >
+        
+        <!-- Columna: Material -->
+        <div class="td td-material">
+          {{ getNombreMaterial(prestamo) }}
+        </div>
+
+        <!-- Columna: Tipo -->
+        <div class="td td-tipo">
+          {{ getTipoTexto(prestamo.tipo) }}
+        </div>
+
+        <!-- Columna: Fecha Préstamo -->
+        <div class="td td-fecha-prestamo">
+          {{ formatearFecha(prestamo.fecha_inicio) }}
+        </div>
+
+        <!-- Columna: Fecha Devolución -->
+        <div class="td td-fecha-devolucion">
+          {{ prestamo.fecha_devolucion_prevista ? formatearFecha(prestamo.fecha_devolucion_prevista) : '—' }}
+        </div>
+
+        <!-- Columna: Estado -->
+        <div class="td td-estado">
+          <span 
+            class="badge"
+            [ngClass]="getEstadoClass(prestamo.estado)"
+          >
+            {{ getEstadoTexto(prestamo.estado) }}
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
