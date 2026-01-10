@@ -181,8 +181,10 @@ cerrarModalRechazar(): void {
    * Obtiene el nombre del usuario
    */
   getNombreUsuario(solicitud: Solicitud): string {
-    const usuario = (solicitud as any).Usuario || solicitud.usuario;
-     if (usuario) {
+  // Sequelize devuelve Usuario con mayúscula
+  const usuario = (solicitud as any).Usuario || solicitud.usuario;
+  
+  if (usuario) {
     // Concatenar nombre y apellidos si existen
     const nombreCompleto = usuario.apellidos 
       ? `${usuario.nombre} ${usuario.apellidos}` 
@@ -190,7 +192,7 @@ cerrarModalRechazar(): void {
     
     return nombreCompleto || usuario.email;
   }
-    
+  
   return 'Usuario desconocido';
 }
 
@@ -295,15 +297,28 @@ private cargarSolicitudes(): void {
     }
 
     // Filtro por texto de búsqueda
-    if (this.textoBusqueda.trim()) {
-      const texto = this.textoBusqueda.toLowerCase();
-      resultado = resultado.filter(s => 
-        this.getNombreUsuario(s).toLowerCase().includes(texto) ||
-        this.getNombreMaterial(s).toLowerCase().includes(texto)
-      );
-    }
+if (this.textoBusqueda.trim()) {
+  const textoNormalizado = this.normalizarTexto(this.textoBusqueda);
+  
+  resultado = resultado.filter(s => {
+    const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
+    const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
+    
+    return nombreUsuario.includes(textoNormalizado) || 
+           nombreMaterial.includes(textoNormalizado);
+  });
+}
 
     this.solicitudesFiltradas = resultado;
     console.log('🔍 Solicitudes filtradas:', this.solicitudesFiltradas.length);
   }
+  /**
+ * Normaliza texto eliminando tildes para búsqueda
+ */
+private normalizarTexto(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 }

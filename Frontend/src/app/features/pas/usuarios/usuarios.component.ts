@@ -77,27 +77,31 @@ export class UsuariosComponent implements OnInit {
 
   // ===== MÉTODOS PÚBLICOS =====
   
-  /**
-   * Busca usuarios por texto
-   */
-  buscar(): void {
-    console.log('🔍 Buscando:', this.textoBusqueda);
-    
-    if (!this.textoBusqueda.trim()) {
-      this.usuariosFiltrados = [...this.usuarios];
-      return;
-    }
-
-    const texto = this.textoBusqueda.toLowerCase();
-    this.usuariosFiltrados = this.usuarios.filter(usuario =>
-      usuario.nombre.toLowerCase().includes(texto) ||
-      (usuario.apellidos && usuario.apellidos.toLowerCase().includes(texto)) ||
-      usuario.email.toLowerCase().includes(texto)
-    );
-
-    console.log('✅ Usuarios filtrados:', this.usuariosFiltrados.length);
+ /**
+ * Busca usuarios por texto
+ */
+buscar(): void {
+  console.log('🔍 Buscando:', this.textoBusqueda);
+  
+  if (!this.textoBusqueda.trim()) {
+    this.usuariosFiltrados = [...this.usuarios];
+    return;
   }
 
+  const textoNormalizado = this.normalizarTexto(this.textoBusqueda);
+  
+  this.usuariosFiltrados = this.usuarios.filter(usuario => {
+    const nombre = this.normalizarTexto(usuario.nombre);
+    const apellidos = usuario.apellidos ? this.normalizarTexto(usuario.apellidos) : '';
+    const email = this.normalizarTexto(usuario.email);
+    
+    return nombre.includes(textoNormalizado) ||
+           apellidos.includes(textoNormalizado) ||
+           email.includes(textoNormalizado);
+  });
+
+  console.log('✅ Usuarios filtrados:', this.usuariosFiltrados.length);
+}
   /**
    * Abre el modal de edición de un usuario
    */
@@ -213,4 +217,13 @@ export class UsuariosComponent implements OnInit {
       }
     });
   }
+  /**
+ * Normaliza texto eliminando tildes para búsqueda
+ */
+private normalizarTexto(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
 }

@@ -264,19 +264,20 @@ function obtenerMaterialMasPrestado(req, res) {
     });
 }
 /**
- * Obtiene el tipo de estudios que más solicita material
+ * Obtiene el grado y curso que más solicita material
  */
 function obtenerUsuarioMasSolicita(req, res) {
   var db = require('../db');
   
   db.sequelize.query(`
     SELECT 
-      u.tipo_estudios,
+      u.grado,
+      u.curso,
       COUNT(s.id) as total_solicitudes
     FROM usuarios u
     INNER JOIN solicitudes s ON s.usuario_id = u.id
-    WHERE u.tipo_estudios IS NOT NULL
-    GROUP BY u.tipo_estudios
+    WHERE u.grado IS NOT NULL
+    GROUP BY u.grado, u.curso
     ORDER BY total_solicitudes DESC
     LIMIT 1
   `, {
@@ -291,28 +292,16 @@ function obtenerUsuarioMasSolicita(req, res) {
         });
       }
 
-      var tipo = resultados[0];
-      
-      // Convertir tipo_estudios a texto legible
-      var nombreGrado = '';
-      if (tipo.tipo_estudios === 'grado_uni') {
-        nombreGrado = 'GRADO UNIVERSITARIO';
-      } else if (tipo.tipo_estudios === 'grado_sup') {
-        nombreGrado = 'GRADO SUPERIOR';
-      } else if (tipo.tipo_estudios === 'master') {
-        nombreGrado = 'MÁSTER';
-      } else {
-        nombreGrado = tipo.tipo_estudios.toUpperCase();
-      }
+      var dato = resultados[0];
       
       res.json({
-        nombre: nombreGrado,
-        curso: '-',
-        totalSolicitudes: parseInt(tipo.total_solicitudes)
+        nombre: dato.grado,
+        curso: dato.curso + 'º',
+        totalSolicitudes: parseInt(dato.total_solicitudes)
       });
     })
     .catch(function(error) {
-      console.error('Error al obtener tipo de estudios que más solicita:', error);
+      console.error('Error al obtener grado que más solicita:', error);
       res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     });
 }
