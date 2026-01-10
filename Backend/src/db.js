@@ -4,7 +4,7 @@ require('dotenv').config();
 var sequelize = new Sequelize(
   process.env.DB_NAME,      // Nombre BD
   process.env.DB_USER,      // Usuario
-  process.env.DB_PASS,      // Contraseña
+  process.env.DB_PASSWORD,  // Contraseña
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
