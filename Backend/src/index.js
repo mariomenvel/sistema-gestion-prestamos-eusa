@@ -13,6 +13,7 @@ var usuariosRoutes = require('./routes/usuarios.routes');
 var dashboardRoutes = require('./routes/dashboard.routes');
 var reportesRoutes = require('./routes/reportes.routes');
 var unidadesRoutes = require('./routes/unidades.routes');
+var categoriasRoutes = require('./routes/categorias.routes');
 
 
 var app = express();
@@ -34,6 +35,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/reportes', reportesRoutes);
 app.use('/unidades', unidadesRoutes);
 app.use('/uploads', express.static('uploads'));
+app.use('/categorias', categoriasRoutes);
 
 
 db.probarConexion();
