@@ -1,1 +1,79 @@
-<p>mi-perfil works!</p>
+<!-- Mi Perfil Alumno -->
+<div class="mi-perfil">
+
+  <!-- Título principal -->
+  <h1 class="page-title">Mi Perfil</h1>
+
+  <!-- Card de información -->
+  <div class="perfil-card">
+
+    <!-- Título de la sección -->
+    <h2 class="card-title">Información del Perfil</h2>
+
+    <!-- Campo: Nombre Completo -->
+    <div class="campo">
+      <label class="campo-label">Nombre Completo</label>
+      <div class="campo-valor">
+        {{ getNombreCompleto() }}
+      </div>
+    </div>
+
+    <!-- Campo: Email -->
+    <div class="campo">
+      <label class="campo-label">Email</label>
+      <div class="campo-valor">
+        {{ usuario?.email || '—' }}
+      </div>
+    </div>
+
+    <!-- Campo: Año de Matrícula -->
+    <div class="campo">
+      <label class="campo-label">Año de Matrícula</label>
+      <div class="campo-valor">
+        {{ getAnioMatricula() }}
+      </div>
+    </div>
+
+    <!-- Campo: Nombre del Grado -->
+    <div class="campo">
+      <label class="campo-label">Nombre del Grado</label>
+      <div class="campo-valor">
+        {{ getNombreGrado() }}
+      </div>
+    </div>
+
+    <!-- Campo: Tipo de Estudios -->
+    <div class="campo">
+      <label class="campo-label">Tipo de Estudios</label>
+      <div class="campo-valor">
+        {{ getTipoEstudios() }}
+      </div>
+    </div>
+
+    <!-- Campo: Curso -->
+    <div class="campo">
+      <label class="campo-label">Curso</label>
+      <div class="campo-valor">
+        {{ getCurso() }}
+      </div>
+    </div>
+
+    <!-- Campo: Fecha Estimada de Finalización -->
+    <div class="campo">
+      <label class="campo-label">Fecha Estimada de Finalización</label>
+      <div class="campo-valor">
+        {{ getFechaFinalizacion() }}
+      </div>
+    </div>
+
+    <!-- Campo: Estado del Perfil -->
+    <div class="campo">
+      <label class="campo-label">Estado del Perfil</label>
+      <div class="campo-valor">
+        {{ getEstadoPerfil() }}
+      </div>
+    </div>
+
+  </div>
+
+</div>
