@@ -1,0 +1,133 @@
+$color-primary-blue: #0066CC;
+$color-success-green: #4CAF50;
+$color-success-light: #E8F5E9;
+$color-danger-red: #F44336;
+$color-danger-light: #FFEBEE;
+$color-border: #E0E0E0;
+$color-text-primary: #212121;
+$color-bg-gray: #EEEEEE;
+
+// Estilos específicos para el Modal
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: #FFFFFF;
+    width: 500px;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+
+        .modal-title {
+            color: $color-primary-blue; // Usando tu azul
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .close-x {
+            border: 1px solid $color-primary-blue;
+            color: $color-primary-blue;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            background: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; // Esto crea las dos columnas del mockup
+        gap: 1.5rem 1rem;
+        margin-bottom: 2rem;
+
+        .info-item {
+            label {
+                color: #757575;
+                font-size: 0.85rem;
+                display: block;
+                margin-bottom: 0.2rem;
+            }
+            p {
+                margin: 0;
+                font-weight: 600;
+                color: $color-text-primary;
+            }
+        }
+    }
+
+    .input-section {
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            
+            &.required::after {
+                content: " *";
+                color: $color-danger-red;
+            }
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #F5F5F5; // Color neutro para el fondo del input
+            border: 1px solid $color-border;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .helper-text {
+            color: #9E9E9E;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+
+        .btn-cancelar {
+            background: white;
+            border: 1px solid $color-border;
+            padding: 0.6rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-confirmar {
+            background-color: $color-success-green; // Usando tu verde
+            color: white;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+
+            &:hover {
+                filter: brightness(0.9);
+            }
+        }
+    }
+}
