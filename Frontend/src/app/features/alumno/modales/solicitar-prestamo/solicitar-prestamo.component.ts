@@ -56,10 +56,13 @@ export class SolicitarPrestamoComponent implements OnInit {
   normasAceptadas: boolean = false;
   fechaSolicitud: string = '';
 
-  // ===== ESTADO =====
+// ===== ESTADO =====
 
-  enviandoSolicitud: boolean = false;
-  errorSolicitud: string = '';
+enviandoSolicitud: boolean = false;
+errorSolicitud: string = '';
+mostrarModalNormas: boolean = false;
+normasLeidas: boolean = false;
+  
 
   // ===== CONSTRUCTOR =====
 
@@ -83,6 +86,7 @@ export class SolicitarPrestamoComponent implements OnInit {
     this.nombreProfesor = '';
     this.asignatura = '';
     this.normasAceptadas = false;
+    this.normasLeidas = false;
     this.errorSolicitud = '';
 
     // Fecha actual en formato DD/MM/YYYY
@@ -133,7 +137,7 @@ export class SolicitarPrestamoComponent implements OnInit {
 
     this.enviandoSolicitud = true;
     this.errorSolicitud = '';
-
+  
     // Preparar datos
     const datos: any = {
       tipo: this.tipoSolicitud,
@@ -182,10 +186,25 @@ export class SolicitarPrestamoComponent implements OnInit {
   }
 
   /**
-   * Abre las normas completas (placeholder)
-   */
-  verNormasCompletas(): void {
-    // TODO: Abrir modal de normas o navegar a página de normas
-    alert('Funcionalidad de normas completas en desarrollo');
-  }
+ * Abre el modal de normas completas
+ */
+verNormasCompletas(): void {
+  this.mostrarModalNormas = true;
+}
+
+/**
+ * Cierra el modal de normas
+ */
+cerrarModalNormas(): void {
+  this.mostrarModalNormas = false;
+  this.normasLeidas = true;
+}
+
+/**
+ * Se ejecuta cuando el usuario acepta las normas
+ */
+onNormasAceptadas(): void {
+  this.normasAceptadas = true;
+  this.cerrarModalNormas();
+}
 }

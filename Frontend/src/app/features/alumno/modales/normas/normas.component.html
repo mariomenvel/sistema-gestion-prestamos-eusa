@@ -1,1 +1,93 @@
-<p>normas works!</p>
+<!-- Modal Overlay -->
+<div class="modal-overlay" *ngIf="isOpen" (click)="cerrarModal()">
+  
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">Normas de Préstamo de Material</h2>
+      <button 
+        class="btn-close"
+        (click)="cerrarModal()"
+        type="button"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      
+      <h3 class="section-title">Servicio de Consulta, Entrega y Recepción de Material</h3>
+
+      <!-- Horario -->
+      <div class="normas-item">
+        <h4 class="subtitle">a. Horario:</h4>
+        <ul class="normas-list">
+          <li>Lunes a Viernes de 8:30 a 21:00</li>
+          <li>Sábados de 9:00 a 14:00 (Sujeto a horario de Másteres)</li>
+        </ul>
+      </div>
+
+      <!-- Contacto -->
+      <div class="normas-item">
+        <h4 class="subtitle">b. Contacto:</h4>
+        <ul class="normas-list">
+          <li>Mail: <a href="mailto:servicio.tecnico@eusa.es">servicio.tecnico@eusa.es</a> (consultas)</li>
+          <li>Teléfono: 647 72 28 79</li>
+        </ul>
+      </div>
+
+      <!-- Ubicación -->
+      <div class="normas-item">
+        <h4 class="subtitle">c. Ubicación:</h4>
+        <p class="normas-text">Sede Porvenir: C/Isabela núm 1 (planta Baja)</p>
+      </div>
+
+      <!-- Consulta de material -->
+      <div class="normas-item">
+        <h4 class="subtitle">d. Consulta de material técnico en la plataforma corporativa:</h4>
+        <p class="normas-text">Dentro de la plataforma del Campus Cámara, en el apartado "Préstamos" se encontrará un inventario con el material disponible en el centro.</p>
+      </div>
+
+      <!-- Solicitud de material -->
+      <div class="normas-item">
+        <h4 class="subtitle">e. Solicitud de material audiovisual:</h4>
+        <p class="normas-text">Para poder dar soporte técnico al alumnado, previamente ha de estar inscrito en el software de circulación de material audiovisual que se encuentra en el departamento.</p>
+        
+        <ul class="normas-list">
+          <li>La retirada de material se realizará de forma presencial y personal mostrando el carnet de estudiante, una vez pasadas las 15:00 horas del día solicitado.</li>
+          <li>El uso del material retirado es personal, bajo ningún concepto puede hacerse para segundas o terceras personas.</li>
+        </ul>
+
+        <p class="normas-text"><strong>Las formas correctas de solicitar material son:</strong></p>
+        <ul class="normas-list">
+          <li><strong>Tipo A:</strong> Solicitud por indicación del docente (salidas ilimitadas)</li>
+          <li><strong>Tipo B:</strong> Solicitud personal (máximo 5 salidas por trimestre)</li>
+        </ul>
+
+        <p class="normas-text">El material debe ser devuelto el día lectivo siguiente de 8:30 a 9:00 de la mañana.</p>
+      </div>
+
+      <!-- Sanciones -->
+      <div class="normas-item warning">
+        <h4 class="subtitle">g. Sanciones y Penalizaciones:</h4>
+        <p class="normas-text">En caso de no devolver el material en el tiempo establecido, el alumnado será sancionado durante <strong>siete días</strong> sin poder solicitar ningún tipo de material. Si se repite, la sanción será de <strong>un mes</strong>.</p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button 
+        type="button"
+        class="btn-aceptar"
+        (click)="aceptarNormas()"
+      >
+        He leído y acepto las normas
+      </button>
+    </div>
+
+  </div>
+
+</div>
