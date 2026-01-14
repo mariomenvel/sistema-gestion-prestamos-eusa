@@ -10,7 +10,7 @@ import { Equipo } from '../../../core/models/equipo.model';
  * - Ver todos los libros y equipos
  * - Filtrar por categoría y estado
  * - Buscar materiales
- * - Añadir nuevos materiales
+ * - Añadir nuevos materiales o modificarlos
  * - Eliminar materiales
  */
 @Component({
@@ -20,37 +20,54 @@ import { Equipo } from '../../../core/models/equipo.model';
 })
 export class MaterialesComponent implements OnInit {
 
+  // ===== EDICIÓN =====
+
+  equipoEnEdicion: Equipo | null = null;
+  archivoImagenTemporal: File | null = null;
+
+  // ===== CONTROL DE DESPLEGABLES =====
+
+  filasExpandidas: Set<number> = new Set();
+
+  // Estados posibles para los selects
+  estadosDisponibles = [
+    { valor: 'disponible', texto: 'Disponible' },
+    { valor: 'no_disponible', texto: 'No disponible' },
+    { valor: 'bloqueado', texto: 'Bloqueado' },
+    { valor: 'en_reparacion', texto: 'En reparación' }
+  ];
+
   // ===== TABS =====
-  
+
   tipoActivo: 'libros' | 'equipos' = 'equipos';
 
   // ===== DATOS =====
-  
+
   libros: Libro[] = [];
   equipos: Equipo[] = [];
-  
+
   librosFiltrados: Libro[] = [];
   equiposFiltrados: Equipo[] = [];
 
   // ===== FILTROS =====
-  
+
   textoBusqueda: string = '';
   filtroCategoria: string = '';
   filtroEstado: string = '';
 
   // ===== ESTADO =====
-  
+
   isLoading: boolean = false;
   errorMessage: string = '';
 
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private materialesService: MaterialesService
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     this.cargarMateriales();
   }
@@ -87,10 +104,10 @@ export class MaterialesComponent implements OnInit {
    * Elimina un material
    */
   eliminarMaterial(material: Libro | Equipo, tipo: 'libro' | 'equipo'): void {
-    const nombre = tipo === 'libro' 
-      ? (material as Libro).titulo 
+    const nombre = tipo === 'libro'
+      ? (material as Libro).titulo
       : `${(material as Equipo).marca} ${(material as Equipo).modelo}`;
-    
+
     if (!confirm(`¿Eliminar el material "${nombre}"?`)) {
       return;
     }
@@ -126,7 +143,6 @@ export class MaterialesComponent implements OnInit {
    * Obtiene el nombre de la categoría
    */
   getNombreCategoria(material: Libro | Equipo): string {
-    // Ambos usan "categoria" (sin s)
     if (material.categoria) {
       return material.categoria.nombre;
     }
@@ -151,7 +167,7 @@ export class MaterialesComponent implements OnInit {
    */
   getCategoriasDisponibles(): string[] {
     const categorias = new Set<string>();
-    
+
     if (this.tipoActivo === 'libros') {
       this.libros.forEach(libro => {
         if (libro.categoria_codigo) {
@@ -165,7 +181,7 @@ export class MaterialesComponent implements OnInit {
         }
       });
     }
-    
+
     return Array.from(categorias).sort();
   }
 
@@ -178,18 +194,259 @@ export class MaterialesComponent implements OnInit {
     if (libro && libro.categoria) {
       return libro.categoria.nombre;
     }
-    
+
     // Buscar en equipos
     const equipo = this.equipos.find(e => e.categoria_codigo === codigo);
     if (equipo && equipo.categoria) {
       return equipo.categoria.nombre;
     }
-    
-    return codigo; // Devolver el código si no se encuentra el nombre
+
+    return codigo;
+  }
+
+  /**
+   * Alterna el estado expandido/colapsado de una fila
+   */
+  toggleFila(id: number): void {
+    if (this.filasExpandidas.has(id)) {
+      this.filasExpandidas.delete(id);
+    } else {
+      this.filasExpandidas.add(id);
+    }
+  }
+
+  /**
+   * Verifica si una fila está expandida
+   */
+  isFilaExpandida(id: number): boolean {
+    return this.filasExpandidas.has(id);
+  }
+
+  /**
+   * Actualiza el estado de un ejemplar
+   */
+  actualizarEstadoEjemplar(ejemplar: any, nuevoEstado: string): void {
+    this.materialesService.actualizarEjemplar(ejemplar.id, { estado: nuevoEstado as any }).subscribe({
+      next: (ejemplarActualizado) => {
+        console.log('✅ Ejemplar actualizado:', ejemplarActualizado);
+        ejemplar.estado = nuevoEstado;
+        alert('Estado actualizado correctamente');
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar ejemplar:', err);
+        alert('Error al actualizar el estado');
+      }
+    });
+  }
+
+  /**
+   * Actualiza el estado de una unidad
+   */
+  actualizarEstadoUnidad(unidad: any, nuevoEstado: string): void {
+    this.materialesService.actualizarUnidad(unidad.id, { estado: nuevoEstado as any }).subscribe({
+      next: (unidadActualizada) => {
+        console.log('✅ Unidad actualizada:', unidadActualizada);
+        unidad.estado = nuevoEstado;
+        alert('Estado actualizado correctamente');
+      },
+      error: (err) => {
+        console.error('❌ Error al actualizar unidad:', err);
+        alert('Error al actualizar el estado');
+      }
+    });
+  }
+
+  /**
+   * Obtiene el texto del badge según el estado
+   */
+  getTextoEstado(estado: string): string {
+    const estadoEncontrado = this.estadosDisponibles.find(e => e.valor === estado);
+    return estadoEncontrado ? estadoEncontrado.texto : estado;
+  }
+
+  /**
+   * Obtiene la clase CSS del badge según el estado
+   */
+  getClaseBadge(estado: string): string {
+    switch (estado) {
+      case 'disponible': return 'badge-disponible';
+      case 'no_disponible': return 'badge-no-disponible';
+      case 'bloqueado': return 'badge-bloqueado';
+      case 'en_reparacion': return 'badge-reparacion';
+      default: return '';
+    }
+  }
+
+  /**
+   * Activar modo edición de equipo
+   */
+  editarEquipo(equipo: Equipo): void {
+    // Si ya hay un equipo en edición, preguntar si desea guardar
+    if (this.equipoEnEdicion && this.equipoEnEdicion.id !== equipo.id) {
+      if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
+        return;
+      }
+    }
+
+    // Activar edición y expandir fila
+    this.equipoEnEdicion = { ...equipo }; // Copia del equipo
+    this.filasExpandidas.add(equipo.id);
+    this.archivoImagenTemporal = null;
+  }
+
+  /**
+   * Verifica si un equipo está en modo edición
+   */
+  isEquipoEnEdicion(equipo: Equipo): boolean {
+    return this.equipoEnEdicion?.id === equipo.id;
+  }
+
+  /**
+   * Cancela la edición de un equipo
+   */
+  cancelarEdicion(): void {
+    this.equipoEnEdicion = null;
+    this.archivoImagenTemporal = null;
+  }
+
+  /**
+   * Guardar cambios del equipo
+   */
+  guardarEquipo(): void {
+    if (!this.equipoEnEdicion) return;
+
+    const datosActualizados: Partial<Equipo> = {
+      marca: this.equipoEnEdicion.marca,
+      modelo: this.equipoEnEdicion.modelo,
+      descripcion: this.equipoEnEdicion.descripcion,
+      categoria_codigo: this.equipoEnEdicion.categoria_codigo
+    };
+
+    console.log('💾 Guardando equipo:', datosActualizados);
+
+    this.materialesService.actualizarEquipo(this.equipoEnEdicion.id, datosActualizados).subscribe({
+      next: (equipoActualizado: any) => {
+        console.log('✅ Equipo actualizado:', equipoActualizado);
+
+        // Si hay una imagen nueva, subirla
+        if (this.archivoImagenTemporal) {
+          this.subirImagenEquipo(equipoActualizado.id);
+        } else {
+          // Actualizar en la lista local
+          this.actualizarEquipoEnLista(equipoActualizado);
+          alert('Equipo actualizado correctamente');
+          this.cancelarEdicion();
+        }
+      },
+      error: (err: any) => {
+        console.error('❌ Error al actualizar equipo:', err);
+        alert('Error al actualizar el equipo');
+      }
+    });
+  }
+
+  /**
+   * Subir imagen del equipo
+   */
+  private subirImagenEquipo(equipoId: number): void {
+    if (!this.archivoImagenTemporal) return;
+
+    this.materialesService.subirImagenEquipo(equipoId, this.archivoImagenTemporal).subscribe({
+      next: (equipoActualizado: any) => {
+        console.log('✅ Imagen subida:', equipoActualizado);
+        this.actualizarEquipoEnLista(equipoActualizado);
+        alert('Equipo e imagen actualizados correctamente');
+        this.cancelarEdicion();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al subir imagen:', err);
+        alert('Equipo actualizado, pero hubo un error al subir la imagen');
+        this.cancelarEdicion();
+      }
+    });
+  }
+
+  /**
+   * Actualizar equipo en la lista local
+   */
+  private actualizarEquipoEnLista(equipoActualizado: Equipo): void {
+    const index = this.equipos.findIndex(e => e.id === equipoActualizado.id);
+    if (index !== -1) {
+      this.equipos[index] = equipoActualizado;
+      this.aplicarFiltros();
+    }
+  }
+
+  /**
+   * Manejar selección de archivo de imagen
+   */
+  onArchivoImagenSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const archivo = input.files[0];
+
+      // Validar que sea una imagen
+      if (!archivo.type.startsWith('image/')) {
+        alert('Por favor selecciona un archivo de imagen válido');
+        return;
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (archivo.size > 5 * 1024 * 1024) {
+        alert('La imagen no puede superar los 5MB');
+        return;
+      }
+
+      this.archivoImagenTemporal = archivo;
+
+      // Previsualizar imagen
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        if (this.equipoEnEdicion) {
+          this.equipoEnEdicion.foto_url = e.target.result;
+        }
+      };
+      reader.readAsDataURL(archivo);
+    }
+  }
+
+  /**
+   * Guardar cambios de una unidad
+   */
+  guardarCambiosUnidad(unidad: any): void {
+    console.log('💾 Guardando cambios de unidad:', unidad);
+
+    this.materialesService.actualizarUnidad(unidad.id, {
+      numero_serie: unidad.numero_serie,
+      codigo_barra: unidad.codigo_barra,
+      estado: unidad.estado
+    }).subscribe({
+      next: (unidadActualizada) => {
+        console.log('✅ Unidad guardada:', unidadActualizada);
+        // No mostramos alert para no ser intrusivos
+      },
+      error: (err) => {
+        console.error('❌ Error al guardar unidad:', err);
+        alert('Error al guardar los cambios');
+      }
+    });
+  }
+
+  /**
+   * Eliminar una unidad específica
+   */
+  eliminarUnidad(unidad: any): void {
+    if (!confirm(`¿Eliminar la unidad con código de barras "${unidad.codigo_barra}"?`)) {
+      return;
+    }
+
+    // TODO: Implementar método eliminarUnidad en el servicio
+    alert('Funcionalidad de eliminar unidad - Por implementar en el servicio');
+    // this.materialesService.eliminarUnidad(unidad.id).subscribe(...)
   }
 
   // ===== MÉTODOS PRIVADOS =====
-  
+
   /**
    * Carga libros y equipos desde el backend
    */
@@ -231,7 +488,7 @@ export class MaterialesComponent implements OnInit {
   aplicarFiltros(): void {
     // Filtrar libros
     let resultadoLibros = [...this.libros];
-    
+
     // Filtro por texto (búsqueda)
     if (this.textoBusqueda.trim()) {
       const texto = this.textoBusqueda.toLowerCase();
@@ -263,14 +520,14 @@ export class MaterialesComponent implements OnInit {
 
     // Filtrar equipos
     let resultadoEquipos = [...this.equipos];
-    
+
     // Filtro por texto (búsqueda) - INCLUYE CÓDIGO COMPLETO
     if (this.textoBusqueda.trim()) {
       const texto = this.textoBusqueda.toLowerCase();
       resultadoEquipos = resultadoEquipos.filter(equipo => {
         // Código completo = categoria_codigo + id (ej: CAM4)
         const codigoCompleto = `${equipo.categoria_codigo}${equipo.id}`.toLowerCase();
-        
+
         return equipo.marca.toLowerCase().includes(texto) ||
           equipo.modelo.toLowerCase().includes(texto) ||
           codigoCompleto.includes(texto) ||
@@ -305,4 +562,114 @@ export class MaterialesComponent implements OnInit {
       estado: this.filtroEstado
     });
   }
+  // ===== EDICIÓN DE LIBROS =====
+
+libroEnEdicion: Libro | null = null;
+
+/**
+ * Activar modo edición de libro
+ */
+editarLibro(libro: Libro): void {
+  // Si ya hay un libro en edición, preguntar si desea guardar
+  if (this.libroEnEdicion && this.libroEnEdicion.id !== libro.id) {
+    if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
+      return;
+    }
+  }
+
+  // Activar edición y expandir fila
+  this.libroEnEdicion = { ...libro }; // Copia del libro
+  this.filasExpandidas.add(libro.id);
+}
+
+/**
+ * Verifica si un libro está en modo edición
+ */
+isLibroEnEdicion(libro: Libro): boolean {
+  return this.libroEnEdicion?.id === libro.id;
+}
+
+/**
+ * Cancela la edición de un libro
+ */
+cancelarEdicionLibro(): void {
+  this.libroEnEdicion = null;
+}
+
+/**
+ * Guardar cambios del libro
+ */
+guardarLibro(): void {
+  if (!this.libroEnEdicion) return;
+
+  const datosActualizados: Partial<Libro> = {
+    titulo: this.libroEnEdicion.titulo,
+    autor: this.libroEnEdicion.autor,
+    editorial: this.libroEnEdicion.editorial,
+    categoria_codigo: this.libroEnEdicion.categoria_codigo
+  };
+
+  console.log('💾 Guardando libro:', datosActualizados);
+
+  this.materialesService.actualizarLibro(this.libroEnEdicion.id, datosActualizados).subscribe({
+    next: (libroActualizado: any) => {
+      console.log('✅ Libro actualizado:', libroActualizado);
+      this.actualizarLibroEnLista(libroActualizado);
+      alert('Libro actualizado correctamente');
+      this.cancelarEdicionLibro();
+    },
+    error: (err: any) => {
+      console.error('❌ Error al actualizar libro:', err);
+      alert('Error al actualizar el libro');
+    }
+  });
+}
+
+/**
+ * Actualizar libro en la lista local
+ */
+private actualizarLibroEnLista(libroActualizado: Libro): void {
+  const index = this.libros.findIndex(l => l.id === libroActualizado.id);
+  if (index !== -1) {
+    this.libros[index] = libroActualizado;
+    this.aplicarFiltros();
+  }
+}
+
+/**
+ * Guardar cambios de un ejemplar
+ */
+guardarCambiosEjemplar(ejemplar: any): void {
+  console.log('💾 Guardando cambios de ejemplar:', ejemplar);
+
+  this.materialesService.actualizarEjemplar(ejemplar.id, {
+    codigo_barra: ejemplar.codigo_barra,
+    estanteria: ejemplar.estanteria,
+    balda: ejemplar.balda,
+    estado: ejemplar.estado
+  }).subscribe({
+    next: (ejemplarActualizado) => {
+      console.log('✅ Ejemplar guardado:', ejemplarActualizado);
+      // No mostramos alert para no ser intrusivos
+    },
+    error: (err) => {
+      console.error('❌ Error al guardar ejemplar:', err);
+      alert('Error al guardar los cambios');
+    }
+  });
+}
+
+/**
+ * Eliminar un ejemplar específico
+ */
+eliminarEjemplar(ejemplar: any): void {
+  if (!confirm(`¿Eliminar el ejemplar con código de barras "${ejemplar.codigo_barra}"?`)) {
+    return;
+  }
+
+  // TODO: Implementar método eliminarEjemplar en el servicio
+  alert('Funcionalidad de eliminar ejemplar - Por implementar en el servicio');
+  // this.materialesService.eliminarEjemplar(ejemplar.id).subscribe(...)
+}
+
 }

@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 
 // Importamos las interfaces que definimos en core/models
-import { Libro, Equipo } from '../models'; 
+import { Libro, Equipo, Ejemplar, Unidad } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +34,12 @@ export class MaterialesService {
   eliminarLibro(id: number): Observable<any> {
     return this.apiService.delete(`/libros/${id}`);
   }
+  /**
+ * Actualizar un libro (título, autor, editorial, categoría)
+ */
+actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
+  return this.apiService.put<Libro>(`/libros/${id}`, datos);
+}
 
   // ===== EQUIPOS =====
 
@@ -56,5 +62,40 @@ export class MaterialesService {
    */
   eliminarEquipo(id: number): Observable<any> {
     return this.apiService.delete(`/equipos/${id}`);
+  }
+
+  /**
+   * Actualizar un equipo (marca, modelo, descripción, categoría)
+   */
+  actualizarEquipo(id: number, datos: Partial<Equipo>): Observable<Equipo> {
+    return this.apiService.put<Equipo>(`/equipos/${id}`, datos);
+  }
+
+  /**
+   * Subir imagen de un equipo
+   */
+  subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+    
+    return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData);
+  }
+
+  // ===== EJEMPLARES =====
+
+  /**
+   * Actualizar estado de un ejemplar
+   */
+  actualizarEjemplar(id: number, datos: Partial<Ejemplar>): Observable<Ejemplar> {
+    return this.apiService.put<Ejemplar>(`/ejemplares/${id}`, datos);
+  }
+
+  // ===== UNIDADES =====
+
+  /**
+   * Actualizar estado de una unidad
+   */
+  actualizarUnidad(id: number, datos: Partial<Unidad>): Observable<Unidad> {
+    return this.apiService.put<Unidad>(`/unidades/${id}`, datos);
   }
 }
