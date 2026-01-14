@@ -1,0 +1,119 @@
+// Variables basadas en tu paleta
+$color-primary-blue: #0066CC;
+$color-success-green: #2E7D32; 
+$color-success-btn: #4CAF50;
+$color-danger-red: #F44336;
+$color-text-primary: #212121;
+$color-bg-light: #F5F5F5;
+$color-border: #E0E0E0;
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    font-family: 'Inter', sans-serif;
+}
+
+.modal-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 750px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+
+    .modal-title {
+        color: $color-primary-blue;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        margin-top: 0;
+    }
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: $color-text-primary;
+            margin-bottom: 0.5rem;
+
+            .required {
+                color: $color-danger-red;
+            }
+        }
+
+        input,
+        select,
+        textarea {
+            background-color: $color-bg-light;
+            border: 1px solid $color-border;
+            border-radius: 6px;
+            padding: 0.8rem;
+            font-size: 0.95rem;
+            color: #6C757D; 
+
+            &:focus {
+                outline: none;
+                border-color: $color-primary-blue;
+            }
+        }
+
+        &.full-width {
+            grid-column: span 2;
+        }
+    }
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2.5rem;
+
+    button {
+        padding: 0.8rem 2rem;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel {
+        background: white;
+        border-color: $color-border;
+        color: $color-text-primary;
+
+        &:hover {
+            background: $color-bg-light;
+        }
+    }
+
+    .btn-save {
+        background: $color-success-btn;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        &:hover:not(:disabled) {
+            background: $color-success-green;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}

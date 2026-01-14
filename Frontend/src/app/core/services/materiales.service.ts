@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { Categoria } from '../models/categoria.model';
 
 // Importamos las interfaces que definimos en core/models
 import { Libro, Equipo, Ejemplar, Unidad } from '../models';
@@ -40,6 +41,9 @@ export class MaterialesService {
 actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
   return this.apiService.put<Libro>(`/libros/${id}`, datos);
 }
+  aniadirLibro(libro: Libro): Observable<Libro>{
+    return this.apiService.post<Libro>('/libros',libro);
+  }
 
   // ===== EQUIPOS =====
 
@@ -81,6 +85,10 @@ actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
     return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData);
   }
 
+  aniadirEquipo(equipo: Equipo): Observable<Equipo>{
+    return this.apiService.post<Equipo>('/equipos', equipo);
+  }
+
   // ===== EJEMPLARES =====
 
   /**
@@ -97,5 +105,12 @@ actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
    */
   actualizarUnidad(id: number, datos: Partial<Unidad>): Observable<Unidad> {
     return this.apiService.put<Unidad>(`/unidades/${id}`, datos);
+  }
+
+  /**
+   * Obtener las categorías
+   */
+  getCategorias(): Observable<Categoria[]> {
+    return this.apiService.get<Categoria[]>('/categorias');
   }
 }

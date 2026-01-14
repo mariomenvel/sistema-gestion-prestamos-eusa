@@ -1,5 +1,9 @@
 var models = require('../models');
 
+/**
+ * GET /libros
+ * Listar todos los libros con categoría y ejemplares
+ */
 function obtenerLibros(req, res) {
   models.Libro.findAll({
     include: [
@@ -22,13 +26,23 @@ function obtenerLibros(req, res) {
     });
 }
 
+/**
+ * GET /libros/:id
+ * Obtener libro por ID
+ */
 function obtenerLibroPorId(req, res) {
   var libroId = req.params.id;
 
   models.Libro.findByPk(libroId, {
     include: [
-      { model: models.Categoria },
-      { model: models.Ejemplar }
+      {
+        model: models.Categoria,
+        as: 'categorias'
+      },
+      {
+        model: models.Ejemplar,
+        as: 'ejemplares'
+      }
     ]
   })
     .then(function (libro) {
@@ -44,6 +58,10 @@ function obtenerLibroPorId(req, res) {
     });
 }
 
+/**
+ * POST /libros
+ * Crear libro (con imagen opcional)
+ */
 function crearLibro(req, res) {
   var titulo = req.body.titulo;
   var autor = req.body.autor;
@@ -57,12 +75,19 @@ function crearLibro(req, res) {
     });
   }
 
+  // 🖼️ Imagen (opcional)
+  var fotoUrl = null;
+  if (req.file) {
+    fotoUrl = '/uploads/libros/' + req.file.filename;
+  }
+
   models.Libro.create({
     titulo: titulo,
     autor: autor,
     editorial: editorial,
     libro_numero: libroNumero,
-    categoria_codigo: categoriaCodigo
+    categoria_codigo: categoriaCodigo,
+    foto_url: fotoUrl
   })
     .then(function (libro) {
       res.status(201).json(libro);
@@ -73,6 +98,10 @@ function crearLibro(req, res) {
     });
 }
 
+/**
+ * PUT /libros/:id
+ * Actualizar libro (y opcionalmente cambiar imagen)
+ */
 function actualizarLibro(req, res) {
   var libroId = req.params.id;
 
@@ -82,11 +111,19 @@ function actualizarLibro(req, res) {
         return res.status(404).json({ mensaje: 'Libro no encontrado' });
       }
 
+      // 🖼️ Si viene nueva imagen, se actualiza
+      var nuevaFotoUrl = libro.foto_url;
+      if (req.file) {
+        nuevaFotoUrl = '/uploads/libros/' + req.file.filename;
+      }
+
       return libro.update({
         titulo: req.body.titulo ?? libro.titulo,
         autor: req.body.autor ?? libro.autor,
         editorial: req.body.editorial ?? libro.editorial,
-        categoria_codigo: req.body.categoria_codigo ?? libro.categoria_codigo
+        libro_numero: req.body.libro_numero ?? libro.libro_numero,
+        categoria_codigo: req.body.categoria_codigo ?? libro.categoria_codigo,
+        foto_url: nuevaFotoUrl
       });
     })
     .then(function (libroActualizado) {
@@ -98,6 +135,10 @@ function actualizarLibro(req, res) {
     });
 }
 
+/**
+ * DELETE /libros/:id
+ * Eliminar libro (solo si no tiene ejemplares)
+ */
 function eliminarLibro(req, res) {
   var libroId = req.params.id;
 
@@ -123,10 +164,6 @@ function eliminarLibro(req, res) {
       res.status(500).json({ mensaje: 'Error al eliminar el libro' });
     });
 }
-
-
-
-
 
 module.exports = {
   obtenerLibros: obtenerLibros,
