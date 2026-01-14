@@ -1,1 +1,41 @@
-<p>aprobar-solicitud works!</p>
+<div class="modal-overlay" *ngIf="mostrarModalAprobar">
+    <div class="modal-content">
+        <header class="modal-header">
+            <h2 class="modal-title">Aprobar Solicitud</h2>
+            <button class="close-x" (click)="cerrarModal()">X</button>
+        </header>
+
+        <div class="modal-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Alumno:</label>
+                    <p>{{ solicitudSeleccionada?.alumno?.nombre }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Tipo:</label>
+                    <p>{{ solicitudSeleccionada?.tipo }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Material:</label>
+                    <p>{{ solicitudSeleccionada?.material?.nombre }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Fecha Solicitud</label>
+                    <p>{{ solicitudSeleccionada?.createdAt | date:'dd/MM/yyyy' }}</p>
+                </div>
+            </div>
+
+            <div class="input-section"> <label class="required">Fecha de devolución</label>
+                <input type="date" [(ngModel)]="fechaDevolucion">
+                <p class="helper-text">Establece la fecha en la que el alumno debe devolver el material</p>
+            </div>
+        </div>
+
+        <footer class="modal-footer">
+            <button class="btn-cancelar" (click)="cerrarModal()" [disabled]="isLoading">Cancelar</button>
+            <button class="btn-confirmar" (click)="confirmarAprobacion()" [disabled]="isLoading">
+                {{ isLoading ? 'Aprobando...' : 'Confirmar' }}
+            </button>
+        </footer>
+    </div>
+</div>

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { Categoria } from '../models/categoria.model';
 
 // Importamos las interfaces que definimos en core/models
 import { Libro, Equipo } from '../models'; 
@@ -34,6 +35,9 @@ export class MaterialesService {
   eliminarLibro(id: number): Observable<any> {
     return this.apiService.delete(`/libros/${id}`);
   }
+  aniadirLibro(libro: Libro): Observable<Libro>{
+    return this.apiService.post<Libro>('/libros',libro);
+  }
 
   // ===== EQUIPOS =====
 
@@ -56,5 +60,19 @@ export class MaterialesService {
    */
   eliminarEquipo(id: number): Observable<any> {
     return this.apiService.delete(`/equipos/${id}`);
+  }
+
+  /**
+   * Crear un equpo
+   */
+  aniadirEquipo(equipo: Equipo): Observable<Equipo> {
+    return this.apiService.post<Equipo>('/equipos', equipo);
+  }
+
+  /**
+   * Obtener las categorías
+   */
+  getCategorias(): Observable<Categoria[]> {
+    return this.apiService.get<Categoria[]>('/categorias');
   }
 }

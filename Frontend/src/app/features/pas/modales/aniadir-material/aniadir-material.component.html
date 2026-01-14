@@ -1,1 +1,66 @@
-<p>aniadir-material works!</p>
+<div class="modal-overlay">
+    <div class="modal-container">
+        <h2 class="title">Añadir Nuevo Material</h2>
+        
+        <form [formGroup]="materialForm" (ngSubmit)="onSubmit()">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Código <span class="required">*</span></label>
+                    <input type="text" formControlName="codigo" placeholder="Ej: 785412">
+                </div>
+
+                <div class="form-group">
+                    <label>Modelo <span class="required">*</span></label>
+                    <input type="text" formControlName="modelo" placeholder="Ej: EOS R5">
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre del Material <span class="required">*</span></label>
+                    <input type="text" formControlName="nombre" placeholder="Ej: Cámara Canon EOS R5">
+                </div>
+
+                <div class="form-group">
+                    <label>Estado <span class="required">*</span></label>
+                    <select formControlName="estado">
+                        <option *ngFor="let status of statusOptions" [value]="status">{{status}}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Categoría <span class="required">*</span></label>
+                    <select formControlName="categoria">
+                        <option value="" disabled selected>Seleccionar Categoría</option>
+                        <option *ngFor="let cat of categories" [value]="cat">{{cat}}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Unidades <span class="required">*</span></label>
+                    <input type="number" formControlName="unidades" placeholder="Ej: 5">
+                </div>
+
+                <div class="form-group">
+                    <label>Marca <span class="required">*</span></label>
+                    <input type="text" formControlName="marca" placeholder="Ej: Canon">
+                </div>
+
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" formControlName="ubicacion" placeholder="Ej: Estantería 3">
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Descripción</label>
+                    <textarea formControlName="descripcion" rows="4"
+                        placeholder="Añade cualquier información sobre el material"></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
+                <button type="submit" class="btn-save" [disabled]="materialForm.invalid">Guardar Material</button>
+            </div>
+        </form>
+    </div>
+</div>
