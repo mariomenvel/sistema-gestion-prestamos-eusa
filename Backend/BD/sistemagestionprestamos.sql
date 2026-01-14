@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 14-01-2026 a las 09:05:42
+-- Tiempo de generación: 14-01-2026 a las 17:08:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -42,9 +42,10 @@ CREATE TABLE `categorias` (
 --
 
 INSERT INTO `categorias` (`id`, `codigo`, `nombre`, `tipo`, `activa`, `createdAt`, `updatedAt`) VALUES
-(1, '038', 'Marketing', 'libro', 1, '2026-01-08 12:14:38', '2026-01-08 12:14:38'),
-(2, 'INF', 'Informática', 'libro', 1, '2026-01-08 12:14:38', '2026-01-08 12:14:38'),
-(3, 'CAM', 'Cámaras', 'equipo', 1, '2026-01-08 12:14:38', '2026-01-08 12:14:38');
+(1, '038', 'Marketing', 'libro', 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 'INF', 'Informática', 'libro', 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(3, 'CAM', 'Cámaras', 'equipo', 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(4, 'AUD', 'Audio', 'equipo', 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -69,7 +70,8 @@ CREATE TABLE `ejemplares` (
 --
 
 INSERT INTO `ejemplares` (`id`, `libro_id`, `codigo_barra`, `c122003`, `estanteria`, `balda`, `estado`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 'LIB-1-001', NULL, '014', '6', 'disponible', '2026-01-08 12:14:38', '2026-01-08 12:29:39');
+(1, 1, 'LIB-1-001', NULL, '014', '6', 'disponible', '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 2, 'LIB-2-001', NULL, '010', '3', 'disponible', '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -93,7 +95,8 @@ CREATE TABLE `equipos` (
 --
 
 INSERT INTO `equipos` (`id`, `categoria_codigo`, `marca`, `modelo`, `descripcion`, `foto_url`, `createdAt`, `updatedAt`) VALUES
-(1, 'CAM', 'Canon', 'EOS 250D', 'Cámara réflex', NULL, '2026-01-08 12:14:38', '2026-01-08 12:14:38');
+(1, 'CAM', 'Canon', 'EOS 250D', 'Cámara réflex', NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 'AUD', 'Rode', 'NT-USB', 'Micrófono USB', NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -108,6 +111,7 @@ CREATE TABLE `libros` (
   `editorial` varchar(255) DEFAULT NULL,
   `libro_numero` varchar(20) NOT NULL,
   `categoria_codigo` varchar(10) NOT NULL,
+  `foto_url` varchar(400) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -116,8 +120,9 @@ CREATE TABLE `libros` (
 -- Volcado de datos para la tabla `libros`
 --
 
-INSERT INTO `libros` (`id`, `titulo`, `autor`, `editorial`, `libro_numero`, `categoria_codigo`, `createdAt`, `updatedAt`) VALUES
-(1, 'Habilidades de Comunicación', 'Fernando de Manuel', 'Marketing Editorial', '00001', '038', '2026-01-08 12:14:38', '2026-01-08 12:14:38');
+INSERT INTO `libros` (`id`, `titulo`, `autor`, `editorial`, `libro_numero`, `categoria_codigo`, `foto_url`, `createdAt`, `updatedAt`) VALUES
+(1, 'Habilidades de Comunicación', 'Fernando de Manuel', 'Marketing Editorial', '00001', '038', NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 'Programación en Java', 'Autor Java', 'Tech Books', '00002', 'INF', NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -165,7 +170,8 @@ CREATE TABLE `prestamos` (
 --
 
 INSERT INTO `prestamos` (`id`, `usuario_id`, `ejemplar_id`, `unidad_id`, `solicitud_id`, `tipo`, `estado`, `fecha_inicio`, `fecha_devolucion_prevista`, `fecha_devolucion_real`, `profesor_solicitante_id`, `createdAt`, `updatedAt`) VALUES
-(1, 2, 1, NULL, 1, 'b', 'cerrado', '2026-01-08 12:29:05', '2026-02-06 12:29:05', '2026-01-08 12:29:39', NULL, '2026-01-08 12:29:05', '2026-01-08 12:29:39');
+(1, 3, NULL, 1, 2, 'b', 'activo', '2026-01-13 16:07:55', '2026-01-15 16:07:55', NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 4, 2, NULL, NULL, 'b', 'vencido', '2026-01-07 16:07:55', '2026-01-11 16:07:55', NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -184,6 +190,13 @@ CREATE TABLE `sanciones` (
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `sanciones`
+--
+
+INSERT INTO `sanciones` (`id`, `usuario_id`, `severidad`, `estado`, `inicio`, `fin`, `motivo`, `createdAt`, `updatedAt`) VALUES
+(1, 4, 's1_1sem', 'activa', '2026-01-14 16:07:55', '2026-01-21 16:07:55', 'Retraso en devolución', '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -212,7 +225,9 @@ CREATE TABLE `solicitudes` (
 --
 
 INSERT INTO `solicitudes` (`id`, `usuario_id`, `ejemplar_id`, `unidad_id`, `tipo`, `estado`, `normas_aceptadas`, `observaciones`, `gestionado_por_id`, `creada_en`, `resuelta_en`, `createdAt`, `updatedAt`) VALUES
-(1, 2, 1, NULL, 'uso_propio', 'aprobada', 1, NULL, 1, '2026-01-08 12:27:57', '2026-01-08 12:29:05', '2026-01-08 12:27:57', '2026-01-08 12:29:05');
+(1, 2, 1, NULL, 'uso_propio', 'pendiente', 1, 'Para estudiar comunicación', NULL, '2026-01-14 16:07:55', NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 3, NULL, 1, 'uso_propio', 'aprobada', 1, NULL, 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55', '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(3, 4, NULL, 3, 'uso_propio', 'rechazada', 1, NULL, 1, '2026-01-14 16:07:55', '2026-01-14 16:07:55', '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -235,7 +250,9 @@ CREATE TABLE `unidades` (
 --
 
 INSERT INTO `unidades` (`id`, `equipo_id`, `numero_serie`, `codigo_barra`, `estado`, `createdAt`, `updatedAt`) VALUES
-(1, 1, NULL, 'EQ-1-001', 'disponible', '2026-01-08 12:14:38', '2026-01-08 12:14:38');
+(1, 1, NULL, 'EQ-CAM-001', 'disponible', '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 1, NULL, 'EQ-CAM-002', 'disponible', '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(3, 2, NULL, 'EQ-AUD-001', 'disponible', '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 -- --------------------------------------------------------
 
@@ -265,10 +282,11 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `email`, `password_hash`, `nombre`, `apellidos`, `rol`, `estado_perfil`, `tipo_estudios`, `grado`, `curso`, `fecha_inicio_est`, `fecha_fin_prev`, `createdAt`, `updatedAt`) VALUES
-(1, 'pas@eusa.es', '$2b$10$up2VL/b1/gcCidQdBDbJNOZvabzy4Ji/LJpab5jAV3MQ.gGUZt2/u', 'PAS', 'EUSA', 'pas', 'activo', NULL, NULL, NULL, NULL, NULL, '2026-01-08 12:14:38', '2026-01-08 12:14:38'),
-(2, 'alumno1@eusa.es', '$2b$10$hT6MGRgtGYUUBVKGgUtMKuaohm7bgYtuTZx7Ri25iD5A7lBsiS106', 'Juan', 'Pérez', 'alumno', 'activo', NULL, 'DAM', 2, NULL, NULL, '2026-01-08 12:14:38', '2026-01-08 12:14:38'),
-(3, 'alumno2@eusa.es', '$2b$10$J9pGxm3sngon4f9px.yzwuZq1Nm9MwDSHfuaKvTvZaAbyhW/O2cqC', 'Lucía', 'Gómez', 'alumno', 'activo', NULL, 'DAW', 1, NULL, NULL, '2026-01-08 12:14:38', '2026-01-08 12:14:38'),
-(4, 'profesor@eusa.es', '$2b$10$yphxo7HgoTQSIHYICQ9.eO47RRm75T55K34y1dmcFgPxzEFmuKMJ.', 'Carlos', 'Profesor', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, '2026-01-08 12:14:38', '2026-01-08 12:14:38');
+(1, 'pas@eusa.es', '$2b$10$CdM.QNCcG/rOnTAVQQK5N.6k8QhYsumDcKm2vvdnOTJrP/lKL3K66', 'PAS', 'EUSA', 'pas', 'activo', NULL, NULL, NULL, NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(2, 'alumno1@eusa.es', '$2b$10$HcUH8hWcjNYmfj0Ax/x2fu.7./lBNnXpFGOAd3gaf2SwF7xnVFs5K', 'Juan', 'Pérez', 'alumno', 'activo', NULL, 'DAM', 2, NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(3, 'alumno2@eusa.es', '$2b$10$BqcEr8y5YQB8P.4ITPLOK.U49/xF0LlBIbInmVoMhN2Hcq1HX9QuG', 'Lucía', 'Gómez', 'alumno', 'activo', NULL, 'DAW', 1, NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(4, 'alumno3@eusa.es', '$2b$10$3xUsSlX6tV/7IJDuEX7eduHRWWQRikbTMUvWWfTToDT8nzJ2O70Aa', 'Mario', 'Ruiz', 'alumno', 'activo', NULL, 'DAM', 1, NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55'),
+(5, 'profesor@eusa.es', '$2b$10$StYEe462uEqPYie2aT3xu.yrB95YF1zNK94KxeKZJdNeiQdh9lSzK', 'Carlos', 'Profesor', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, '2026-01-14 16:07:55', '2026-01-14 16:07:55');
 
 --
 -- Índices para tablas volcadas
@@ -363,25 +381,25 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `ejemplares`
 --
 ALTER TABLE `ejemplares`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `equipos`
 --
 ALTER TABLE `equipos`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `libros`
 --
 ALTER TABLE `libros`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones`
@@ -393,25 +411,25 @@ ALTER TABLE `notificaciones`
 -- AUTO_INCREMENT de la tabla `prestamos`
 --
 ALTER TABLE `prestamos`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `sanciones`
 --
 ALTER TABLE `sanciones`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `solicitudes`
 --
 ALTER TABLE `solicitudes`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `unidades`
 --
 ALTER TABLE `unidades`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
