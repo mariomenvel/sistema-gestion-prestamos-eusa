@@ -1,66 +1,430 @@
-<div class="modal-overlay">
-    <div class="modal-container">
-        <h2 class="title">Añadir Nuevo Material</h2>
-        
-        <form [formGroup]="materialForm" (ngSubmit)="onSubmit()">
-            <div class="form-grid">
+<!-- Modal Overlay -->
+<div class="modal-overlay" *ngIf="isOpen" (click)="cerrarModal()">
 
-                <div class="form-group">
-                    <label>Código <span class="required">*</span></label>
-                    <input type="text" formControlName="codigo" placeholder="Ej: 785412">
-                </div>
+  <!-- Modal Container -->
+  <div class="modal-container" (click)="$event.stopPropagation()">
 
-                <div class="form-group">
-                    <label>Modelo <span class="required">*</span></label>
-                    <input type="text" formControlName="modelo" placeholder="Ej: EOS R5">
-                </div>
-
-                <div class="form-group">
-                    <label>Nombre del Material <span class="required">*</span></label>
-                    <input type="text" formControlName="nombre" placeholder="Ej: Cámara Canon EOS R5">
-                </div>
-
-                <div class="form-group">
-                    <label>Estado <span class="required">*</span></label>
-                    <select formControlName="estado">
-                        <option *ngFor="let status of statusOptions" [value]="status">{{status}}</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Categoría <span class="required">*</span></label>
-                    <select formControlName="categoria">
-                        <option value="" disabled selected>Seleccionar Categoría</option>
-                        <option *ngFor="let cat of categories" [value]="cat">{{cat}}</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Unidades <span class="required">*</span></label>
-                    <input type="number" formControlName="unidades" placeholder="Ej: 5">
-                </div>
-
-                <div class="form-group">
-                    <label>Marca <span class="required">*</span></label>
-                    <input type="text" formControlName="marca" placeholder="Ej: Canon">
-                </div>
-
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" formControlName="ubicacion" placeholder="Ej: Estantería 3">
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Descripción</label>
-                    <textarea formControlName="descripcion" rows="4"
-                        placeholder="Añade cualquier información sobre el material"></textarea>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button type="button" class="btn-cancel" (click)="onCancel()">Cancelar</button>
-                <button type="submit" class="btn-save" [disabled]="materialForm.invalid">Guardar Material</button>
-            </div>
-        </form>
+    <!-- Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">Añadir Nuevo Material</h2>
+      <button class="btn-close" (click)="cerrarModal()" type="button">✕</button>
     </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- Selector de Tipo -->
+      <div class="tipo-selector">
+        <button 
+          type="button" 
+          class="btn-tipo-selector" 
+          [class.activo]="tipoMaterial === 'equipo'"
+          (click)="cambiarTipo('equipo')">
+          Equipo
+        </button>
+        <button 
+          type="button" 
+          class="btn-tipo-selector" 
+          [class.activo]="tipoMaterial === 'libro'"
+          (click)="cambiarTipo('libro')">
+          Libro
+        </button>
+      </div>
+
+      <!-- FORMULARIO EQUIPO -->
+      <form class="material-form" *ngIf="tipoMaterial === 'equipo'">
+
+        <h3 class="section-title">Información del Equipo</h3>
+
+        <!-- Grid de campos principales -->
+        <div class="form-grid">
+
+          <!-- Marca -->
+          <div class="form-field">
+            <label class="form-label">Marca *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="equipoMarca" 
+              name="equipoMarca"
+              placeholder="Ej: Canon">
+          </div>
+
+          <!-- Modelo -->
+          <div class="form-field">
+            <label class="form-label">Modelo *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="equipoModelo" 
+              name="equipoModelo"
+              placeholder="Ej: EOS 250D">
+          </div>
+
+          <!-- Categoría -->
+          <div class="form-field">
+            <div class="field-with-button">
+              <div class="field-content">
+                <label class="form-label">Categoría *</label>
+                <select class="form-select" [(ngModel)]="equipoCategoria" name="equipoCategoria">
+                  <option value="">Seleccionar categoría</option>
+                  <option *ngFor="let cat of categoriasEquipos" [value]="cat.codigo">
+                    {{ cat.nombre }}
+                  </option>
+                </select>
+              </div>
+              <button 
+                type="button" 
+                class="btn-nueva-categoria" 
+                (click)="toggleFormularioCategoria()"
+                title="Añadir nueva categoría">
+                {{ mostrarFormularioCategoria ? '✕' : '+' }}
+              </button>
+            </div>
+
+            <!-- Formulario nueva categoría EQUIPOS -->
+            <div class="nueva-categoria-form" *ngIf="mostrarFormularioCategoria">
+              <h4>Nueva Categoría de Equipo</h4>
+              <div class="nueva-categoria-campos">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="nuevaCategoriaCodigo" 
+                  name="nuevaCategoriaCodigo"
+                  placeholder="Código (Ej: VID)"
+                  maxlength="10">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="nuevaCategoriaNombre" 
+                  name="nuevaCategoriaNombre"
+                  placeholder="Nombre (Ej: Vídeo)">
+                <button 
+                  type="button" 
+                  class="btn-crear-categoria" 
+                  (click)="crearCategoria()">
+                  Crear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="form-field form-field-full">
+            <label class="form-label">Descripción</label>
+            <textarea 
+              class="form-textarea" 
+              [(ngModel)]="equipoDescripcion" 
+              name="equipoDescripcion"
+              rows="3"
+              placeholder="Descripción opcional del equipo"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Imagen -->
+        <div class="form-field">
+          <label class="form-label">Imagen del Equipo</label>
+          
+          <div class="imagen-container" *ngIf="imagenPreview">
+            <img [src]="imagenPreview" alt="Preview">
+          </div>
+
+          <input 
+            type="file" 
+            id="inputImagenEquipo" 
+            accept="image/*" 
+            (change)="onImagenSeleccionada($event)"
+            style="display: none;">
+          
+          <label for="inputImagenEquipo" class="btn-seleccionar-archivo">
+            📷 Seleccionar imagen
+          </label>
+          <p class="help-text">Formatos: JPG, PNG, GIF (máx. 5MB)</p>
+        </div>
+
+        <!-- Separador -->
+        <hr class="separador">
+
+        <!-- Unidades -->
+        <div class="unidades-section">
+          <div class="section-header">
+            <h3 class="section-title">Unidades del Equipo *</h3>
+            <button type="button" class="btn-agregar-item" (click)="agregarUnidad()">
+              + Añadir unidad
+            </button>
+          </div>
+
+          <div class="unidades-list">
+            <div class="unidad-item" *ngFor="let unidad of unidades; let i = index">
+              
+              <div class="item-numero">{{ i + 1 }}.</div>
+
+              <div class="item-campos">
+                
+                <!-- Número de Serie -->
+                <div class="item-campo">
+                  <label>N° Serie:</label>
+                  <input 
+                    type="text" 
+                    class="item-input" 
+                    [(ngModel)]="unidad.numero_serie"
+                    [name]="'unidad_serie_' + i"
+                    placeholder="Opcional">
+                </div>
+
+                <!-- Código de Barras -->
+                <div class="item-campo">
+                  <label>Código de Barras: *</label>
+                  <input 
+                    type="text" 
+                    class="item-input" 
+                    [(ngModel)]="unidad.codigo_barra"
+                    [name]="'unidad_codigo_' + i"
+                    placeholder="Ej: EQ-CAM-001">
+                </div>
+
+                <!-- Estado -->
+                <div class="item-campo">
+                  <label>Estado:</label>
+                  <select 
+                    class="item-select" 
+                    [(ngModel)]="unidad.estado"
+                    [name]="'unidad_estado_' + i">
+                    <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
+                      {{ estado.texto }}
+                    </option>
+                  </select>
+                </div>
+
+              </div>
+
+              <button 
+                type="button"
+                class="btn-eliminar-item" 
+                (click)="eliminarUnidad(i)"
+                [disabled]="unidades.length === 1"
+                title="Eliminar unidad">
+                🗑️
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+
+      </form>
+
+      <!-- FORMULARIO LIBRO -->
+      <form class="material-form" *ngIf="tipoMaterial === 'libro'">
+
+        <h3 class="section-title">Información del Libro</h3>
+
+        <!-- Grid de campos principales -->
+        <div class="form-grid">
+
+          <!-- Título -->
+          <div class="form-field form-field-full">
+            <label class="form-label">Título *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="libroTitulo" 
+              name="libroTitulo"
+              placeholder="Ej: Habilidades de Comunicación">
+          </div>
+
+          <!-- Autor -->
+          <div class="form-field">
+            <label class="form-label">Autor</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="libroAutor" 
+              name="libroAutor"
+              placeholder="Ej: Fernando de Manuel">
+          </div>
+
+          <!-- Editorial -->
+          <div class="form-field">
+            <label class="form-label">Editorial</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="libroEditorial" 
+              name="libroEditorial"
+              placeholder="Ej: Marketing Editorial">
+          </div>
+
+          <!-- Número de Libro -->
+          <div class="form-field">
+            <label class="form-label">Número de Libro *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="libroNumero" 
+              name="libroNumero"
+              placeholder="Ej: 00001">
+          </div>
+
+          <!-- Categoría -->
+          <div class="form-field">
+            <div class="field-with-button">
+              <div class="field-content">
+                <label class="form-label">Categoría *</label>
+                <select class="form-select" [(ngModel)]="libroCategoria" name="libroCategoria">
+                  <option value="">Seleccionar categoría</option>
+                  <option *ngFor="let cat of categoriasLibros" [value]="cat.codigo">
+                    {{ cat.nombre }}
+                  </option>
+                </select>
+              </div>
+              <button 
+                type="button" 
+                class="btn-nueva-categoria" 
+                (click)="toggleFormularioCategoria()"
+                title="Añadir nueva categoría">
+                {{ mostrarFormularioCategoria ? '✕' : '+' }}
+              </button>
+            </div>
+
+            <!-- Formulario nueva categoría LIBROS -->
+            <div class="nueva-categoria-form" *ngIf="mostrarFormularioCategoria">
+              <h4>Nueva Categoría de Libro</h4>
+              <div class="nueva-categoria-campos">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="nuevaCategoriaCodigo" 
+                  name="nuevaCategoriaCodigo"
+                  placeholder="Código (Ej: MAT)"
+                  maxlength="10">
+                <input 
+                  type="text" 
+                  class="form-input" 
+                  [(ngModel)]="nuevaCategoriaNombre" 
+                  name="nuevaCategoriaNombre"
+                  placeholder="Nombre (Ej: Matemáticas)">
+                <button 
+                  type="button" 
+                  class="btn-crear-categoria" 
+                  (click)="crearCategoria()">
+                  Crear
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Separador -->
+        <hr class="separador">
+
+        <!-- Ejemplares -->
+        <div class="ejemplares-section">
+          <div class="section-header">
+            <h3 class="section-title">Ejemplares del Libro *</h3>
+            <button type="button" class="btn-agregar-item" (click)="agregarEjemplar()">
+              + Añadir ejemplar
+            </button>
+          </div>
+
+          <div class="ejemplares-list">
+            <div class="ejemplar-item" *ngFor="let ejemplar of ejemplares; let i = index">
+              
+              <div class="item-numero">{{ i + 1 }}.</div>
+
+              <div class="item-campos">
+                
+                <!-- Código de Barras -->
+                <div class="item-campo">
+                  <label>Código de Barras: *</label>
+                  <input 
+                    type="text" 
+                    class="item-input" 
+                    [(ngModel)]="ejemplar.codigo_barra"
+                    [name]="'ejemplar_codigo_' + i"
+                    placeholder="Ej: LIB-1-001">
+                </div>
+
+                <!-- Estantería -->
+                <div class="item-campo">
+                  <label>Estantería:</label>
+                  <input 
+                    type="text" 
+                    class="item-input" 
+                    [(ngModel)]="ejemplar.estanteria"
+                    [name]="'ejemplar_estanteria_' + i"
+                    placeholder="Ej: 014">
+                </div>
+
+                <!-- Balda -->
+                <div class="item-campo">
+                  <label>Balda:</label>
+                  <input 
+                    type="text" 
+                    class="item-input" 
+                    [(ngModel)]="ejemplar.balda"
+                    [name]="'ejemplar_balda_' + i"
+                    placeholder="Ej: 6">
+                </div>
+
+                <!-- Estado -->
+                <div class="item-campo">
+                  <label>Estado:</label>
+                  <select 
+                    class="item-select" 
+                    [(ngModel)]="ejemplar.estado"
+                    [name]="'ejemplar_estado_' + i">
+                    <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
+                      {{ estado.texto }}
+                    </option>
+                  </select>
+                </div>
+
+              </div>
+
+              <button 
+                type="button"
+                class="btn-eliminar-item" 
+                (click)="eliminarEjemplar(i)"
+                [disabled]="ejemplares.length === 1"
+                title="Eliminar ejemplar">
+                🗑️
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+
+      </form>
+
+      <!-- Mensaje de error -->
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="modal-footer">
+      <button 
+        type="button" 
+        class="btn-cancelar" 
+        (click)="cerrarModal()"
+        [disabled]="enviando">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn-guardar" 
+        (click)="guardarMaterial()"
+        [disabled]="!formularioValido() || enviando">
+        {{ enviando ? 'Guardando...' : 'Guardar Material' }}
+      </button>
+    </div>
+
+  </div>
+
 </div>

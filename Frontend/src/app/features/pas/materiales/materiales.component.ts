@@ -24,6 +24,7 @@ export class MaterialesComponent implements OnInit {
 
   equipoEnEdicion: Equipo | null = null;
   archivoImagenTemporal: File | null = null;
+  libroEnEdicion: Libro | null = null;
 
   // ===== CONTROL DE DESPLEGABLES =====
 
@@ -59,6 +60,10 @@ export class MaterialesComponent implements OnInit {
 
   isLoading: boolean = false;
   errorMessage: string = '';
+
+  // ===== MODAL AÑADIR MATERIAL =====
+
+  modalAnadirAbierto: boolean = false;
 
   // ===== CONSTRUCTOR =====
 
@@ -96,8 +101,22 @@ export class MaterialesComponent implements OnInit {
    * Abre modal para añadir material
    */
   abrirModalAnadirMaterial(): void {
-    alert('Funcionalidad de añadir material - Por implementar con modal');
-    // TODO: Abrir modal AniadirMaterialComponent
+    this.modalAnadirAbierto = true;
+  }
+
+  /**
+   * Cierra modal de añadir material
+   */
+  cerrarModalAnadir(): void {
+    this.modalAnadirAbierto = false;
+  }
+
+  /**
+   * Callback cuando se crea un material
+   */
+  onMaterialCreado(): void {
+    this.cargarMateriales();
+    this.cerrarModalAnadir();
   }
 
   /**
@@ -440,9 +459,133 @@ export class MaterialesComponent implements OnInit {
       return;
     }
 
-    // TODO: Implementar método eliminarUnidad en el servicio
-    alert('Funcionalidad de eliminar unidad - Por implementar en el servicio');
-    // this.materialesService.eliminarUnidad(unidad.id).subscribe(...)
+    this.materialesService.eliminarUnidad(unidad.id).subscribe({
+      next: () => {
+        console.log('✅ Unidad eliminada');
+        alert('Unidad eliminada correctamente');
+        this.cargarMateriales();
+      },
+      error: (err) => {
+        console.error('❌ Error al eliminar unidad:', err);
+        alert('Error al eliminar la unidad');
+      }
+    });
+  }
+
+  // ===== MÉTODOS DE LIBROS =====
+
+  /**
+   * Activar modo edición de libro
+   */
+  editarLibro(libro: Libro): void {
+    // Si ya hay un libro en edición, preguntar si desea guardar
+    if (this.libroEnEdicion && this.libroEnEdicion.id !== libro.id) {
+      if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
+        return;
+      }
+    }
+
+    // Activar edición y expandir fila
+    this.libroEnEdicion = { ...libro }; // Copia del libro
+    this.filasExpandidas.add(libro.id);
+  }
+
+  /**
+   * Verifica si un libro está en modo edición
+   */
+  isLibroEnEdicion(libro: Libro): boolean {
+    return this.libroEnEdicion?.id === libro.id;
+  }
+
+  /**
+   * Cancela la edición de un libro
+   */
+  cancelarEdicionLibro(): void {
+    this.libroEnEdicion = null;
+  }
+
+  /**
+   * Guardar cambios del libro
+   */
+  guardarLibro(): void {
+    if (!this.libroEnEdicion) return;
+
+    const datosActualizados: Partial<Libro> = {
+      titulo: this.libroEnEdicion.titulo,
+      autor: this.libroEnEdicion.autor,
+      editorial: this.libroEnEdicion.editorial,
+      categoria_codigo: this.libroEnEdicion.categoria_codigo
+    };
+
+    console.log('💾 Guardando libro:', datosActualizados);
+
+    this.materialesService.actualizarLibro(this.libroEnEdicion.id, datosActualizados).subscribe({
+      next: (libroActualizado: any) => {
+        console.log('✅ Libro actualizado:', libroActualizado);
+        this.actualizarLibroEnLista(libroActualizado);
+        alert('Libro actualizado correctamente');
+        this.cancelarEdicionLibro();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al actualizar libro:', err);
+        alert('Error al actualizar el libro');
+      }
+    });
+  }
+
+  /**
+   * Actualizar libro en la lista local
+   */
+  private actualizarLibroEnLista(libroActualizado: Libro): void {
+    const index = this.libros.findIndex(l => l.id === libroActualizado.id);
+    if (index !== -1) {
+      this.libros[index] = libroActualizado;
+      this.aplicarFiltros();
+    }
+  }
+
+  /**
+   * Guardar cambios de un ejemplar
+   */
+  guardarCambiosEjemplar(ejemplar: any): void {
+    console.log('💾 Guardando cambios de ejemplar:', ejemplar);
+
+    this.materialesService.actualizarEjemplar(ejemplar.id, {
+      codigo_barra: ejemplar.codigo_barra,
+      estanteria: ejemplar.estanteria,
+      balda: ejemplar.balda,
+      estado: ejemplar.estado
+    }).subscribe({
+      next: (ejemplarActualizado) => {
+        console.log('✅ Ejemplar guardado:', ejemplarActualizado);
+        // No mostramos alert para no ser intrusivos
+      },
+      error: (err) => {
+        console.error('❌ Error al guardar ejemplar:', err);
+        alert('Error al guardar los cambios');
+      }
+    });
+  }
+
+  /**
+   * Eliminar un ejemplar específico
+   */
+  eliminarEjemplar(ejemplar: any): void {
+    if (!confirm(`¿Eliminar el ejemplar con código de barras "${ejemplar.codigo_barra}"?`)) {
+      return;
+    }
+
+    this.materialesService.eliminarEjemplar(ejemplar.id).subscribe({
+      next: () => {
+        console.log('✅ Ejemplar eliminado');
+        alert('Ejemplar eliminado correctamente');
+        this.cargarMateriales();
+      },
+      error: (err) => {
+        console.error('❌ Error al eliminar ejemplar:', err);
+        alert('Error al eliminar el ejemplar');
+      }
+    });
   }
 
   // ===== MÉTODOS PRIVADOS =====
@@ -562,114 +705,4 @@ export class MaterialesComponent implements OnInit {
       estado: this.filtroEstado
     });
   }
-  // ===== EDICIÓN DE LIBROS =====
-
-libroEnEdicion: Libro | null = null;
-
-/**
- * Activar modo edición de libro
- */
-editarLibro(libro: Libro): void {
-  // Si ya hay un libro en edición, preguntar si desea guardar
-  if (this.libroEnEdicion && this.libroEnEdicion.id !== libro.id) {
-    if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
-      return;
-    }
-  }
-
-  // Activar edición y expandir fila
-  this.libroEnEdicion = { ...libro }; // Copia del libro
-  this.filasExpandidas.add(libro.id);
-}
-
-/**
- * Verifica si un libro está en modo edición
- */
-isLibroEnEdicion(libro: Libro): boolean {
-  return this.libroEnEdicion?.id === libro.id;
-}
-
-/**
- * Cancela la edición de un libro
- */
-cancelarEdicionLibro(): void {
-  this.libroEnEdicion = null;
-}
-
-/**
- * Guardar cambios del libro
- */
-guardarLibro(): void {
-  if (!this.libroEnEdicion) return;
-
-  const datosActualizados: Partial<Libro> = {
-    titulo: this.libroEnEdicion.titulo,
-    autor: this.libroEnEdicion.autor,
-    editorial: this.libroEnEdicion.editorial,
-    categoria_codigo: this.libroEnEdicion.categoria_codigo
-  };
-
-  console.log('💾 Guardando libro:', datosActualizados);
-
-  this.materialesService.actualizarLibro(this.libroEnEdicion.id, datosActualizados).subscribe({
-    next: (libroActualizado: any) => {
-      console.log('✅ Libro actualizado:', libroActualizado);
-      this.actualizarLibroEnLista(libroActualizado);
-      alert('Libro actualizado correctamente');
-      this.cancelarEdicionLibro();
-    },
-    error: (err: any) => {
-      console.error('❌ Error al actualizar libro:', err);
-      alert('Error al actualizar el libro');
-    }
-  });
-}
-
-/**
- * Actualizar libro en la lista local
- */
-private actualizarLibroEnLista(libroActualizado: Libro): void {
-  const index = this.libros.findIndex(l => l.id === libroActualizado.id);
-  if (index !== -1) {
-    this.libros[index] = libroActualizado;
-    this.aplicarFiltros();
-  }
-}
-
-/**
- * Guardar cambios de un ejemplar
- */
-guardarCambiosEjemplar(ejemplar: any): void {
-  console.log('💾 Guardando cambios de ejemplar:', ejemplar);
-
-  this.materialesService.actualizarEjemplar(ejemplar.id, {
-    codigo_barra: ejemplar.codigo_barra,
-    estanteria: ejemplar.estanteria,
-    balda: ejemplar.balda,
-    estado: ejemplar.estado
-  }).subscribe({
-    next: (ejemplarActualizado) => {
-      console.log('✅ Ejemplar guardado:', ejemplarActualizado);
-      // No mostramos alert para no ser intrusivos
-    },
-    error: (err) => {
-      console.error('❌ Error al guardar ejemplar:', err);
-      alert('Error al guardar los cambios');
-    }
-  });
-}
-
-/**
- * Eliminar un ejemplar específico
- */
-eliminarEjemplar(ejemplar: any): void {
-  if (!confirm(`¿Eliminar el ejemplar con código de barras "${ejemplar.codigo_barra}"?`)) {
-    return;
-  }
-
-  // TODO: Implementar método eliminarEjemplar en el servicio
-  alert('Funcionalidad de eliminar ejemplar - Por implementar en el servicio');
-  // this.materialesService.eliminarEjemplar(ejemplar.id).subscribe(...)
-}
-
 }

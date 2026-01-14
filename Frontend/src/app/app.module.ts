@@ -26,8 +26,6 @@ import { PrestamosActivosComponent } from './features/pas/prestamos-activos/pres
 import { MaterialesComponent } from './features/pas/materiales/materiales.component';
 import { ReportesComponent } from './features/pas/reportes/reportes.component';
 import { UsuariosComponent } from './features/pas/usuarios/usuarios.component';
-import { AprobarSolicitudComponent } from './features/pas/modales/aprobar-solicitud/aprobar-solicitud.component';
-import { RechazarSolicitudComponent } from './features/pas/modales/rechazar-solicitud/rechazar-solicitud.component';
 import { AniadirMaterialComponent } from './features/pas/modales/aniadir-material/aniadir-material.component';
 import { PerfilAlumnoComponent } from './features/pas/modales/perfil-alumno/perfil-alumno.component';
 
@@ -56,8 +54,6 @@ import { CommonModule } from '@angular/common';
     MaterialesComponent,
     ReportesComponent,
     UsuariosComponent,
-    AprobarSolicitudComponent,
-    RechazarSolicitudComponent,
     AniadirMaterialComponent,
     PerfilAlumnoComponent,
     // Shared

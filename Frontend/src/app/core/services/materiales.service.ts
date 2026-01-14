@@ -38,11 +38,11 @@ export class MaterialesService {
   /**
  * Actualizar un libro (título, autor, editorial, categoría)
  */
-actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
-  return this.apiService.put<Libro>(`/libros/${id}`, datos);
-}
-  aniadirLibro(libro: Libro): Observable<Libro>{
-    return this.apiService.post<Libro>('/libros',libro);
+  actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
+    return this.apiService.put<Libro>(`/libros/${id}`, datos);
+  }
+  aniadirLibro(libro: Libro): Observable<Libro> {
+    return this.apiService.post<Libro>('/libros', libro);
   }
 
   // ===== EQUIPOS =====
@@ -81,11 +81,11 @@ actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
   subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
     const formData = new FormData();
     formData.append('foto', archivo);
-    
+
     return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData);
   }
 
-  aniadirEquipo(equipo: Equipo): Observable<Equipo>{
+  aniadirEquipo(equipo: Equipo): Observable<Equipo> {
     return this.apiService.post<Equipo>('/equipos', equipo);
   }
 
@@ -108,9 +108,44 @@ actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
   }
 
   /**
-   * Obtener las categorías
-   */
-  getCategorias(): Observable<Categoria[]> {
-    return this.apiService.get<Categoria[]>('/categorias');
+ * Crear un nuevo equipo con sus unidades
+ */
+  crearEquipo(datos: any): Observable<Equipo> {
+    return this.apiService.post<Equipo>('/equipos', datos);
   }
+
+  /**
+   * Crear un nuevo libro con sus ejemplares
+   */
+  crearLibro(datos: any): Observable<Libro> {
+    return this.apiService.post<Libro>('/libros', datos);
+  }
+
+  /**
+   * Crear una nueva categoría
+   */
+  crearCategoria(datos: any): Observable<any> {
+    return this.apiService.post<any>('/categorias', datos);
+  }
+
+  /**
+   * Obtener todas las categorías
+   */
+  getCategorias(): Observable<any[]> {
+    return this.apiService.get<any[]>('/categorias');
+  }
+  /**
+ * Eliminar un ejemplar específico
+ */
+  eliminarEjemplar(id: number): Observable<any> {
+    return this.apiService.delete(`/ejemplares/${id}`);
+  }
+
+  /**
+   * Eliminar una unidad específica
+   */
+  eliminarUnidad(id: number): Observable<any> {
+    return this.apiService.delete(`/unidades/${id}`);
+  }
+
 }

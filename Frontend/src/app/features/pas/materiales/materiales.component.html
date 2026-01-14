@@ -474,5 +474,11 @@
     </div>
 
   </div>
+<!-- Modal Añadir Material -->
+<app-aniadir-material 
+  [isOpen]="modalAnadirAbierto"
+  (close)="cerrarModalAnadir()"
+  (materialCreado)="onMaterialCreado()">
+</app-aniadir-material>
 
 </div>

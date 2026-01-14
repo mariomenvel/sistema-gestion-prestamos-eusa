@@ -1,119 +1,688 @@
-// Variables basadas en tu paleta
+// ========================================
+// VARIABLES
+// ========================================
+
 $color-primary-blue: #0066CC;
-$color-success-green: #2E7D32; 
-$color-success-btn: #4CAF50;
+$color-info-blue-light: #E3F2FD;
+$color-success-green: #4CAF50;
+$color-success-green-light: #E8F5E9;
+$color-success-green-dark: #2E7D32;
 $color-danger-red: #F44336;
-$color-text-primary: #212121;
+$color-danger-red-light: #FFEBEE;
+$color-danger-red-dark: #C62828;
+
+$color-white: #FFFFFF;
+$color-bg-gray: #EEEEEE;
 $color-bg-light: #F5F5F5;
 $color-border: #E0E0E0;
+$color-border-light: #CCCCCC;
+$color-text-primary: #212121;
+$color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
+
+$font-family: 'Inter', sans-serif;
+
+// ========================================
+// MODAL OVERLAY
+// ========================================
 
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    font-family: 'Inter', sans-serif;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  background: rgba(0, 0, 0, 0.5);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  z-index: 1000;
+  
+  animation: fadeIn 0.2s ease;
 }
 
-.modal-card {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 750px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-    .modal-title {
-        color: $color-primary-blue;
-        font-size: 1.8rem;
-        font-weight: 800;
-        margin-bottom: 2rem;
-        margin-top: 0;
+// ========================================
+// MODAL CONTAINER
+// ========================================
+
+.modal-container {
+  width: 800px;
+  max-height: 90vh;
+  
+  background: $color-white;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  
+  overflow-y: auto;
+  
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ========================================
+// MODAL HEADER
+// ========================================
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  padding: 24px 24px 16px 24px;
+  border-bottom: 2px solid $color-border;
+}
+
+.modal-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29px;
+  color: $color-primary-blue;
+  
+  margin: 0;
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  
+  background: $color-info-blue-light;
+  border: 1px solid $color-primary-blue;
+  border-radius: 16px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 22px;
+  color: $color-primary-blue;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: darken($color-info-blue-light, 5%);
+  }
+}
+
+// ========================================
+// MODAL BODY
+// ========================================
+
+.modal-body {
+  padding: 20px 24px 24px 24px;
+}
+
+// ========================================
+// SELECTOR DE TIPO (Libro/Equipo)
+// ========================================
+
+.tipo-selector {
+  display: flex;
+  gap: 0;
+  border: 2px solid $color-primary-blue;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.btn-tipo-selector {
+  flex: 1;
+  padding: 12px 20px;
+  
+  background: $color-white;
+  border: none;
+  border-right: 2px solid $color-primary-blue;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-primary-blue;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:last-child {
+    border-right: none;
+  }
+  
+  &:hover {
+    background: rgba($color-primary-blue, 0.05);
+  }
+  
+  &.activo {
+    background: $color-primary-blue;
+    color: $color-white;
+    
+    &:hover {
+      background: darken($color-primary-blue, 5%);
     }
+  }
+}
+
+// ========================================
+// FORMULARIO
+// ========================================
+
+.material-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-title {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 16px;
+  color: $color-text-primary;
+  margin: 0 0 12px 0;
 }
 
 .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-
-        label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: $color-text-primary;
-            margin-bottom: 0.5rem;
-
-            .required {
-                color: $color-danger-red;
-            }
-        }
-
-        input,
-        select,
-        textarea {
-            background-color: $color-bg-light;
-            border: 1px solid $color-border;
-            border-radius: 6px;
-            padding: 0.8rem;
-            font-size: 0.95rem;
-            color: #6C757D; 
-
-            &:focus {
-                outline: none;
-                border-color: $color-primary-blue;
-            }
-        }
-
-        &.full-width {
-            grid-column: span 2;
-        }
-    }
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2.5rem;
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  &.form-field-full {
+    grid-column: 1 / -1;
+  }
+}
 
-    button {
-        padding: 0.8rem 2rem;
-        border-radius: 6px;
-        font-weight: 700;
-        cursor: pointer;
-        border: 1px solid transparent;
-        transition: all 0.2s;
+.form-label {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 13px;
+  color: $color-text-primary;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-size: 14px;
+  color: $color-text-primary;
+  
+  transition: all 0.2s ease;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:hover {
+    border-color: $color-primary-blue;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 3px rgba($color-primary-blue, 0.1);
+  }
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-size: 14px;
+  color: $color-text-primary;
+  
+  resize: vertical;
+  transition: all 0.2s ease;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+  
+  &:hover {
+    border-color: $color-primary-blue;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 3px rgba($color-primary-blue, 0.1);
+  }
+}
+
+// ========================================
+// IMAGEN
+// ========================================
+
+.imagen-container {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 12px;
+  
+  border: 2px solid $color-border;
+  border-radius: 8px;
+  overflow: hidden;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.btn-seleccionar-archivo {
+  display: inline-block;
+  padding: 10px 20px;
+  
+  background: $color-white;
+  border: 2px solid $color-primary-blue;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 13px;
+  color: $color-primary-blue;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: $color-info-blue-light;
+  }
+}
+
+.help-text {
+  font-family: $font-family;
+  font-size: 11px;
+  color: $color-text-disabled;
+  margin: 6px 0 0 0;
+}
+
+// ========================================
+// SEPARADOR
+// ========================================
+
+.separador {
+  border: none;
+  border-top: 2px solid $color-border;
+  margin: 8px 0;
+}
+
+// ========================================
+// SECCIÓN DE UNIDADES/EJEMPLARES
+// ========================================
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-agregar-item {
+  padding: 8px 16px;
+  
+  background: $color-white;
+  border: 2px dashed $color-primary-blue;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 13px;
+  color: $color-primary-blue;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: $color-info-blue-light;
+    border-style: solid;
+  }
+}
+
+.unidades-list,
+.ejemplares-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unidad-item,
+.ejemplar-item {
+  display: grid;
+  grid-template-columns: 30px 1fr 40px;
+  gap: 12px;
+  align-items: center;
+  
+  background: $color-bg-light;
+  border: 1px solid $color-border;
+  border-radius: 6px;
+  
+  padding: 12px;
+  
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: $color-primary-blue;
+    box-shadow: 0 2px 8px rgba($color-primary-blue, 0.15);
+  }
+}
+
+.item-numero {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-secondary;
+}
+
+.item-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.item-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  label {
+    font-family: $font-family;
+    font-weight: 500;
+    font-size: 11px;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+  }
+}
+
+.item-input,
+.item-select {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-size: 13px;
+  color: $color-text-primary;
+  
+  transition: all 0.2s ease;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+    font-size: 12px;
+  }
+  
+  &:hover {
+    border-color: $color-primary-blue;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 2px rgba($color-primary-blue, 0.1);
+  }
+}
+
+.btn-eliminar-item {
+  background: none;
+  border: none;
+  
+  font-size: 18px;
+  color: $color-danger-red;
+  
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    transform: scale(1.3);
+  }
+  
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+// ========================================
+// NUEVA CATEGORÍA
+// ========================================
+
+.field-with-button {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.field-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-nueva-categoria {
+  width: 40px;
+  height: 40px;
+  
+  background: $color-white;
+  border: 2px solid $color-primary-blue;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 18px;
+  color: $color-primary-blue;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: $color-info-blue-light;
+  }
+}
+
+.nueva-categoria-form {
+  margin-top: 12px;
+  padding: 16px;
+  
+  background: $color-info-blue-light;
+  border: 2px solid $color-primary-blue;
+  border-radius: 4px;
+  
+  h4 {
+    font-family: $font-family;
+    font-weight: 600;
+    font-size: 13px;
+    color: $color-primary-blue;
+    margin: 0 0 12px 0;
+  }
+}
+
+.nueva-categoria-campos {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-crear-categoria {
+  padding: 0 16px;
+  height: 40px;
+  
+  background: $color-primary-blue;
+  border: none;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 13px;
+  color: $color-white;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: darken($color-primary-blue, 8%);
+  }
+}
+
+// ========================================
+// MENSAJE DE ERROR
+// ========================================
+
+.error-message {
+  padding: 12px 16px;
+  background: $color-danger-red-light;
+  border: 2px solid $color-danger-red;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 14px;
+  color: $color-danger-red-dark;
+  
+  text-align: center;
+  margin-top: 16px;
+}
+
+// ========================================
+// MODAL FOOTER
+// ========================================
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  
+  padding: 16px 24px;
+  border-top: 2px solid $color-border;
+}
+
+.btn-cancelar {
+  padding: 10px 24px;
+  
+  background: $color-white;
+  border: 2px solid $color-text-disabled;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-secondary;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background: $color-bg-light;
+    border-color: $color-text-secondary;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-guardar {
+  padding: 10px 24px;
+  
+  background: $color-primary-blue;
+  border: none;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-white;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  box-shadow: 0px 2px 8px rgba($color-primary-blue, 0.3);
+  
+  &:hover:not(:disabled) {
+    background: darken($color-primary-blue, 8%);
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba($color-primary-blue, 0.4);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    background: $color-text-disabled;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .item-campos {
+    grid-template-columns: 1fr;
+  }
+  
+  .nueva-categoria-campos {
+    grid-template-columns: 1fr;
+    
+    .btn-crear-categoria {
+      width: 100%;
     }
-
-    .btn-cancel {
-        background: white;
-        border-color: $color-border;
-        color: $color-text-primary;
-
-        &:hover {
-            background: $color-bg-light;
-        }
-    }
-
-    .btn-save {
-        background: $color-success-btn;
-        color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-        &:hover:not(:disabled) {
-            background: $color-success-green;
-        }
-
-        &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-    }
+  }
 }
