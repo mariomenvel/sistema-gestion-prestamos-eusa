@@ -49,7 +49,11 @@ function crearEquipo(req, res) {
   var marca = req.body.marca;
   var modelo = req.body.modelo;
   var descripcion = req.body.descripcion || null;
-  var fotoUrl = req.body.foto_url || null;
+ var fotoUrl = null;
+
+ if (req.file) {
+  fotoUrl = '/uploads/equipos/' + req.file.filename;
+}
 
   if (!categoriaCodigo || !marca || !modelo) {
     return res.status(400).json({

@@ -19,37 +19,37 @@ var Libro = db.sequelize.define('Libro', {
     type: Sequelize.STRING(255),
     allowNull: true
   },
-  // DBML: libro_numero varchar(20) [ not null ]
   libro_numero: {
     type: Sequelize.STRING(20),
     allowNull: false
   },
-  // DBML: categoria_codigo varchar(10) [ not null ]
-  // (de momento seguimos EXACTO a tu DBML)
   categoria_codigo: {
     type: Sequelize.STRING(10),
     allowNull: false
+  },
+
+  // NUEVO CAMPO PARA LA IMAGEN
+  foto_url: {
+    type: Sequelize.STRING(400),
+    allowNull: true
   }
+
 }, {
   tableName: 'libros',
   timestamps: true
 });
+
 Libro.associate = function(models) {
-  // Libro pertenece a una categoría (por codigo)
   Libro.belongsTo(models.Categoria, {
     foreignKey: 'categoria_codigo',
     targetKey: 'codigo',
     as: 'categorias'
-
   });
 
-  // Libro tiene muchos ejemplares
   Libro.hasMany(models.Ejemplar, {
     foreignKey: 'libro_id',
     as: 'ejemplares'
   });
 };
-
-
 
 module.exports = Libro;

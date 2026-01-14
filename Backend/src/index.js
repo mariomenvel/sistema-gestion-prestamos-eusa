@@ -33,6 +33,7 @@ app.use('/usuarios', usuariosRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/reportes', reportesRoutes);
 app.use('/unidades', unidadesRoutes);
+app.use('/uploads', express.static('uploads'));
 
 
 db.probarConexion();
