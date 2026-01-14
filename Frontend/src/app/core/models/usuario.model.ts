@@ -1,4 +1,6 @@
 export interface Usuario {
+  grado?: string;                     
+  curso?: number; 
   id: number;
   email: string;
   nombre: string;
