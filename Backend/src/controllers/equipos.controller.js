@@ -1,4 +1,6 @@
 var models = require('../models');
+var fs = require('fs');
+var path = require('path');
 
 function obtenerEquipos(req, res) {
   models.Equipo.findAll({
@@ -49,11 +51,11 @@ function crearEquipo(req, res) {
   var marca = req.body.marca;
   var modelo = req.body.modelo;
   var descripcion = req.body.descripcion || null;
- var fotoUrl = null;
+  var fotoUrl = null;
 
- if (req.file) {
-  fotoUrl = '/uploads/equipos/' + req.file.filename;
-}
+  if (req.file) {
+    fotoUrl = '/uploads/equipos/' + req.file.filename;
+  }
 
   if (!categoriaCodigo || !marca || !modelo) {
     return res.status(400).json({
@@ -129,11 +131,61 @@ function eliminarEquipo(req, res) {
     });
 }
 
+async function subirImagenEquipo(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ninguna imagen' });
+    }
+
+    // USAR models.Equipo
+    const equipo = await models.Equipo.findByPk(id);
+    if (!equipo) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Equipo no encontrado' });
+    }
+
+    if (equipo.foto_url) {
+      const oldImagePath = path.join(__dirname, '../../', equipo.foto_url);
+      if (fs.existsSync(oldImagePath)) {
+        try {
+          fs.unlinkSync(oldImagePath);
+        } catch (err) {
+          console.error('Error al eliminar imagen anterior:', err);
+        }
+      }
+    }
+
+    const foto_url = `/uploads/equipos/${req.file.filename}`;
+    equipo.foto_url = foto_url;
+    await equipo.save();
+
+    const equipoCompleto = await models.Equipo.findByPk(id, {
+      include: [
+        { model: models.Categoria, as: 'categoria', attributes: ['codigo', 'nombre', 'tipo'] },
+        { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado'] }
+      ]
+    });
+
+    res.json(equipoCompleto);
+  } catch (error) {
+    console.error('Error al subir imagen:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) { }
+    }
+    res.status(500).json({ error: 'Error al subir la imagen' });
+  }
+}
+
 
 module.exports = {
   obtenerEquipos: obtenerEquipos,
   obtenerEquipoPorId: obtenerEquipoPorId,
   crearEquipo: crearEquipo,
   actualizarEquipo: actualizarEquipo,
-  eliminarEquipo: eliminarEquipo
+  eliminarEquipo: eliminarEquipo,
+  subirImagenEquipo: subirImagenEquipo
 };

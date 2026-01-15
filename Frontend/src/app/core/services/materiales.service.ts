@@ -76,15 +76,20 @@ export class MaterialesService {
   }
 
   /**
-   * Subir imagen de un equipo
-   */
-  subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
-    const formData = new FormData();
-    formData.append('foto', archivo);
-
-    return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData);
-  }
-
+ * Subir imagen de un equipo
+ */
+subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
+  const formData = new FormData();
+  formData.append('foto', archivo);
+  
+  // Obtener token del localStorage
+  const token = localStorage.getItem('token');
+  
+  // Crear headers con el token
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+  
+  return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData, headers);
+}
   aniadirEquipo(equipo: Equipo): Observable<Equipo> {
     return this.apiService.post<Equipo>('/equipos', equipo);
   }

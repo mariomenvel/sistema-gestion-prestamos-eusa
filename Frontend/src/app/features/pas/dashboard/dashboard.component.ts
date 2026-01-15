@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { SolicitudesService } from '../../../core/services/solicitudes.service';
+import { DashboardService } from '../../../core/services/dashboard.service'; 
 import { Solicitud } from '../../../core/models/solicitud.model';
 
 /**
@@ -40,6 +41,7 @@ export class DashboardComponent implements OnInit {
   
   constructor(
     private solicitudesService: SolicitudesService,
+    private dashboardService: DashboardService,
     private router: Router
   ) { }
 
@@ -111,30 +113,28 @@ export class DashboardComponent implements OnInit {
    */
   private cargarDatos(): void {
     this.isLoading = true;
-    this.errorMessage = '';
 
-    // Cargar solicitudes pendientes
+    // A. CARGAR LA TABLA DE SOLICITUDES
     this.solicitudesService.getSolicitudesPendientes().subscribe({
       next: (solicitudes) => {
-        console.log('📊 Solicitudes pendientes:', solicitudes);
-        
-        // Contar solicitudes pendientes
-        this.solicitudesPendientes = solicitudes.length;
-        
-        // Mostrar solo las últimas 2 solicitudes en la tabla
-        this.ultimasSolicitudes = solicitudes.slice(0, 2);
-        
-        // TODO: Calcular métricas reales cuando tengamos los endpoints
-        // Por ahora usamos valores de ejemplo del mockup
-        this.prestamosActivos = 38;
-        this.devolucionesHoy = 7;
-        this.materialesEnUso = 156;
-        
+        this.ultimasSolicitudes = solicitudes.slice(0, 5); // Mostramos las 5 últimas
+      },
+      error: (err) => console.error(err)
+    });
+
+    // B. CARGAR LOS CONTADORES (CARDS)
+    this.dashboardService.getDashboardPAS().subscribe({
+      next: (data) => {
+        console.log('📊 Datos Dashboard:', data);
+        this.solicitudesPendientes = data.solicitudes_pendientes;
+        this.prestamosActivos = data.prestamos_activos;
+        this.devolucionesHoy = data.devoluciones_hoy;
+        this.materialesEnUso = data.materiales_en_uso;
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error al cargar datos:', err);
-        this.errorMessage = 'Error al cargar los datos del dashboard';
+        console.error('❌ Error dashboard:', err);
+        this.errorMessage = 'Error al cargar métricas';
         this.isLoading = false;
       }
     });

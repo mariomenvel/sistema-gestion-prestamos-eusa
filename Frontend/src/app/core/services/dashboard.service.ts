@@ -9,8 +9,8 @@ import { ApiService } from './api.service';
 export interface DashboardPASData {
   solicitudes_pendientes: number;
   prestamos_activos: number;
-  sanciones_activas_curso: number;
-  inicio_curso_actual: string;
+  devoluciones_hoy: number;  
+  materiales_en_uso: number;
 }
 
 @Injectable({

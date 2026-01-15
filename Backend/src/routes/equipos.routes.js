@@ -10,12 +10,21 @@ router.get("/", equiposController.obtenerEquipos);
 var roles = require("../middlewares/roles");
 
 router.get("/:id", auth, roles.soloPAS, equiposController.obtenerEquipoPorId);
+
 router.post(
   "/",
   auth,
   roles.soloPAS,
   uploadEquipo.single("foto"),
   equiposController.crearEquipo
+);
+//Subir imagen a equipo existente
+router.post(
+  "/:id/imagen",
+  auth,
+  roles.soloPAS,
+  uploadEquipo.single("foto"),
+  equiposController.subirImagenEquipo
 );
 
 router.put("/:id", auth, roles.soloPAS, equiposController.actualizarEquipo);

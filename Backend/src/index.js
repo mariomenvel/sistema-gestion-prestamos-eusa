@@ -3,6 +3,7 @@ var express = require('express');
 var cors = require('cors');
 var db = require('./db');
 var models = require('./models');
+
 var librosRoutes = require('./routes/libros.routes');
 var equiposRoutes = require('./routes/equipos.routes');
 var authRoutes = require('./routes/auth.routes');
@@ -10,10 +11,10 @@ var solicitudesRoutes = require('./routes/solicitudes.routes');
 var prestamosRoutes = require('./routes/prestamos.routes');
 var sancionesRoutes = require('./routes/sanciones.routes');
 var usuariosRoutes = require('./routes/usuarios.routes');
-var dashboardRoutes = require('./routes/dashboard.routes');
 var reportesRoutes = require('./routes/reportes.routes');
 var unidadesRoutes = require('./routes/unidades.routes');
 var categoriasRoutes = require('./routes/categorias.routes');
+var dashboardRoutes = require('./routes/dashboard.routes');
 
 
 var app = express();

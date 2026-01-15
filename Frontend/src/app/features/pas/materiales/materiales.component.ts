@@ -328,62 +328,60 @@ export class MaterialesComponent implements OnInit {
     this.archivoImagenTemporal = null;
   }
 
-  /**
-   * Guardar cambios del equipo
-   */
-  guardarEquipo(): void {
-    if (!this.equipoEnEdicion) return;
+  
+guardarEquipo(): void {
+  if (!this.equipoEnEdicion) return;
 
-    const datosActualizados: Partial<Equipo> = {
-      marca: this.equipoEnEdicion.marca,
-      modelo: this.equipoEnEdicion.modelo,
-      descripcion: this.equipoEnEdicion.descripcion,
-      categoria_codigo: this.equipoEnEdicion.categoria_codigo
-    };
+  const datosActualizados: Partial<Equipo> = {
+    marca: this.equipoEnEdicion.marca,
+    modelo: this.equipoEnEdicion.modelo,
+    descripcion: this.equipoEnEdicion.descripcion,
+    categoria_codigo: this.equipoEnEdicion.categoria_codigo
+  };
 
-    console.log('💾 Guardando equipo:', datosActualizados);
+  console.log('💾 Guardando equipo:', datosActualizados);
 
-    this.materialesService.actualizarEquipo(this.equipoEnEdicion.id, datosActualizados).subscribe({
-      next: (equipoActualizado: any) => {
-        console.log('✅ Equipo actualizado:', equipoActualizado);
+  this.materialesService.actualizarEquipo(this.equipoEnEdicion.id, datosActualizados).subscribe({
+    next: (equipoActualizado: any) => {
+      console.log('✅ Equipo actualizado:', equipoActualizado);
 
-        // Si hay una imagen nueva, subirla
-        if (this.archivoImagenTemporal) {
-          this.subirImagenEquipo(equipoActualizado.id);
-        } else {
-          // Actualizar en la lista local
-          this.actualizarEquipoEnLista(equipoActualizado);
-          alert('Equipo actualizado correctamente');
-          this.cancelarEdicion();
-        }
-      },
-      error: (err: any) => {
-        console.error('❌ Error al actualizar equipo:', err);
-        alert('Error al actualizar el equipo');
-      }
-    });
-  }
-
-  /**
-   * Subir imagen del equipo
-   */
-  private subirImagenEquipo(equipoId: number): void {
-    if (!this.archivoImagenTemporal) return;
-
-    this.materialesService.subirImagenEquipo(equipoId, this.archivoImagenTemporal).subscribe({
-      next: (equipoActualizado: any) => {
-        console.log('✅ Imagen subida:', equipoActualizado);
+      // Si hay una imagen nueva, subirla
+      if (this.archivoImagenTemporal) {
+        this.subirImagenEquipo(equipoActualizado.id, this.archivoImagenTemporal); // ⭐ PASAR EL ARCHIVO
+      } else {
+        // Actualizar en la lista local
         this.actualizarEquipoEnLista(equipoActualizado);
-        alert('Equipo e imagen actualizados correctamente');
-        this.cancelarEdicion();
-      },
-      error: (err: any) => {
-        console.error('❌ Error al subir imagen:', err);
-        alert('Equipo actualizado, pero hubo un error al subir la imagen');
+        alert('Equipo actualizado correctamente');
         this.cancelarEdicion();
       }
-    });
-  }
+    },
+    error: (err: any) => {
+      console.error('❌ Error al actualizar equipo:', err);
+      alert('Error al actualizar el equipo');
+    }
+  });
+}
+
+/**
+Subir imagen del equipo
+ */
+private subirImagenEquipo(equipoId: number, archivo: File): void {
+  if (!archivo) return;
+
+  this.materialesService.subirImagenEquipo(equipoId, archivo).subscribe({
+    next: (equipoActualizado: any) => {
+      console.log('✅ Imagen subida:', equipoActualizado);
+      this.actualizarEquipoEnLista(equipoActualizado);
+      alert('Equipo e imagen actualizados correctamente');
+      this.cancelarEdicion();
+    },
+    error: (err: any) => {
+      console.error('❌ Error al subir imagen:', err);
+      alert('Equipo actualizado, pero hubo un error al subir la imagen');
+      this.cancelarEdicion();
+    }
+  });
+}
 
   /**
    * Actualizar equipo en la lista local

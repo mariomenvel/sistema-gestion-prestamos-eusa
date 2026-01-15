@@ -1,81 +1,90 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-// Aquí se define la URL base de nuestro servidor (backend NodeJS/Express)
-const API_URL = 'http://localhost:3000';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
+  
+  private apiUrl = 'http://localhost:3000';
 
   constructor(private http: HttpClient) { }
 
   /**
-   * Manejador centralizado de errores HTTP.
-   * @param error El objeto de error HTTP.
-   * @returns Un Observable con un error a lanzar.
+   * GET request
+   */
+  get<T>(endpoint: string): Observable<T> {
+    return this.http.get<T>(`${this.apiUrl}${endpoint}`)
+      .pipe(
+        catchError(this.formatErrors)
+      );
+  }
+
+  /**
+   * POST request
+   */
+  post<T>(endpoint: string, body: any, customHeaders?: any): Observable<T> {
+    const headers = customHeaders || {};
+    
+    return this.http.post<T>(`${this.apiUrl}${endpoint}`, body, { headers })
+      .pipe(
+        catchError(this.formatErrors)
+      );
+  }
+
+  /**
+   * PUT request
+   */
+  put<T>(endpoint: string, body?: any): Observable<T> {
+    return this.http.put<T>(`${this.apiUrl}${endpoint}`, body)
+      .pipe(
+        catchError(this.formatErrors)
+      );
+  }
+
+  /**
+   * DELETE request
+   */
+  delete<T>(endpoint: string): Observable<T> {
+    return this.http.delete<T>(`${this.apiUrl}${endpoint}`)
+      .pipe(
+        catchError(this.formatErrors)
+      );
+  }
+
+  /**
+   * Formatea errores HTTP
    */
   private formatErrors(error: HttpErrorResponse): Observable<never> {
     console.error('Error en la API:', error);
-
-    let errorMessage = 'Ha ocurrido un error inesperado.';
-
-    // Error de la API con cuerpo JSON
-    if (error.error instanceof Object && error.error.mensaje) {
-        errorMessage = error.error.mensaje;
-    } else if (error.status === 401) {
-        errorMessage = 'No autorizado. Por favor, inicie sesión.';
-    } else if (error.status === 404) {
-        errorMessage = 'Recurso no encontrado.';
+    
+    let errorMessage = 'Error desconocido';
+    
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Error del lado del servidor
+      switch (error.status) {
+        case 400:
+          errorMessage = 'Solicitud incorrecta.';
+          break;
+        case 401:
+          errorMessage = 'No autorizado. Por favor, inicia sesión.';
+          break;
+        case 404:
+          errorMessage = 'Recurso no encontrado.';
+          break;
+        case 500:
+          errorMessage = 'Error al obtener ' + error.url?.split('/').pop();
+          break;
+        default:
+          errorMessage = `Error del servidor: ${error.status}`;
+      }
     }
     
-    // Devolvemos un error que se puede capturar en la lógica del componente
     return throwError(() => new Error(errorMessage));
-  }
-
-  /**
-   * Realiza una petición GET.
-   * @param path Ruta de la API (ej: '/libros').
-   * @param params Parámetros de consulta opcionales.
-   * @returns Un Observable con la respuesta del servidor.
-   */
-  get<T>(path: string, params: HttpParams = new HttpParams()): Observable<T> {
-    return this.http.get<T>(`${API_URL}${path}`, { params })
-      .pipe(catchError(this.formatErrors));
-  }
-
-  /**
-   * Realiza una petición POST.
-   * @param path Ruta de la API (ej: '/usuarios/login').
-   * @param body Cuerpo de la petición.
-   * @returns Un Observable con la respuesta del servidor.
-   */
-  post<T>(path: string, body: Object = {}): Observable<T> {
-    return this.http.post<T>(`${API_URL}${path}`, body)
-      .pipe(catchError(this.formatErrors));
-  }
-
-  /**
-   * Realiza una petición PUT (actualización completa).
-   * @param path Ruta de la API (ej: '/libros/1').
-   * @param body Cuerpo de la petición.
-   * @returns Un Observable con la respuesta del servidor.
-   */
-  put<T>(path: string, body: Object = {}): Observable<T> {
-    return this.http.put<T>(`${API_URL}${path}`, body)
-      .pipe(catchError(this.formatErrors));
-  }
-
-  /**
-   * Realiza una petición DELETE.
-   * @param path Ruta de la API (ej: '/libros/1').
-   * @returns Un Observable con la respuesta del servidor.
-   */
-  delete<T>(path: string): Observable<T> {
-    return this.http.delete<T>(`${API_URL}${path}`)
-      .pipe(catchError(this.formatErrors));
   }
 }
