@@ -12,22 +12,12 @@ function obtenerMisPrestamos(req, res) {
     where: { usuario_id: usuarioId },
     include: [
       {
-        model: models.Ejemplar,
+        model: models.PrestamoItem,
+        as: 'items',
         include: [
-          {
-            model: models.Libro,
-            as: "libro",
-          },
-        ],
-      },
-      {
-        model: models.Unidad,
-        include: [
-          {
-            model: models.Equipo,
-            as: "equipo",
-          },
-        ],
+          { model: models.Unidad, include: [{ model: models.Equipo, as: 'equipo' }] },
+          { model: models.Ejemplar, include: [{ model: models.Libro, as: 'libro' }] }
+        ]
       },
       {
         model: models.Solicitud,
@@ -55,22 +45,12 @@ function obtenerPrestamosActivos(req, res) {
         model: models.Usuario, // quién tiene el préstamo
       },
       {
-        model: models.Ejemplar,
+        model: models.PrestamoItem,
+        as: 'items',
         include: [
-          {
-            model: models.Libro,
-            as: "libro",
-          },
-        ],
-      },
-      {
-        model: models.Unidad,
-        include: [
-          {
-            model: models.Equipo,
-            as: "equipo",
-          },
-        ],
+          { model: models.Unidad, include: [{ model: models.Equipo, as: 'equipo' }] },
+          { model: models.Ejemplar, include: [{ model: models.Libro, as: 'libro' }] }
+        ]
       },
       {
         model: models.Solicitud,
@@ -93,143 +73,186 @@ function obtenerPrestamosActivos(req, res) {
 function devolverPrestamo(req, res) {
   var prestamoId = req.params.id;
 
-  db.sequelize
-    .transaction(function (t) {
-      var prestamoGlobal;
-      var usuarioIdGlobal;
+  // Opcional: devolver solo un item específico
+  var prestamoItemId = req.body.prestamo_item_id;
 
-      return models.Prestamo.findByPk(prestamoId, { transaction: t })
-        .then(function (prestamo) {
-          if (!prestamo) {
-            throw new Error("NO_ENCONTRADO");
+  db.sequelize.transaction(function (t) {
+    return models.Prestamo.findByPk(prestamoId, {
+      include: [{ model: models.PrestamoItem, as: 'items' }],
+      transaction: t
+    })
+      .then(function (prestamo) {
+        if (!prestamo) throw new Error("NO_ENCONTRADO");
+        if (prestamo.estado !== "activo") throw new Error("NO_ACTIVO");
+
+        var itemsAProcesar = [];
+
+        if (prestamoItemId) {
+          // Devolución parcial de un item
+          var item = prestamo.items.find(i => i.id == prestamoItemId);
+          if (!item) throw new Error("ITEM_NO_ENCONTRADO");
+          if (item.devuelto) throw new Error("ITEM_YA_DEVUELTO");
+          itemsAProcesar.push(item);
+        } else {
+          // Devolución total (todos los items pendientes)
+          itemsAProcesar = prestamo.items.filter(i => !i.devuelto);
+        }
+
+        if (itemsAProcesar.length === 0) {
+          throw new Error("NADA_QUE_DEVOLVER");
+        }
+
+        var promesasDevolucion = itemsAProcesar.map(function (item) {
+          item.devuelto = true;
+          item.fecha_devolucion = new Date(); // Fecha real de este item
+
+          var pLiberar = Promise.resolve();
+
+          // Liberar Unidad
+          if (item.unidad_id) {
+            pLiberar = models.Unidad.findByPk(item.unidad_id, { transaction: t })
+              .then(function (u) {
+                if (u) {
+                  u.esta_prestado = false;
+                  return u.save({ transaction: t });
+                }
+              });
+          }
+          // Liberar Ejemplar
+          else if (item.ejemplar_id) {
+            pLiberar = models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
+              .then(function (e) {
+                if (e) {
+                  e.estado = 'disponible';
+                  return e.save({ transaction: t });
+                }
+              });
           }
 
-          if (prestamo.estado !== "activo") {
-            throw new Error("NO_ACTIVO");
-          }
-
-          var ahora = new Date();
-          prestamo.fecha_devolucion_real = ahora;
-          prestamo.estado = "cerrado";
-          prestamoGlobal = prestamo;
-          usuarioIdGlobal = prestamo.usuario_id;
-
-          // Marcar ejemplar/unidad como disponible
-          if (prestamo.ejemplar_id) {
-            return models.Ejemplar.findByPk(prestamo.ejemplar_id, {
-              transaction: t,
-            }).then(function (ejemplar) {
-              if (ejemplar) {
-                ejemplar.estado = "disponible";
-                return ejemplar.save({ transaction: t });
-              }
-            });
-          } else if (prestamo.unidad_id) {
-            return models.Unidad.findByPk(prestamo.unidad_id, {
-              transaction: t,
-            }).then(function (unidad) {
-              if (unidad) {
-                unidad.estado = "disponible";
-                return unidad.save({ transaction: t });
-              }
-            });
-          } else {
-            return null;
-          }
-        })
-        .then(function () {
-          if (!prestamoGlobal) {
-            return;
-          }
-
-          // Guardar el préstamo actualizado
-          return prestamoGlobal.save({ transaction: t });
-        })
-        .then(function () {
-          if (!prestamoGlobal) {
-            return;
-          }
-
-          // --- ¿Hubo retraso? ---
-          var fechaPrevista = prestamoGlobal.fecha_devolucion_prevista;
-          var fechaReal = prestamoGlobal.fecha_devolucion_real;
-
-          if (!fechaPrevista || !fechaReal) {
-            return;
-          }
-
-          var msPorDia = 24 * 60 * 60 * 1000;
-          var diffMs = fechaReal.getTime() - fechaPrevista.getTime();
-          var diasRetraso = Math.floor(diffMs / msPorDia);
-
-          // Si NO hay retraso, no se crea sanción
-          if (diasRetraso <= 0) {
-            return;
-          }
-
-          // --- Calcular qué nº de sanción es para este usuario ---
-          var inicioCurso = obtenerInicioCurso();
-
-          return models.Sancion.count({
-            where: {
-              usuario_id: usuarioIdGlobal,
-              // Solo sanciones de este curso
-              inicio: { [Sequelize.Op.gte]: inicioCurso },
-            },
-            transaction: t,
-          }).then(function (numSancionesPrevias) {
-            var severidad;
-            var inicio = new Date();
-            var fin = null;
-
-            if (numSancionesPrevias === 0) {
-              severidad = "s1_1sem";
-              fin = new Date(inicio.getTime());
-              fin.setDate(fin.getDate() + 7); // 1 semana
-            } else if (numSancionesPrevias === 1) {
-              severidad = "s2_1mes";
-              fin = new Date(inicio.getTime());
-              fin.setMonth(fin.getMonth() + 1); // 1 mes
-            } else {
-              severidad = "s3_indefinida";
-              fin = null; // indefinida
-            }
-
-            var motivo =
-              "Retraso en la devolución del préstamo ID " + prestamoGlobal.id;
-
-            return models.Sancion.create(
-              {
-                usuario_id: usuarioIdGlobal,
-                severidad: severidad,
-                estado: "activa",
-                inicio: inicio,
-                fin: fin,
-                motivo: motivo,
-              },
-              { transaction: t }
-            );
+          return pLiberar.then(function () {
+            return item.save({ transaction: t });
           });
         });
-    })
-    .then(function () {
-      res.json({
-        mensaje:
-          "Préstamo devuelto correctamente (sanción creada si había retraso)",
+
+        return Promise.all(promesasDevolucion).then(function () {
+          // Verificar si queda algo pendiente en el préstamo
+          return models.PrestamoItem.count({
+            where: {
+              prestamo_id: prestamo.id,
+              devuelto: false
+            },
+            transaction: t
+          }).then(function (pendientes) {
+            if (pendientes === 0) {
+              // Cerrar préstamo completo
+              prestamo.estado = 'cerrado';
+              prestamo.fecha_devolucion_real = new Date();
+
+              // Cálculo de sanciones (simplificado: solo si cierra el préstamo tardío)
+              // Podría mejorarse para sancionar por item tardío
+              return prestamo.save({ transaction: t }).then(function () {
+                return checkSancion(prestamo, t);
+              });
+            }
+          });
+        });
       });
+  })
+    .then(function () {
+      res.json({ mensaje: "Devolución procesada correctamente" });
     })
     .catch(function (error) {
-      if (error.message === "NO_ENCONTRADO") {
-        return res.status(404).json({ mensaje: "Préstamo no encontrado" });
-      }
-      if (error.message === "NO_ACTIVO") {
-        return res
-          .status(400)
-          .json({ mensaje: "Solo se pueden devolver préstamos activos" });
+      if (error.message === "NO_ENCONTRADO") return res.status(404).json({ mensaje: "Préstamo no encontrado" });
+      if (error.message === "NO_ACTIVO") return res.status(400).json({ mensaje: "El préstamo no está activo" });
+      if (error.message === "ITEM_NO_ENCONTRADO") return res.status(404).json({ mensaje: "Item no encontrado en este préstamo" });
+      if (error.message === "ITEM_YA_DEVUELTO") return res.status(400).json({ mensaje: "El item ya fue devuelto" });
+
+      console.error("Error al devolver préstamo:", error);
+      res.status(500).json({ mensaje: "Error al devolver el préstamo" });
+    });
+}
+
+function checkSancion(prestamo, t) {
+  var fechaPrevista = prestamo.fecha_devolucion_prevista;
+  var fechaReal = prestamo.fecha_devolucion_real;
+  if (!fechaPrevista || !fechaReal) return;
+
+  var msPorDia = 24 * 60 * 60 * 1000;
+  var diffMs = fechaReal.getTime() - fechaPrevista.getTime();
+  var diasRetraso = Math.floor(diffMs / msPorDia);
+
+  if (diasRetraso <= 0) return;
+
+  var inicioCurso = obtenerInicioCurso();
+  return models.Sancion.count({
+    where: {
+      usuario_id: prestamo.usuario_id,
+      inicio: { [Sequelize.Op.gte]: inicioCurso },
+    },
+    transaction: t,
+  }).then(function (numSancionesPrevias) {
+    var severidad;
+    var inicio = new Date();
+    var fin = null;
+
+    if (numSancionesPrevias === 0) {
+      severidad = "s1_1sem";
+      fin = new Date(inicio.getTime());
+      fin.setDate(fin.getDate() + 7);
+    } else if (numSancionesPrevias === 1) {
+      severidad = "s2_1mes";
+      fin = new Date(inicio.getTime());
+      fin.setMonth(fin.getMonth() + 1);
+    } else {
+      severidad = "s3_indefinida";
+      fin = null;
+    }
+
+    return models.Sancion.create({
+      usuario_id: prestamo.usuario_id,
+      severidad: severidad,
+      estado: "activa",
+      inicio: inicio,
+      fin: fin,
+      motivo: "Retraso préstamo ID " + prestamo.id,
+    }, { transaction: t });
+  });
+}
+
+function obtenerDetallePrestamo(req, res) {
+  var prestamoId = req.params.id;
+  var usuarioId = req.user.id;
+  var esPas = req.user.rol === 'pas';
+
+  models.Prestamo.findByPk(prestamoId, {
+    include: [
+      { model: models.Usuario }, // Para ver quién lo tiene
+      {
+        model: models.PrestamoItem,
+        as: 'items',
+        include: [
+          { model: models.Unidad, include: [{ model: models.Equipo, as: 'equipo' }] },
+          { model: models.Ejemplar, include: [{ model: models.Libro, as: 'libro' }] }
+        ]
+      },
+      { model: models.Solicitud }
+    ]
+  })
+    .then(function (prestamo) {
+      if (!prestamo) {
+        return res.status(404).json({ mensaje: 'Préstamo no encontrado' });
       }
 
-      console.error("Error al devolver préstamo (PAS):", error);
-      res.status(500).json({ mensaje: "Error al devolver el préstamo" });
+      // Seguridad: Solo PAS o el dueño del préstamo
+      if (!esPas && prestamo.usuario_id !== usuarioId) {
+        return res.status(403).json({ mensaje: 'No tienes permiso para ver este préstamo' });
+      }
+
+      res.json(prestamo);
+    })
+    .catch(function (error) {
+      console.error('Error al obtener detalle préstamo:', error);
+      res.status(500).json({ mensaje: 'Error interno' });
     });
 }
 
@@ -300,4 +323,5 @@ module.exports = {
   obtenerPrestamosActivos: obtenerPrestamosActivos,
   devolverPrestamo: devolverPrestamo,
   ampliarPrestamo: ampliarPrestamo,
+  obtenerDetallePrestamo: obtenerDetallePrestamo
 };

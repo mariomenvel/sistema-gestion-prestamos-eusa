@@ -16,6 +16,9 @@ router.put('/:id/aprobar', auth, roles.soloPAS, solicitudesController.aprobarSol
 // Rechazar solicitud (solo PAS)
 router.put('/:id/rechazar', auth, roles.soloPAS, solicitudesController.rechazarSolicitud);
 
+// Cancelar/Borrar solicitud (Alumno dueño o PAS)
+router.delete('/:id', auth, solicitudesController.cancelarSolicitud);
+
 // Ver mis solicitudes: solo usuario logueado (alumno o profesor)
 router.get('/mias', auth, roles.alumnoOProfesor, solicitudesController.obtenerMisSolicitudes);
 

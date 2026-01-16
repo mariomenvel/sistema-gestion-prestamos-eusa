@@ -15,6 +15,12 @@ var Usuario = db.sequelize.define('Usuario', {
     unique: true
   },
 
+  codigo_tarjeta: {
+    type: Sequelize.STRING(50),
+    allowNull: true,
+    unique: true
+  },
+
   password_hash: {
     type: Sequelize.STRING(255),
     allowNull: false
@@ -94,7 +100,7 @@ var Usuario = db.sequelize.define('Usuario', {
 // ======================
 // Asociaciones
 // ======================
-Usuario.associate = function(models) {
+Usuario.associate = function (models) {
 
   // Solicitudes creadas por el usuario (alumno/profesor)
   Usuario.hasMany(models.Solicitud, {

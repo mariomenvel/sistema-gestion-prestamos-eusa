@@ -11,17 +11,9 @@ var Solicitud = db.sequelize.define('Solicitud', {
     type: Sequelize.BIGINT,
     allowNull: false
   },
-  ejemplar_id: {
-    type: Sequelize.BIGINT,
-    allowNull: true
-  },
-  unidad_id: {
-    type: Sequelize.BIGINT,
-    allowNull: true
-  },
   tipo: {
-    // enum(prof_trabajo,uso_propio)
-    type: Sequelize.ENUM('prof_trabajo', 'uso_propio'),
+    // enum(prof_trabajo,uso_propio, presencial)
+    type: Sequelize.ENUM('prof_trabajo', 'uso_propio', 'presencial'),
     allowNull: false
   },
   estado: {
@@ -56,20 +48,10 @@ var Solicitud = db.sequelize.define('Solicitud', {
   tableName: 'solicitudes',
   timestamps: true // createdAt / updatedAt EXTRA, además de creada_en
 });
-Solicitud.associate = function(models) {
+Solicitud.associate = function (models) {
   // La solicitud la hace un usuario (alumno o profesor)
   Solicitud.belongsTo(models.Usuario, {
     foreignKey: 'usuario_id'
-  });
-
-  // La solicitud puede ser sobre un ejemplar de libro
-  Solicitud.belongsTo(models.Ejemplar, {
-    foreignKey: 'ejemplar_id'
-  });
-
-  // ...o sobre una unidad de equipo
-  Solicitud.belongsTo(models.Unidad, {
-    foreignKey: 'unidad_id'
   });
 
   // La solicitud la gestiona un usuario PAS (opcional)

@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize');
 var db = require('../db');
 
-var Categoria = db.sequelize.define('Categoria', {
+var Nombre = db.sequelize.define('Nombre', {
   id: {
     type: Sequelize.BIGINT,
     autoIncrement: true,
@@ -18,14 +18,14 @@ var Categoria = db.sequelize.define('Categoria', {
     defaultValue: true
   }
 }, {
-  tableName: 'categorias',
+  tableName: 'nombres',
   timestamps: true
 });
 
-Categoria.associate = function(models) {
-  Categoria.hasMany(models.Equipo, {
-    foreignKey: 'categoria_id'
+Nombre.associate = function(models) {
+  Nombre.hasMany(models.Equipo, {
+    foreignKey: 'nombre_id'
   });
 };
 
-module.exports = Categoria;
+module.exports = Nombre;

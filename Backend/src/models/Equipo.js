@@ -7,46 +7,54 @@ var Equipo = db.sequelize.define('Equipo', {
     autoIncrement: true,
     primaryKey: true
   },
-  categoria_codigo: {
-    type: Sequelize.STRING(10),
+
+  categoria_id: {
+    type: Sequelize.BIGINT,
     allowNull: false
   },
+
+  nombre_id: {
+    type: Sequelize.BIGINT,
+    allowNull: false
+  },
+
   marca: {
     type: Sequelize.STRING(120),
     allowNull: false
   },
+
   modelo: {
     type: Sequelize.STRING(120),
     allowNull: false
   },
+
   descripcion: {
     type: Sequelize.TEXT,
     allowNull: true
   },
+
   foto_url: {
     type: Sequelize.STRING(400),
     allowNull: true
   }
+
 }, {
   tableName: 'equipos',
   timestamps: true
 });
+
 Equipo.associate = function(models) {
-  // Equipo pertenece a una categoría
   Equipo.belongsTo(models.Categoria, {
-    foreignKey: 'categoria_codigo',
-    targetKey: 'codigo',
-    as: 'categoria'
+    foreignKey: 'categoria_id'
   });
 
-  // Un equipo tiene muchas unidades
+  Equipo.belongsTo(models.Nombre, {
+    foreignKey: 'nombre_id'
+  });
+
   Equipo.hasMany(models.Unidad, {
-    foreignKey: 'equipo_id',
-    as: 'unidades'
+    foreignKey: 'equipo_id'
   });
 };
-
-
-
 
 module.exports = Equipo;

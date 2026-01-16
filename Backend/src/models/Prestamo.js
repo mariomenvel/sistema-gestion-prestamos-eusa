@@ -13,23 +13,13 @@ var Prestamo = db.sequelize.define('Prestamo', {
     allowNull: false
   },
 
-  ejemplar_id: {
-    type: Sequelize.BIGINT,
-    allowNull: true
-  },
-
-  unidad_id: {
-    type: Sequelize.BIGINT,
-    allowNull: true
-  },
-
   solicitud_id: {
     type: Sequelize.BIGINT,
     allowNull: true
   },
 
   tipo: {
-    type: Sequelize.ENUM('a', 'b'),  // A=profesor/trabajo, B=uso propio
+    type: Sequelize.ENUM('a', 'b', 'c'),  // A=profesor, B=uso propio, C=presencial
     allowNull: false
   },
 
@@ -52,7 +42,8 @@ var Prestamo = db.sequelize.define('Prestamo', {
 
   fecha_devolucion_real: {
     type: Sequelize.DATE,
-    allowNull: true
+    allowNull: true,
+    comment: 'Fecha en la que se cerró COMPLETAMENTE el préstamo'
   },
 
   profesor_solicitante_id: {
@@ -64,7 +55,7 @@ var Prestamo = db.sequelize.define('Prestamo', {
   tableName: 'prestamos',
   timestamps: true
 });
-Prestamo.associate = function(models) {
+Prestamo.associate = function (models) {
   // El préstamo pertenece a un usuario (prestatario, normalmente alumno)
   Prestamo.belongsTo(models.Usuario, {
     foreignKey: 'usuario_id'
@@ -76,19 +67,15 @@ Prestamo.associate = function(models) {
     foreignKey: 'profesor_solicitante_id'
   });
 
-  // El préstamo puede ser sobre un ejemplar de libro
-  Prestamo.belongsTo(models.Ejemplar, {
-    foreignKey: 'ejemplar_id'
-  });
-
-  // ...o sobre una unidad de equipo
-  Prestamo.belongsTo(models.Unidad, {
-    foreignKey: 'unidad_id'
-  });
-
   // El préstamo viene de una solicitud
   Prestamo.belongsTo(models.Solicitud, {
     foreignKey: 'solicitud_id'
+  });
+
+  // N Items prestados
+  Prestamo.hasMany(models.PrestamoItem, {
+    foreignKey: 'prestamo_id',
+    as: 'items'
   });
 };
 

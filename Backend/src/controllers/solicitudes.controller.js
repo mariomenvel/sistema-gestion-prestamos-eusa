@@ -5,15 +5,13 @@ var Sequelize = require('sequelize');
 function crearSolicitud(req, res) {
   // Usuario autenticado (viene del middleware auth)
   var usuarioId = req.user.id;
-  var rol = req.user.rol;
 
   // Datos del body
   var tipo = req.body.tipo;              // 'prof_trabajo' o 'uso_propio'
-  var ejemplarId = req.body.ejemplar_id; // opcional
-  var unidadId = req.body.unidad_id;     // opcional
+  var items = req.body.items;            // Array de { equipo_id/libro_id, cantidad }
   var normasAceptadas = req.body.normas_aceptadas;
   var observaciones = req.body.observaciones || null;
-  
+
   var inicioCurso = obtenerInicioCurso();
 
   // 1) Comprobar si el usuario tiene sanción activa
@@ -21,12 +19,10 @@ function crearSolicitud(req, res) {
     where: {
       usuario_id: usuarioId,
       estado: 'activa',
-      // Solo sanciones cuyo inicio esté en el curso actual
       inicio: { [Sequelize.Op.gte]: inicioCurso },
-      // Y que no hayan terminado todavía
       [Sequelize.Op.or]: [
         { fin: null },
-        { fin: {[Sequelize.Op.gt]: new Date() } }
+        { fin: { [Sequelize.Op.gt]: new Date() } }
       ]
     }
   })
@@ -47,43 +43,45 @@ function crearSolicitud(req, res) {
         return res.status(400).json({ mensaje: 'Debe aceptar las normas para crear una solicitud' });
       }
 
-      // Debe elegir o ejemplar o unidad, pero no ambos a la vez
-      if ((!ejemplarId && !unidadId) || (ejemplarId && unidadId)) {
+      if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({
-          mensaje: 'Debe indicar SOLO ejemplar_id o SOLO unidad_id'
+          mensaje: 'Debe indicar al menos un item en la solicitud'
         });
       }
 
-    /*  // Para tipo prof_trabajo, tiene que ser profesor
-      if (tipo === 'prof_trabajo' && rol !== 'profesor') {
-        return res.status(403).json({
-          mensaje: 'Solo un profesor puede crear una solicitud de tipo prof_trabajo'
-        });
-      }*/
+      // 3) Crear la solicitud + Items (Transacción)
+      return db.sequelize.transaction(function (t) {
+        return models.Solicitud.create({
+          usuario_id: usuarioId,
+          tipo: tipo,
+          estado: 'pendiente',
+          normas_aceptadas: true,
+          observaciones: observaciones,
+          creada_en: new Date()
+        }, { transaction: t })
+          .then(function (solicitud) {
+            // Crear los items
+            var itemsPromises = items.map(function (item) {
+              return models.SolicitudItem.create({
+                solicitud_id: solicitud.id,
+                libro_id: item.libro_id || null, // opcional
+                equipo_id: item.equipo_id || null, // opcional
+                cantidad: item.cantidad || 1
+              }, { transaction: t });
+            });
 
-      // 3) Crear la solicitud
-      return models.Solicitud.create({
-        usuario_id: usuarioId,
-        ejemplar_id: ejemplarId || null,
-        unidad_id: unidadId || null,
-        tipo: tipo,
-        estado: 'pendiente',
-        normas_aceptadas: true,
-        observaciones: observaciones,
-        gestionado_por_id: null,
-        creada_en: new Date(),
-        resuelta_en: null
+            return Promise.all(itemsPromises).then(function () {
+              return solicitud;
+            });
+          });
       });
     })
     .then(function (solicitud) {
-      if (!solicitud) {
-        // Ya se respondió antes (por sanción, validación, etc.)
-        return;
-      }
+      if (!solicitud) return; // Salió por error previo (sanción, validación)
 
       res.status(201).json({
         mensaje: 'Solicitud creada correctamente',
-        solicitud: solicitud.toJSON()
+        solicitudId: solicitud.id
       });
     })
     .catch(function (error) {
@@ -98,29 +96,18 @@ function obtenerSolicitudesPendientes(req, res) {
     include: [
       {
         model: models.Usuario,
-        // usuario que la creó
       },
       {
-        model: models.Ejemplar,
+        model: models.SolicitudItem,
+        as: 'items',
         include: [
-          {
-            model: models.Libro,
-            as: 'libro'
-          }
-        ]
-      },
-      {
-        model: models.Unidad,
-        include: [
-          {
-            model: models.Equipo,
-            as: 'equipo'
-          }
+          { model: models.Libro },
+          { model: models.Equipo }
         ]
       },
       {
         model: models.Usuario,
-        as: 'gestor' // PAS que la gestionó (aún null en pendientes)
+        as: 'gestor'
       }
     ],
     order: [['creada_en', 'ASC']]
@@ -136,104 +123,112 @@ function obtenerSolicitudesPendientes(req, res) {
 
 function aprobarSolicitud(req, res) {
   var solicitudId = req.params.id;
-  var pasId = req.user.id; // el PAS que aprueba
+  var pasId = req.user.id;
 
-  // Usamos una transacción para que todo vaya junto
+  // Array de IDs físicos que se entregan (escaneados)
+  // ej: { unidades: [1, 2], ejemplares: [5] }
+  var entregas = req.body.entregas || {};
+  var unidadesIds = entregas.unidades || [];
+  var ejemplaresIds = entregas.ejemplares || [];
+
   db.sequelize.transaction(function (t) {
-    var solicitudGuardadaGlobal;
-    var prestamoCreadoGlobal;
-
     return models.Solicitud.findByPk(solicitudId, { transaction: t })
       .then(function (solicitud) {
-        if (!solicitud) {
-          // Forzar rollback devolviendo error
-          throw new Error('NO_ENCONTRADA');
-        }
+        if (!solicitud) throw new Error('NO_ENCONTRADA');
+        if (solicitud.estado !== 'pendiente') throw new Error('NO_PENDIENTE');
 
-        if (solicitud.estado !== 'pendiente') {
-          throw new Error('NO_PENDIENTE');
+        // Validar que se entregue ALGO
+        if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+          throw new Error('SIN_ENTREGAS'); // No se puede aprobar sin dar nada
         }
 
         // Calcular fechas de préstamo
         var ahora = new Date();
-        var fechaPrevista = new Date();
-        fechaPrevista.setDate(fechaPrevista.getHours() + 24);
+        var fechaPrevista = calcularSiguienteDiaLectivo(ahora);
 
-        // Tipo de préstamo: 'a' para prof_trabajo, 'b' para uso_propio
-        var tipoPrestamo = (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b';
-
-        var profesorSolicitanteId = null;
-        /*if (solicitud.tipo === 'prof_trabajo') {
-          profesorSolicitanteId = solicitud.usuario_id; // el propio profesor
-        }*/
-
-        // Creamos el préstamo
+        // 1. Crear CABECERA Préstamo
         return models.Prestamo.create({
           usuario_id: solicitud.usuario_id,
-          ejemplar_id: solicitud.ejemplar_id || null,
-          unidad_id: solicitud.unidad_id || null,
           solicitud_id: solicitud.id,
-          tipo: tipoPrestamo,
+          tipo: (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b',
           estado: 'activo',
           fecha_inicio: ahora,
           fecha_devolucion_prevista: fechaPrevista,
-          fecha_devolucion_real: null,
-          profesor_solicitante_id: profesorSolicitanteId
+          profesor_solicitante_id: null
         }, { transaction: t })
-          .then(function (prestamoCreado) {
-            prestamoCreadoGlobal = prestamoCreado;
+          .then(function (prestamo) {
 
-            // Actualizar estado de la solicitud
-            solicitud.estado = 'aprobada';
-            solicitud.gestionado_por_id = pasId;
-            solicitud.resuelta_en = ahora;
-            solicitudGuardadaGlobal = solicitud;
+            var promesasItems = [];
 
-            // Marcar ejemplar/unidad como no_disponible
-            if (solicitud.ejemplar_id) {
-              return models.Ejemplar.findByPk(solicitud.ejemplar_id, { transaction: t })
-                .then(function (ejemplar) {
-                  if (ejemplar) {
-                    ejemplar.estado = 'no_disponible';
-                    return ejemplar.save({ transaction: t });
-                  }
-                });
-            } else if (solicitud.unidad_id) {
-              return models.Unidad.findByPk(solicitud.unidad_id, { transaction: t })
+            // 2. Procesar UNIDADES
+            unidadesIds.forEach(function (uId) {
+              var p = models.Unidad.findByPk(uId, { transaction: t })
                 .then(function (unidad) {
-                  if (unidad) {
-                    unidad.estado = 'no_disponible';
-                    return unidad.save({ transaction: t });
+                  if (!unidad) throw new Error('UNIDAD_NO_EXISTE');
+                  if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA');
+
+                  // Permitir 'funciona' u 'obsoleto'
+                  if (['funciona', 'obsoleto'].indexOf(unidad.estado_fisico) === -1) {
+                    throw new Error('UNIDAD_NO_APTA');
                   }
+
+                  // Marcar prestado
+                  unidad.esta_prestado = true;
+                  return unidad.save({ transaction: t });
+                })
+                .then(function () {
+                  // Crear Linea Prestamo
+                  return models.PrestamoItem.create({
+                    prestamo_id: prestamo.id,
+                    unidad_id: uId,
+                    devuelto: false
+                  }, { transaction: t });
                 });
-            } else {
-              // Ni ejemplar ni unidad (raro), pero seguimos
-              return null;
-            }
-          })
-          .then(function () {
-            // Guardar la solicitud con su nuevo estado
-            return solicitudGuardadaGlobal.save({ transaction: t });
+              promesasItems.push(p);
+            });
+
+            // 3. Procesar EJEMPLARES
+            ejemplaresIds.forEach(function (eId) {
+              var p = models.Ejemplar.findByPk(eId, { transaction: t })
+                .then(function (ejemplar) {
+                  if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
+                  if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_NO_DISPONIBLE');
+
+                  // Marcar como no disponible (modelo antiguo Ejemplar)
+                  ejemplar.estado = 'no_disponible';
+                  return ejemplar.save({ transaction: t });
+                })
+                .then(function () {
+                  return models.PrestamoItem.create({
+                    prestamo_id: prestamo.id,
+                    ejemplar_id: eId,
+                    devuelto: false
+                  }, { transaction: t });
+                });
+              promesasItems.push(p);
+            });
+
+            return Promise.all(promesasItems).then(function () {
+              // 4. Actualizar Solicitud
+              solicitud.estado = 'aprobada';
+              solicitud.gestionado_por_id = pasId;
+              solicitud.resuelta_en = ahora;
+              return solicitud.save({ transaction: t });
+            });
           });
       });
   })
-    .then(function (resultado) {
-      // Si todo fue bien
-      res.json({
-        mensaje: 'Solicitud aprobada y préstamo creado correctamente',
-        // No devolvemos todo, pero podrías añadir más info si quieres
-      });
+    .then(function () {
+      res.json({ mensaje: 'Préstamo generado con los items indicados' });
     })
     .catch(function (error) {
-      if (error.message === 'NO_ENCONTRADA') {
-        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
-      }
-      if (error.message === 'NO_PENDIENTE') {
-        return res.status(400).json({ mensaje: 'Solo se pueden aprobar solicitudes pendientes' });
-      }
+      if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'La solicitud no está pendiente' });
+      if (error.message === 'SIN_ENTREGAS') return res.status(400).json({ mensaje: 'Debe entregar al menos un item' });
+      if (error.message === 'UNIDAD_YA_PRESTADA') return res.status(400).json({ mensaje: 'Alguna unidad ya está prestada' });
 
-      console.error('Error al aprobar solicitud y crear préstamo:', error);
-      res.status(500).json({ mensaje: 'Error al aprobar la solicitud' });
+      console.error('Error al aprobar solicitud:', error);
+      res.status(500).json({ mensaje: 'Error al generar préstamo' });
     });
 }
 
@@ -273,6 +268,45 @@ function rechazarSolicitud(req, res) {
     });
 }
 
+function cancelarSolicitud(req, res) {
+  var solicitudId = req.params.id;
+  var usuarioId = req.user.id;
+
+  models.Solicitud.findOne({
+    where: { id: solicitudId },
+    include: [{ model: models.SolicitudItem, as: 'items' }]
+  })
+    .then(function (solicitud) {
+      if (!solicitud) {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      }
+
+      // Solo el propietario o el PAS pueden cancelar
+      // Si es el usuario, debe ser SU solicitud
+      if (req.user.rol !== 'pas' && solicitud.usuario_id !== usuarioId) {
+        return res.status(403).json({ mensaje: 'No tienes permisos para cancelar esta solicitud' });
+      }
+
+      if (solicitud.estado !== 'pendiente') {
+        return res.status(400).json({ mensaje: 'Solo se pueden cancelar solicitudes pendientes' });
+      }
+
+      // Eliminar items primero (cascade lógico)
+      return models.SolicitudItem.destroy({
+        where: { solicitud_id: solicitud.id }
+      }).then(function () {
+        return solicitud.destroy();
+      });
+    })
+    .then(function () {
+      res.json({ mensaje: 'Solicitud cancelada y eliminada correctamente' });
+    })
+    .catch(function (error) {
+      console.error('Error al cancelar solicitud:', error);
+      res.status(500).json({ mensaje: 'Error al cancelar la solicitud' });
+    });
+}
+
 function obtenerMisSolicitudes(req, res) {
   var usuarioId = req.user.id;
 
@@ -280,21 +314,11 @@ function obtenerMisSolicitudes(req, res) {
     where: { usuario_id: usuarioId },
     include: [
       {
-        model: models.Ejemplar,
+        model: models.SolicitudItem,
+        as: 'items',
         include: [
-          {
-            model: models.Libro,
-            as: 'libro'
-          }
-        ]
-      },
-      {
-        model: models.Unidad,
-        include: [
-          {
-            model: models.Equipo,
-            as: 'equipo'
-          }
+          { model: models.Libro },
+          { model: models.Equipo }
         ]
       }
     ],
@@ -330,8 +354,11 @@ function obtenerTodasLasSolicitudes(req, res) {
   models.Solicitud.findAll({
     include: [
       { model: models.Usuario },
-      { model: models.Ejemplar },
-      { model: models.Unidad }
+      {
+        model: models.SolicitudItem,
+        as: 'items',
+        include: [{ model: models.Libro }, { model: models.Equipo }]
+      }
     ],
     order: [['creada_en', 'DESC']]
   })
@@ -347,12 +374,35 @@ function obtenerTodasLasSolicitudes(req, res) {
 }
 
 
+function calcularSiguienteDiaLectivo(desdeFecha) {
+  var fecha = new Date(desdeFecha);
+  var diaSemana = fecha.getDay(); // 0 = Domingo, 1 = Lunes, ... 6 = Sabado
+
+  // Si es Viernes (5) -> Lunes (+3 dias)
+  // Si es Sabado (6)  -> Lunes (+2 dias)
+  // Si es Domingo (0) -> Lunes (+1 dia)
+  // Si es Lunes-Jueves -> Dia siguiente (+1 dia)
+
+  if (diaSemana === 5) {
+    fecha.setDate(fecha.getDate() + 3);
+  } else if (diaSemana === 6) {
+    fecha.setDate(fecha.getDate() + 2);
+  } else {
+    fecha.setDate(fecha.getDate() + 1);
+  }
+
+  // Fijar a las 9:00 AM
+  fecha.setHours(9, 0, 0, 0);
+  return fecha;
+}
+
 module.exports = {
   crearSolicitud: crearSolicitud,
   obtenerMisSolicitudes: obtenerMisSolicitudes,
   obtenerSolicitudesPendientes: obtenerSolicitudesPendientes,
   aprobarSolicitud: aprobarSolicitud,
   rechazarSolicitud: rechazarSolicitud,
+  cancelarSolicitud: cancelarSolicitud,
   obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes
 };
 

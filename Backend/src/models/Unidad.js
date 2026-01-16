@@ -7,45 +7,51 @@ var Unidad = db.sequelize.define('Unidad', {
     autoIncrement: true,
     primaryKey: true
   },
+
   equipo_id: {
     type: Sequelize.BIGINT,
     allowNull: false
   },
+
   numero_serie: {
     type: Sequelize.STRING(120),
     allowNull: true
   },
+
   codigo_barra: {
-    type: Sequelize.STRING(64),
+    type: Sequelize.STRING(120),
     allowNull: false,
     unique: true
   },
-  estado: {
-    type: Sequelize.ENUM('disponible', 'no_disponible', 'bloqueado', 'en_reparacion'),
+
+  // 📍 UBICACIÓN FÍSICA
+  ubicacion: {
+    type: Sequelize.STRING(150),
+    allowNull: true,
+    comment: 'Ej: Almacén A - Estantería 3 - Balda 2'
+  },
+
+  estado_fisico: {
+    type: Sequelize.ENUM('funciona', 'no_funciona', 'en_reparacion', 'obsoleto', 'falla', 'perdido_sustraido'),
     allowNull: false,
-    defaultValue: 'disponible'
+    defaultValue: 'funciona'
+  },
+
+  esta_prestado: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
+
 }, {
   tableName: 'unidades',
   timestamps: true
 });
-Unidad.associate = function(models) {
-  // Una unidad pertenece a un equipo
+
+Unidad.associate = function (models) {
   Unidad.belongsTo(models.Equipo, {
-    foreignKey: 'equipo_id',
-    as: 'equipo'
-  });
-
-  // Una unidad puede estar en muchas solicitudes
-  Unidad.hasMany(models.Solicitud, {
-    foreignKey: 'unidad_id'
-  });
-
-  // Una unidad puede estar en muchos préstamos
-  Unidad.hasMany(models.Prestamo, {
-    foreignKey: 'unidad_id'
+    foreignKey: 'equipo_id'
   });
 };
-
 
 module.exports = Unidad;

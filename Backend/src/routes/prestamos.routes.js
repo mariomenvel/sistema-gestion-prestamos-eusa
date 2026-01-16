@@ -16,4 +16,7 @@ router.put('/:id/devolver', auth, roles.soloPAS, prestamosController.devolverPre
 // Ampliar plazo de un préstamo (PAS)
 router.put('/:id/ampliar', auth, roles.soloPAS, prestamosController.ampliarPrestamo);
 
+// Detalle de un prestamo (PAS o dueño)
+router.get('/:id', auth, prestamosController.obtenerDetallePrestamo);
+
 module.exports = router;

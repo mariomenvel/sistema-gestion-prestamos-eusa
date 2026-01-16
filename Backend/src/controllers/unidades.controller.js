@@ -21,7 +21,8 @@ function crearUnidad(req, res) {
         equipo_id: equipoId,
         numero_serie: numeroSerie,
         codigo_barra: codigoBarra,
-        estado: 'disponible'
+        estado_fisico: 'funciona',
+        esta_prestado: false
       });
     })
     .then(function (unidad) {
@@ -44,7 +45,8 @@ function actualizarUnidad(req, res) {
 
       return unidad.update({
         numero_serie: req.body.numero_serie ?? unidad.numero_serie,
-        estado: req.body.estado ?? unidad.estado
+        estado_fisico: req.body.estado_fisico ?? unidad.estado_fisico,
+        esta_prestado: req.body.esta_prestado ?? unidad.esta_prestado
       });
     })
     .then(function (unidadActualizada) {

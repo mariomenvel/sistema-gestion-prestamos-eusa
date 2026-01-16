@@ -1,15 +1,16 @@
 var models = require('../models');
 
+
 /**
  * GET /libros
- * Listar todos los libros con categoría y ejemplares
+ * Listar todos los libros con género y ejemplares
  */
 function obtenerLibros(req, res) {
   models.Libro.findAll({
     include: [
       {
-        model: models.Categoria,
-        as: 'categorias'
+        model: models.Genero,
+        as: 'genero'
       },
       {
         model: models.Ejemplar,
@@ -26,6 +27,7 @@ function obtenerLibros(req, res) {
     });
 }
 
+
 /**
  * GET /libros/:id
  * Obtener libro por ID
@@ -36,8 +38,8 @@ function obtenerLibroPorId(req, res) {
   models.Libro.findByPk(libroId, {
     include: [
       {
-        model: models.Categoria,
-        as: 'categorias'
+        model: models.Genero,
+        as: 'genero'
       },
       {
         model: models.Ejemplar,
@@ -58,6 +60,7 @@ function obtenerLibroPorId(req, res) {
     });
 }
 
+
 /**
  * POST /libros
  * Crear libro (con imagen opcional)
@@ -67,9 +70,9 @@ function crearLibro(req, res) {
   var autor = req.body.autor;
   var editorial = req.body.editorial;
   var libroNumero = req.body.libro_numero;
-  var categoriaCodigo = req.body.categoria_codigo;
+  var generoId = req.body.genero_id;
 
-  if (!titulo || !libroNumero || !categoriaCodigo) {
+  if (!titulo || !libroNumero || !generoId) {
     return res.status(400).json({
       mensaje: 'Faltan campos obligatorios'
     });
@@ -86,7 +89,7 @@ function crearLibro(req, res) {
     autor: autor,
     editorial: editorial,
     libro_numero: libroNumero,
-    categoria_codigo: categoriaCodigo,
+    genero_id: generoId,
     foto_url: fotoUrl
   })
     .then(function (libro) {
@@ -97,6 +100,7 @@ function crearLibro(req, res) {
       res.status(500).json({ mensaje: 'Error al crear el libro' });
     });
 }
+
 
 /**
  * PUT /libros/:id
@@ -122,7 +126,7 @@ function actualizarLibro(req, res) {
         autor: req.body.autor ?? libro.autor,
         editorial: req.body.editorial ?? libro.editorial,
         libro_numero: req.body.libro_numero ?? libro.libro_numero,
-        categoria_codigo: req.body.categoria_codigo ?? libro.categoria_codigo,
+        genero_id: req.body.genero_id ?? libro.genero_id,
         foto_url: nuevaFotoUrl
       });
     })

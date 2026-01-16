@@ -46,8 +46,9 @@ function obtenerEquipoPorId(req, res) {
     });
 }
 
+
 function crearEquipo(req, res) {
-  var categoriaCodigo = req.body.categoria_codigo;
+  var categoriaId = req.body.categoria_id;
   var marca = req.body.marca;
   var modelo = req.body.modelo;
   var descripcion = req.body.descripcion || null;
@@ -57,14 +58,14 @@ function crearEquipo(req, res) {
     fotoUrl = '/uploads/equipos/' + req.file.filename;
   }
 
-  if (!categoriaCodigo || !marca || !modelo) {
+  if (!categoriaId || !marca || !modelo) {
     return res.status(400).json({
-      mensaje: 'categoria_codigo, marca y modelo son obligatorios'
+      mensaje: 'categoria_id, marca y modelo son obligatorios'
     });
   }
 
   models.Equipo.create({
-    categoria_codigo: categoriaCodigo,
+    categoria_id: categoriaId,
     marca: marca,
     modelo: modelo,
     descripcion: descripcion,
@@ -79,6 +80,7 @@ function crearEquipo(req, res) {
     });
 }
 
+
 function actualizarEquipo(req, res) {
   var equipoId = req.params.id;
 
@@ -89,7 +91,7 @@ function actualizarEquipo(req, res) {
       }
 
       return equipo.update({
-        categoria_codigo: req.body.categoria_codigo ?? equipo.categoria_codigo,
+        categoria_id: req.body.categoria_id ?? equipo.categoria_id,
         marca: req.body.marca ?? equipo.marca,
         modelo: req.body.modelo ?? equipo.modelo,
         descripcion: req.body.descripcion ?? equipo.descripcion,
@@ -163,7 +165,7 @@ async function subirImagenEquipo(req, res) {
 
     const equipoCompleto = await models.Equipo.findByPk(id, {
       include: [
-        { model: models.Categoria, as: 'categoria', attributes: ['codigo', 'nombre', 'tipo'] },
+        { model: models.Categoria, as: 'categoria', attributes: ['id', 'nombre', 'activa'] },
         { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado'] }
       ]
     });

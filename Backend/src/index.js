@@ -21,7 +21,7 @@ var app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
   res.json({ mensaje: 'API Biblioteca funcionando' });
 });
 
@@ -37,19 +37,20 @@ app.use('/reportes', reportesRoutes);
 app.use('/unidades', unidadesRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/categorias', categoriasRoutes);
+app.use('/presencial', require('./routes/presencial.routes'));
 
 
 db.probarConexion();
 
 db.sequelize.sync()
-  .then(function() {
+  .then(function () {
     console.log('Modelos sincronizados con la base de datos.');
   })
-  .catch(function(error) {
+  .catch(function (error) {
     console.error('Error al sincronizar modelos:', error);
   });
 
 var PORT = process.env.PORT || 3000;
-app.listen(PORT, function() {
+app.listen(PORT, function () {
   console.log("Servidor escuchando en el puerto " + PORT);
 });
