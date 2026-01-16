@@ -58,6 +58,11 @@ var Usuario = db.sequelize.define('Usuario', {
     allowNull: true
   },
 
+  grado_id: {
+    type: Sequelize.BIGINT,
+    allowNull: true
+  },
+
   curso: {
     type: Sequelize.INTEGER,
     allowNull: true
@@ -132,6 +137,11 @@ Usuario.associate = function (models) {
   // Notificaciones recibidas
   Usuario.hasMany(models.Notificacion, {
     foreignKey: 'usuario_id'
+  });
+
+  // Grado del usuario
+  Usuario.belongsTo(models.Grado, {
+    foreignKey: 'grado_id'
   });
 };
 

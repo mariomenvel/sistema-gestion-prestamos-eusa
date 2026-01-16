@@ -35,6 +35,20 @@ var Solicitud = db.sequelize.define('Solicitud', {
     type: Sequelize.BIGINT,
     allowNull: true
   },
+
+  profesor_asociado_id: {
+    type: Sequelize.BIGINT,
+    allowNull: true
+  },
+
+  grado_id: {
+    type: Sequelize.BIGINT,
+    allowNull: true
+  },
+  motivo_rechazo: {
+    type: Sequelize.TEXT,
+    allowNull: true
+  },
   creada_en: {
     type: Sequelize.DATE,
     allowNull: false,
@@ -63,6 +77,17 @@ Solicitud.associate = function (models) {
   // Una solicitud puede generar un préstamo
   Solicitud.hasOne(models.Prestamo, {
     foreignKey: 'solicitud_id'
+  });
+
+  // Solicitud Tipo A: Profesor asociado
+  Solicitud.belongsTo(models.Usuario, {
+    as: 'profesorAsociado',
+    foreignKey: 'profesor_asociado_id'
+  });
+
+  // Solicitud Tipo A: Grado asociado
+  Solicitud.belongsTo(models.Grado, {
+    foreignKey: 'grado_id'
   });
 };
 

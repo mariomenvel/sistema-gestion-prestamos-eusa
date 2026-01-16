@@ -68,6 +68,15 @@ async function seed() {
   });
 
   // ======================
+  // CONFIGURACIÓN TRIMESTRES
+  // ======================
+  await models.Configuracion.bulkCreate([
+    { clave: 'TRIMESTRE_1_FIN', valor: '15-12', descripcion: 'Fin del primer trimestre (DD-MM)' },
+    { clave: 'TRIMESTRE_2_FIN', valor: '15-03', descripcion: 'Fin del segundo trimestre (DD-MM)' },
+    { clave: 'TRIMESTRE_3_FIN', valor: '15-06', descripcion: 'Fin del tercer trimestre (DD-MM)' }
+  ]);
+
+  // ======================
   // CATEGORÍAS (Solo Equipos)
   // ======================
   var catCamaras = await models.Categoria.create({

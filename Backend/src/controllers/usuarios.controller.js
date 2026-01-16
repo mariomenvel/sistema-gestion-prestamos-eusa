@@ -1,4 +1,5 @@
 var models = require('../models');
+var Sequelize = require('sequelize');
 
 function obtenerPerfilActual(req, res) {
   var usuarioId = req.user.id;
@@ -31,8 +32,23 @@ function obtenerPerfilActual(req, res) {
 
 // LISTAR TODOS LOS USUARIOS (solo PAS)
 function listarUsuarios(req, res) {
-  // Más adelante se pueden añadir filtros por rol, estado, etc.
+  var { rol, q } = req.query;
+  var whereClause = {};
+
+  if (rol) {
+    whereClause.rol = rol;
+  }
+
+  if (q) {
+    // Búsqueda simple por nombre o apellidos (LIKE)
+    whereClause[Sequelize.Op.or] = [
+      { nombre: { [Sequelize.Op.like]: '%' + q + '%' } },
+      { apellidos: { [Sequelize.Op.like]: '%' + q + '%' } }
+    ];
+  }
+
   models.Usuario.findAll({
+    where: whereClause,
     attributes: [
       'id',
       'email',
@@ -134,25 +150,26 @@ function actualizarUsuario(req, res) {
     tipo_estudios: datos.tipo_estudios,
     fecha_inicio_est: datos.fecha_inicio_est,
     fecha_fin_prev: datos.fecha_fin_prev,
-    estado_perfil: datos.estado_perfil
+    estado_perfil: datos.estado_perfil,
+    grado_id: datos.grado_id // Nuevo
   };
 
   // Eliminar campos undefined
-  Object.keys(camposActualizables).forEach(function(key) {
+  Object.keys(camposActualizables).forEach(function (key) {
     if (camposActualizables[key] === undefined) {
       delete camposActualizables[key];
     }
   });
 
   models.Usuario.findByPk(usuarioId)
-    .then(function(usuario) {
+    .then(function (usuario) {
       if (!usuario) {
         return res.status(404).json({ mensaje: 'Usuario no encontrado' });
       }
 
       return usuario.update(camposActualizables);
     })
-    .then(function(usuarioActualizado) {
+    .then(function (usuarioActualizado) {
       res.json({
         mensaje: 'Usuario actualizado correctamente',
         usuario: {
@@ -168,7 +185,7 @@ function actualizarUsuario(req, res) {
         }
       });
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.error('Error al actualizar usuario:', error);
       res.status(500).json({ mensaje: 'Error al actualizar el usuario' });
     });

@@ -12,4 +12,7 @@ var roles = require('../middlewares/roles');
 router.get('/usuario/:codigo', auth, roles.soloPAS, presencialController.buscarUsuarioPorTarjeta);
 router.post('/checkout', auth, roles.soloPAS, presencialController.crearPrestamoPresencial);
 
+// Resolver código de barras -> Item
+router.get('/item/:codigo', auth, roles.soloPAS, presencialController.buscarItemPorCodigo);
+
 module.exports = router;

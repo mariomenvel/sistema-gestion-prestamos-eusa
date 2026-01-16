@@ -67,13 +67,18 @@ function buscarUsuarioPorTarjeta(req, res) {
 }
 
 // POST /presencial/checkout
-// Body: { codigo_tarjeta: '...', items: { unidades: [1,2], ejemplares: [] } }
+// Body: { codigo_tarjeta: '...', items: { unidades: [1,2], ejemplares: [] }, forzar_prestamo: true/false, profesor_id: 123, fecha_limite: 'YYYY-MM-DD HH:mm'}
 function crearPrestamoPresencial(req, res) {
     var codigo = req.body.codigo_tarjeta;
     var entregas = req.body.entregas || {};
     var unidadesIds = entregas.unidades || [];
     var ejemplaresIds = entregas.ejemplares || [];
     var pasId = req.user.id; // PAS autenticado
+
+    // Opciones autorizadas por profesor
+    var forzar = req.body.forzar_prestamo === true;
+    var profesorId = req.body.profesor_id || null;
+    var fechaLimiteCustom = req.body.fecha_limite || null;
 
     if (!codigo) return res.status(400).json({ mensaje: 'Falta código de tarjeta' });
     if (unidadesIds.length === 0 && ejemplaresIds.length === 0) return res.status(400).json({ mensaje: 'Cesta vacía' });
@@ -83,20 +88,26 @@ function crearPrestamoPresencial(req, res) {
         return models.Usuario.findOne({ where: { codigo_tarjeta: codigo }, transaction: t })
             .then(function (usuario) {
                 if (!usuario) throw new Error('USUARIO_NO_ENCONTRADO');
+                // IMPORTANTE: Si es profesor, no comprobamos sanciones igual que a alumnos (regla de negocio?)
+                // Asumimos que profesor siempre puede. Si es alumno, miramos sanciones.
 
-                // Validar Sanciones (Rápido)
-                return models.Sancion.findOne({
-                    where: {
-                        usuario_id: usuario.id,
-                        estado: 'activa',
-                        inicio: { [Sequelize.Op.lte]: new Date() },
-                        [Sequelize.Op.or]: [{ fin: null }, { fin: { [Sequelize.Op.gt]: new Date() } }]
-                    },
-                    transaction: t
-                }).then(function (sancion) {
-                    if (sancion) throw new Error('USUARIO_SANCIONADO');
-                    return usuario;
-                });
+                if (usuario.rol === 'alumno' && !forzar) {
+                    // Validar Sanciones (Rápido)
+                    return models.Sancion.findOne({
+                        where: {
+                            usuario_id: usuario.id,
+                            estado: 'activa',
+                            inicio: { [Sequelize.Op.lte]: new Date() },
+                            [Sequelize.Op.or]: [{ fin: null }, { fin: { [Sequelize.Op.gt]: new Date() } }]
+                        },
+                        transaction: t
+                    }).then(function (sancion) {
+                        if (sancion) throw new Error('USUARIO_SANCIONADO');
+                        return usuario;
+                    });
+                }
+
+                return usuario;
             })
             .then(function (usuario) {
                 // 2. Crear Solicitud Fantasma
@@ -108,16 +119,19 @@ function crearPrestamoPresencial(req, res) {
                     gestionado_por_id: pasId,
                     creada_en: new Date(),
                     resuelta_en: new Date(),
-                    observaciones: 'Préstamo presencial automático'
+                    observaciones: forzar ? 'Préstamo forzado/autorizado por profesor' : 'Préstamo presencial automático'
                 }, { transaction: t });
             })
             .then(function (solicitud) {
-                // 3. Crear Préstamo (Vence HOY 21:00)
-                var hoyCierre = new Date();
-                hoyCierre.setHours(21, 0, 0, 0);
+                // 3. Crear Préstamo (Vence HOY 21:00 o fecha personalizada)
+                var fechaDev;
 
-                // Si ya pasan de las 21:00, quizás dar margen o poner mañana? 
-                // Regla estricta: Hoy 21:00. Si son las 22:00, pues ya vas tarde (sancion inmediata al devolver).
+                if (fechaLimiteCustom) {
+                    fechaDev = new Date(fechaLimiteCustom);
+                } else {
+                    fechaDev = new Date();
+                    fechaDev.setHours(21, 0, 0, 0); // Default hoy 21:00
+                }
 
                 return models.Prestamo.create({
                     usuario_id: solicitud.usuario_id,
@@ -125,8 +139,8 @@ function crearPrestamoPresencial(req, res) {
                     tipo: 'c', // Presencial
                     estado: 'activo',
                     fecha_inicio: new Date(),
-                    fecha_devolucion_prevista: hoyCierre,
-                    profesor_solicitante_id: null
+                    fecha_devolucion_prevista: fechaDev,
+                    profesor_solicitante_id: profesorId
                 }, { transaction: t });
             })
             .then(function (prestamo) {
@@ -192,7 +206,55 @@ function crearPrestamoPresencial(req, res) {
         });
 }
 
+// GET /presencial/item/:codigo
+function buscarItemPorCodigo(req, res) {
+    var codigo = req.params.codigo;
+
+    // 1. Buscar en Unidades (Equipos)
+    models.Unidad.findOne({
+        where: { codigo_barra: codigo },
+        include: [{ model: models.Equipo }]
+    })
+        .then(function (unidad) {
+            if (unidad) {
+                return res.json({
+                    tipo: 'unidad',
+                    id: unidad.id, // ID interno para el checkout
+                    codigo: unidad.codigo_barra,
+                    titulo: unidad.Equipo ? unidad.Equipo.nombre : 'Equipo desconocido',
+                    estado: unidad.estado_fisico,
+                    disponible: !unidad.esta_prestado
+                });
+            }
+
+            // 2. Buscar en Ejemplares (Libros)
+            return models.Ejemplar.findOne({
+                where: { codigo_barra: codigo },
+                include: [{ model: models.Libro, as: 'libro' }]
+            }).then(function (ejemplar) {
+                if (ejemplar) {
+                    return res.json({
+                        tipo: 'ejemplar',
+                        id: ejemplar.id,
+                        codigo: ejemplar.codigo_barra,
+                        titulo: ejemplar.libro ? ejemplar.libro.titulo : 'Libro desconocido',
+                        estado: ejemplar.estado,
+                        disponible: ejemplar.estado === 'disponible'
+                    });
+                }
+
+                // 3. No encontrado
+                return res.status(404).json({ mensaje: 'Item no encontrado' });
+            });
+        })
+        .catch(function (error) {
+            console.error('Error buscando item:', error);
+            res.status(500).json({ mensaje: 'Error al buscar item' });
+        });
+}
+
 module.exports = {
     buscarUsuarioPorTarjeta,
-    crearPrestamoPresencial
+    crearPrestamoPresencial,
+    buscarItemPorCodigo
 };

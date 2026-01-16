@@ -38,6 +38,9 @@ app.use('/unidades', unidadesRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/categorias', categoriasRoutes);
 app.use('/presencial', require('./routes/presencial.routes'));
+app.use('/motivos', require('./routes/motivos.routes'));
+app.use('/grados', require('./routes/grados.routes'));
+app.use('/config', require('./routes/configuracion.routes'));
 
 
 db.probarConexion();

@@ -11,6 +11,8 @@ function crearSolicitud(req, res) {
   var items = req.body.items;            // Array de { equipo_id/libro_id, cantidad }
   var normasAceptadas = req.body.normas_aceptadas;
   var observaciones = req.body.observaciones || null;
+  var profesorAsociadoId = req.body.profesor_asociado_id; // Nuevo
+  var gradoId = req.body.grado_id; // Nuevo
 
   var inicioCurso = obtenerInicioCurso();
 
@@ -39,6 +41,11 @@ function crearSolicitud(req, res) {
         return res.status(400).json({ mensaje: 'Tipo de solicitud inválido' });
       }
 
+      if (tipo === 'prof_trabajo') {
+        if (!profesorAsociadoId) return res.status(400).json({ mensaje: 'Debes asociar un profesor.' });
+        if (!gradoId) return res.status(400).json({ mensaje: 'Debes asociar un grado.' });
+      }
+
       if (!normasAceptadas) {
         return res.status(400).json({ mensaje: 'Debe aceptar las normas para crear una solicitud' });
       }
@@ -49,6 +56,20 @@ function crearSolicitud(req, res) {
         });
       }
 
+      // 2.2) Validar límite trimestral para 'uso_propio'
+      if (tipo === 'uso_propio') {
+        // Envolver en promesa para encadenar
+        return validarLimiteTrimestral(usuarioId)
+          .then(function (dentroDelLimite) {
+            if (!dentroDelLimite) {
+              throw new Error('LIMITE_TRIMESTRAL_EXCEDIDO');
+            }
+            return true;
+          });
+      }
+      return Promise.resolve(true); // Si no es uso_propio, OK
+    })
+    .then(function () {
       // 3) Crear la solicitud + Items (Transacción)
       return db.sequelize.transaction(function (t) {
         return models.Solicitud.create({
@@ -57,6 +78,8 @@ function crearSolicitud(req, res) {
           estado: 'pendiente',
           normas_aceptadas: true,
           observaciones: observaciones,
+          profesor_asociado_id: profesorAsociadoId,
+          grado_id: gradoId,
           creada_en: new Date()
         }, { transaction: t })
           .then(function (solicitud) {
@@ -77,14 +100,15 @@ function crearSolicitud(req, res) {
       });
     })
     .then(function (solicitud) {
-      if (!solicitud) return; // Salió por error previo (sanción, validación)
-
       res.status(201).json({
         mensaje: 'Solicitud creada correctamente',
         solicitudId: solicitud.id
       });
     })
     .catch(function (error) {
+      if (error.message === 'LIMITE_TRIMESTRAL_EXCEDIDO') {
+        return res.status(403).json({ mensaje: 'Has superado el límite de 5 préstamos de uso propio este trimestre.' });
+      }
       console.error('Error al crear solicitud:', error);
       res.status(500).json({ mensaje: 'Error al crear la solicitud' });
     });
@@ -236,33 +260,62 @@ function rechazarSolicitud(req, res) {
   var solicitudId = req.params.id;
   var pasId = req.user.id;
 
+  // Nuevo: Recibir motivo_id e idioma
+  var motivoId = req.body.motivo_id;
+  var idioma = req.body.idioma || 'es'; // 'es' o 'en'
+
   models.Solicitud.findByPk(solicitudId)
     .then(function (solicitud) {
       if (!solicitud) {
-        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+        throw new Error('NO_ENCONTRADA');
+      }
+      if (solicitud.estado !== 'pendiente') {
+        throw new Error('NO_PENDIENTE');
       }
 
-      if (solicitud.estado !== 'pendiente') {
-        return res.status(400).json({ mensaje: 'Solo se pueden rechazar solicitudes pendientes' });
+      // Si viene motivoId, buscar el texto
+      if (motivoId) {
+        return models.MotivoRechazo.findByPk(motivoId).then(function (motivo) {
+          if (!motivo) throw new Error('MOTIVO_NO_EXISTE');
+
+          var texto = (idioma === 'en') ? motivo.cuerpo_en : motivo.cuerpo_es;
+          // Fallback si no hay texto en ese idioma? Usar español.
+          if (!texto) texto = motivo.cuerpo_es;
+
+          return { solicitud: solicitud, textoMotivo: texto };
+        });
+      } else {
+        // Rechazo sin motivo estandarizado (opcional o error?)
+        // Permitamos rechazo manual si envian "observaciones" o algo asi, 
+        // pero por ahora asumimos que el motivo es obligatorio si queremos estandarizar.
+        // Dejemos pasar null si no envian nada, campo vacio.
+        return { solicitud: solicitud, textoMotivo: null };
       }
+    })
+    .then(function (data) {
+      var solicitud = data.solicitud;
+      var textoMotivo = data.textoMotivo;
 
       solicitud.estado = 'rechazada';
       solicitud.gestionado_por_id = pasId;
       solicitud.resuelta_en = new Date();
+      if (textoMotivo) {
+        solicitud.motivo_rechazo = textoMotivo;
+      }
 
       return solicitud.save();
     })
     .then(function (solicitudGuardada) {
-      if (!solicitudGuardada) {
-        return;
-      }
-
       res.json({
         mensaje: 'Solicitud rechazada correctamente',
         solicitud: solicitudGuardada
       });
     })
     .catch(function (error) {
+      if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'Solo se pueden rechazar solicitudes pendientes' });
+      if (error.message === 'MOTIVO_NO_EXISTE') return res.status(400).json({ mensaje: 'El motivo de rechazo indicado no existe' });
+
       console.error('Error al rechazar solicitud:', error);
       res.status(500).json({ mensaje: 'Error al rechazar la solicitud' });
     });
@@ -405,4 +458,83 @@ module.exports = {
   cancelarSolicitud: cancelarSolicitud,
   obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes
 };
+
+function validarLimiteTrimestral(usuarioId) {
+  return models.Configuracion.findAll({ where: { clave: { [Sequelize.Op.like]: 'TRIMESTRE_%_FIN' } } })
+    .then(function (configs) {
+      // Mapear configs a objeto
+      var cfg = {};
+      configs.forEach(c => cfg[c.clave] = c.valor); // "15-12", etc.
+
+      var rango = obtenerRangoTrimestreActual(cfg);
+      if (!rango) return true; // Si falla algo, permitimos por defecto (fail-open)
+
+      return models.Solicitud.count({
+        where: {
+          usuario_id: usuarioId,
+          tipo: 'uso_propio',
+          creada_en: {
+            [Sequelize.Op.gte]: rango.inicio,
+            [Sequelize.Op.lte]: rango.fin
+          },
+          estado: { [Sequelize.Op.ne]: 'cancelada' } // Ignorar canceladas?
+        }
+      }).then(function (count) {
+        return count < 5;
+      });
+    });
+}
+
+function obtenerRangoTrimestreActual(config) {
+  // Config: { TRIMESTRE_1_FIN: '15-12', ... }
+  // Formato 'DD-MM'
+
+  var hoy = new Date();
+  var year = hoy.getFullYear();
+
+  // Parsear fechas fin
+  // Asumimos fechas de fin naturales: 15-12 (del año actual), 15-03 (del año siguiente), 15-06 (año siguiente)
+  // PERO curso fiscal es Sep-Junio.
+  // T1: Sep 1 - 15 Dic
+  // T2: 16 Dic - 15 Marzo
+  // T3: 16 Marzo - 15 Junio
+
+  // Helper para crear fecha
+  var makeDate = function (str, y) {
+    var parts = str.split('-'); // DD-MM
+    return new Date(y, parseInt(parts[1]) - 1, parseInt(parts[0]), 23, 59, 59);
+  };
+
+  var finT1 = makeDate(config.TRIMESTRE_1_FIN || '15-12', year);
+  var finT2 = makeDate(config.TRIMESTRE_2_FIN || '15-03', year);
+  var finT3 = makeDate(config.TRIMESTRE_3_FIN || '15-06', year);
+
+  // Ajuste de años si estamos en Q1 (Ene-Feb-Mar)
+  // Si hoy es Enero 2026, finT1 fue Dic 2025. finT2 es Mar 2026.
+
+  // Simplificación Lógica de Curso:
+  // Curso empieza Sep año X.
+  // T1: Sep X -> Dic X
+  // T2: Dic X -> Mar X+1
+  // T3: Mar X+1 -> Jun X+1
+
+  var mesActual = hoy.getMonth(); // 0-11
+  var inicioCursoYear = (mesActual >= 8) ? year : year - 1; // Si estamos en Ene-Ago, el curso empezó el año pasado
+
+  finT1 = makeDate(config.TRIMESTRE_1_FIN || '15-12', inicioCursoYear); // Dic YearBase
+  finT2 = makeDate(config.TRIMESTRE_2_FIN || '15-03', inicioCursoYear + 1); // Marzo YearBase+1
+  finT3 = makeDate(config.TRIMESTRE_3_FIN || '15-06', inicioCursoYear + 1); // Junio YearBase+1
+
+  var inicioT1 = new Date(inicioCursoYear, 8, 1); // 1 Sept
+  var inicioT2 = new Date(finT1); inicioT2.setDate(inicioT2.getDate() + 1); inicioT2.setHours(0, 0, 0, 0);
+  var inicioT3 = new Date(finT2); inicioT3.setDate(inicioT3.getDate() + 1); inicioT3.setHours(0, 0, 0, 0);
+
+  if (hoy <= finT1) return { inicio: inicioT1, fin: finT1 };
+  if (hoy <= finT2) return { inicio: inicioT2, fin: finT2 };
+  if (hoy <= finT3) return { inicio: inicioT3, fin: finT3 };
+
+  // Fuera de curso (Verano)? 
+  // Devolvemos rango verano o null
+  return null;
+}
 
