@@ -1,284 +1,190 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 var models = require('./models');
+var db = require('./db'); // Importante para sync
+var bcrypt = require('bcrypt');
 
 async function seed() {
-  console.log('🌱 Iniciando seed...');
+  console.log('🌱 Iniciando UPDATE SEED (5+ rows per table)...');
 
-  // ======================
-  // USUARIOS
-  // ======================
-  var pas = await models.Usuario.create({
-    email: 'pas@eusa.es',
-    password_hash: '123456',
-    nombre: 'PAS',
-    apellidos: 'EUSA',
-    rol: 'pas'
-  });
+  try {
+    console.log('⚠️  RESETEANDO BASE DE DATOS...');
+    await db.sequelize.sync({ force: true }); // Wipe total
 
-  var alumno1 = await models.Usuario.create({
-    email: 'alumno1@eusa.es',
-    password_hash: '123456',
-    nombre: 'Juan',
-    apellidos: 'Pérez',
-    rol: 'alumno',
-    grado: 'DAM',
-    curso: 2
-  });
+    // Configuración Trimestres
+    await models.Configuracion.bulkCreate([
+      { clave: 'TRIMESTRE_1_FIN', valor: '15-12', descripcion: 'Fin T1' },
+      { clave: 'TRIMESTRE_2_FIN', valor: '15-03', descripcion: 'Fin T2' },
+      { clave: 'TRIMESTRE_3_FIN', valor: '15-06', descripcion: 'Fin T3' }
+    ], { ignoreDuplicates: true });
 
-  var alumno2 = await models.Usuario.create({
-    email: 'alumno2@eusa.es',
-    password_hash: '123456',
-    nombre: 'Lucía',
-    apellidos: 'Gómez',
-    rol: 'alumno',
-    grado: 'DAW',
-    curso: 1
-  });
+    // Motivos de Rechazo (Standarized)
+    await models.MotivoRechazo.bulkCreate([
+      { titulo_es: 'Material no disponible', cuerpo_es: 'El material no se encuentra disponible.', titulo_en: 'Item not available', cuerpo_en: 'Item not available.' },
+      { titulo_es: 'Sanción vigente', cuerpo_es: 'Tienes sanción activa.', titulo_en: 'Sanction active', cuerpo_en: 'You have an active sanction.' },
+      { titulo_es: 'Fin de Curso', cuerpo_es: 'Cierre de préstamos por fin de curso.', titulo_en: 'End of Term', cuerpo_en: 'Loans closed.' },
+      { titulo_es: 'Datos incompletos', cuerpo_es: 'Solicitud mal formada.', titulo_en: 'Incomplete data', cuerpo_en: 'Bad request.' },
+      { titulo_es: 'Exceso de cupo', cuerpo_es: 'Has superado el límite de préstamos.', titulo_en: 'Quota exceeded', cuerpo_en: 'Limit reached.' }
+    ]);
 
-  var alumno3 = await models.Usuario.create({
-    email: 'alumno3@eusa.es',
-    password_hash: '123456',
-    nombre: 'Mario',
-    apellidos: 'Ruiz',
-    rol: 'alumno',
-    grado: 'DAM',
-    curso: 1,
-    codigo_tarjeta: 'CARD-123456'
-  });
+    // Grados
+    var grados = await models.Grado.bulkCreate([
+      { nombre: 'Periodismo' },
+      { nombre: 'Publicidad y RRPP' },
+      { nombre: 'Comunicación Audiovisual' },
+      { nombre: 'Doble Grado PER+CAV' },
+      { nombre: 'Ciclo DAM' },
+      { nombre: 'Ciclo DAW' } // 6 grados
+    ]);
+    var gPer = grados[0]; var gPub = grados[1]; var gCav = grados[2]; var gDam = grados[4];
 
-  var profesor = await models.Usuario.create({
-    email: 'profesor@eusa.es',
-    password_hash: '123456',
-    nombre: 'Carlos',
-    apellidos: 'Profesor',
-    rol: 'profesor'
-  });
+    // Usuarios (1 Admin + 3 Profes + 6 Alumnos)
+    var pass = await bcrypt.hash('123456', 10);
+    var pas = await models.Usuario.create({ email: 'pas@eusa.es', password_hash: pass, nombre: 'Admin', apellidos: 'PAS', rol: 'pas' });
 
-  // ======================
-  // GÉNEROS
-  // ======================
-  var genMarketing = await models.Genero.create({
-    nombre: 'Marketing',
-    activo: true
-  });
+    var profes = await models.Usuario.bulkCreate([
+      { email: 'prof1@eusa.es', password_hash: pass, nombre: 'Manuel', apellidos: 'Chaves', rol: 'profesor' },
+      { email: 'prof2@eusa.es', password_hash: pass, nombre: 'Laura', apellidos: 'Video', rol: 'profesor' },
+      { email: 'prof3@eusa.es', password_hash: pass, nombre: 'David', apellidos: 'Codigo', rol: 'profesor' },
+      { email: 'prof4@eusa.es', password_hash: pass, nombre: 'Maria', apellidos: 'Mates', rol: 'profesor' },
+      { email: 'prof5@eusa.es', password_hash: pass, nombre: 'Jose', apellidos: 'Historia', rol: 'profesor' }
+    ]);
 
-  var genInformatica = await models.Genero.create({
-    nombre: 'Informática',
-    activo: true
-  });
+    var alumnos = await models.Usuario.bulkCreate([
+      { email: 'alum1@eusa.es', password_hash: pass, nombre: 'Juan', apellidos: 'Uno', rol: 'alumno', grado_id: gPer.id, curso: 1, codigo_tarjeta: 'CARD-1' },
+      { email: 'alum2@eusa.es', password_hash: pass, nombre: 'Pedro', apellidos: 'Dos', rol: 'alumno', grado_id: gCav.id, curso: 2, codigo_tarjeta: 'CARD-2' },
+      { email: 'alum3@eusa.es', password_hash: pass, nombre: 'Luis', apellidos: 'Tres', rol: 'alumno', grado_id: gDam.id, curso: 1, codigo_tarjeta: 'CARD-3' },
+      { email: 'alum4@eusa.es', password_hash: pass, nombre: 'Ana', apellidos: 'Cuatro', rol: 'alumno', grado_id: gPub.id, curso: 3, codigo_tarjeta: 'CARD-4' },
+      { email: 'alum5@eusa.es', password_hash: pass, nombre: 'Eva', apellidos: 'Cinco', rol: 'alumno', grado_id: gCav.id, curso: 4, codigo_tarjeta: 'CARD-5' },
+      { email: 'alum6@eusa.es', password_hash: pass, nombre: 'Cris', apellidos: 'Seis', rol: 'alumno', grado_id: gDam.id, curso: 2, codigo_tarjeta: 'CARD-6' }
+    ]);
 
-  // ======================
-  // CONFIGURACIÓN TRIMESTRES
-  // ======================
-  await models.Configuracion.bulkCreate([
-    { clave: 'TRIMESTRE_1_FIN', valor: '15-12', descripcion: 'Fin del primer trimestre (DD-MM)' },
-    { clave: 'TRIMESTRE_2_FIN', valor: '15-03', descripcion: 'Fin del segundo trimestre (DD-MM)' },
-    { clave: 'TRIMESTRE_3_FIN', valor: '15-06', descripcion: 'Fin del tercer trimestre (DD-MM)' }
-  ]);
+    // Categorías
+    var cats = await models.Categoria.bulkCreate([
+      { nombre: 'Fotografía', activa: true },
+      { nombre: 'Iluminación', activa: true },
+      { nombre: 'Sonido', activa: true },
+      { nombre: 'Informática', activa: true },
+      { nombre: 'Accesorios', activa: true }
+    ]);
 
-  // ======================
-  // CATEGORÍAS (Solo Equipos)
-  // ======================
-  var catCamaras = await models.Categoria.create({
-    nombre: 'Cámaras',
-    activa: true
-  });
+    // Nombres (Generic Equipment Names) - REQUIRED FIELD FIX
+    var nombres = await models.Nombre.bulkCreate([
+      { nombre: 'Cámara Réflex', activa: true },
+      { nombre: 'Trípode Video', activa: true },
+      { nombre: 'Micrófono Corbata', activa: true },
+      { nombre: 'Portátil Windows', activa: true },
+      { nombre: 'Foco LED', activa: true }
+    ]);
 
-  var catAudio = await models.Categoria.create({
-    nombre: 'Audio',
-    activa: true
-  });
+    // Equipos (Specific Models linked to Nombres & Cats)
+    var equipos = await models.Equipo.bulkCreate([
+      { nombre_id: nombres[0].id, categoria_id: cats[0].id, marca: 'Canon', modelo: '5D Mark IV', descripcion: 'Full Frame' },
+      { nombre_id: nombres[0].id, categoria_id: cats[0].id, marca: 'Sony', modelo: 'A7 III', descripcion: 'Mirrorless' },
+      { nombre_id: nombres[1].id, categoria_id: cats[0].id, marca: 'Manfrotto', modelo: '055', descripcion: 'Trípode robusto' },
+      { nombre_id: nombres[2].id, categoria_id: cats[2].id, marca: 'Sennheiser', modelo: 'G4', descripcion: 'Inalámbrico' },
+      { nombre_id: nombres[3].id, categoria_id: cats[3].id, marca: 'Dell', modelo: 'Latitude', descripcion: 'i5 8GB' },
+      { nombre_id: nombres[4].id, categoria_id: cats[1].id, marca: 'Aputure', modelo: '120d', descripcion: 'Luz día' }
+    ]);
 
-  // ======================
-  // LIBROS + EJEMPLARES
-  // ======================
-  var libro1 = await models.Libro.create({
-    titulo: 'Habilidades de Comunicación',
-    autor: 'Fernando de Manuel',
-    editorial: 'Marketing Editorial',
-    libro_numero: '00001',
-    genero_id: genMarketing.id
-  });
+    // Unidades (Physical Items) - Generamos 10 unidades
+    var unidades = [];
+    for (let i = 0; i < equipos.length; i++) {
+      unidades.push(await models.Unidad.create({ equipo_id: equipos[i].id, codigo_barra: 'EQ-' + i + '-A', estado_fisico: 'funciona', esta_prestado: false }));
+      unidades.push(await models.Unidad.create({ equipo_id: equipos[i].id, codigo_barra: 'EQ-' + i + '-B', estado_fisico: 'funciona', esta_prestado: false }));
+    }
+    // Marcar algunas rotas o prestadas
+    unidades[0].esta_prestado = true; await unidades[0].save();
+    unidades[2].estado_fisico = 'averiado'; await unidades[2].save();
 
-  var libro2 = await models.Libro.create({
-    titulo: 'Programación en Java',
-    autor: 'Autor Java',
-    editorial: 'Tech Books',
-    libro_numero: '00002',
-    genero_id: genInformatica.id
-  });
+    // Libros & Géneros
+    var generos = await models.Genero.bulkCreate([
+      { nombre: 'Novela' }, { nombre: 'Manual Técnico' }, { nombre: 'Ensayo' }, { nombre: 'Arte' }, { nombre: 'Historia' }
+    ]);
 
-  var ej1 = await models.Ejemplar.create({
-    libro_id: libro1.id,
-    codigo_barra: 'LIB-1-001',
-    estanteria: '014',
-    balda: '6',
-    estado: 'disponible'
-  });
+    var libros = await models.Libro.bulkCreate([
+      { titulo: 'Clean Architecture', autor: 'Uncle Bob', genero_id: generos[1].id, libro_numero: 'L001' },
+      { titulo: 'El Quijote', autor: 'Cervantes', genero_id: generos[0].id, libro_numero: 'L002' },
+      { titulo: 'La Luz en Cine', autor: 'Storaro', genero_id: generos[3].id, libro_numero: 'L003' },
+      { titulo: 'Sapiens', autor: 'Harari', genero_id: generos[2].id, libro_numero: 'L004' },
+      { titulo: 'JavaScript Good Parts', autor: 'Crockford', genero_id: generos[1].id, libro_numero: 'L005' }
+    ]);
 
-  var ej2 = await models.Ejemplar.create({
-    libro_id: libro2.id,
-    codigo_barra: 'LIB-2-001',
-    estanteria: '010',
-    balda: '3',
-    estado: 'disponible'
-  });
+    // Ejemplares
+    var ejemplares = [];
+    for (let i = 0; i < libros.length; i++) {
+      ejemplares.push(await models.Ejemplar.create({ libro_id: libros[i].id, codigo_barra: 'BK-' + i + '-A', estado: 'disponible' }));
+      ejemplares.push(await models.Ejemplar.create({ libro_id: libros[i].id, codigo_barra: 'BK-' + i + '-B', estado: 'disponible' }));
+    }
+    ejemplares[0].estado = 'prestado'; await ejemplares[0].save();
 
-  // ======================
-  // EQUIPOS + UNIDADES
-  // ======================
-  var camara = await models.Equipo.create({
-    categoria_id: catCamaras.id,
-    marca: 'Canon',
-    modelo: 'EOS 250D',
-    descripcion: 'Cámara réflex'
-  });
+    // Solicitudes (Mix types and states)
+    // Sol 1: Pendiente Propio
+    var s1 = await models.Solicitud.create({ usuario_id: alumnos[0].id, tipo: 'uso_propio', estado: 'pendiente', normas_aceptadas: true, observaciones: 'Urgente' });
+    await models.SolicitudItem.create({ solicitud_id: s1.id, equipo_id: equipos[0].id, cantidad: 1 });
 
-  var microfono = await models.Equipo.create({
-    categoria_id: catAudio.id,
-    marca: 'Rode',
-    modelo: 'NT-USB',
-    descripcion: 'Micrófono USB'
-  });
+    // Sol 2: Aprobada Trabajo (Avalada Prof 1)
+    var s2 = await models.Solicitud.create({ usuario_id: alumnos[1].id, tipo: 'prof_trabajo', estado: 'aprobada', normas_aceptadas: true, profesor_asociado_id: profes[0].id, grado_id: gPer.id, gestor: pas.id, resuelta_en: new Date() });
+    await models.SolicitudItem.create({ solicitud_id: s2.id, equipo_id: equipos[1].id, cantidad: 1 });
 
-  var unidadCam1 = await models.Unidad.create({
-    equipo_id: camara.id,
-    codigo_barra: 'EQ-CAM-001',
-    estado_fisico: 'funciona',
-    esta_prestado: false
-  });
+    // Sol 3: Rechazada
+    var s3 = await models.Solicitud.create({ usuario_id: alumnos[2].id, tipo: 'uso_propio', estado: 'rechazada', normas_aceptadas: true, gestor: pas.id, resuelta_en: new Date(), motivo_rechazo: 'No hay stock' });
+    await models.SolicitudItem.create({ solicitud_id: s3.id, libro_id: libros[0].id, cantidad: 1 });
 
-  var unidadCam2 = await models.Unidad.create({
-    equipo_id: camara.id,
-    codigo_barra: 'EQ-CAM-002',
-    estado_fisico: 'funciona',
-    esta_prestado: false
-  });
+    // Sol 4: Pendiente Trabajo
+    var s4 = await models.Solicitud.create({ usuario_id: alumnos[3].id, tipo: 'prof_trabajo', estado: 'pendiente', normas_aceptadas: true, profesor_asociado_id: profes[1].id, grado_id: gPub.id });
+    await models.SolicitudItem.create({ solicitud_id: s4.id, equipo_id: equipos[4].id, cantidad: 1 });
 
-  var unidadMic = await models.Unidad.create({
-    equipo_id: microfono.id,
-    codigo_barra: 'EQ-AUD-001',
-    estado_fisico: 'funciona',
-    esta_prestado: false
-  });
+    // Sol 5: Aprobada Propio (Generará Préstamo)
+    var s5 = await models.Solicitud.create({ usuario_id: alumnos[4].id, tipo: 'uso_propio', estado: 'aprobada', normas_aceptadas: true, gestor: pas.id });
+    await models.SolicitudItem.create({ solicitud_id: s5.id, equipo_id: equipos[2].id, cantidad: 1 });
 
-  // ======================
-  // SOLICITUDES
-  // ======================
-  // ======================
-  // SOLICITUDES + ITEMS
-  // ======================
+    // Préstamos
+    // Prestamo 1: Activo (de Sol 2)
+    var p1 = await models.Prestamo.create({ usuario_id: alumnos[1].id, solicitud_id: s2.id, tipo: 'a', estado: 'activo', fecha_inicio: new Date(), fecha_devolucion_prevista: new Date(Date.now() + 86400000), profesor_solicitante_id: profes[0].id });
+    await models.PrestamoItem.create({ prestamo_id: p1.id, unidad_id: unidades[2].id, devuelto: false }); // Sony A7 unit
 
-  // 1. Solicitud Pendiente (Alumno 1 pide Ejemplar 1)
-  var solPendiente = await models.Solicitud.create({
-    usuario_id: alumno1.id,
-    tipo: 'uso_propio',
-    estado: 'pendiente',
-    normas_aceptadas: true,
-    observaciones: 'Para estudiar comunicación'
-  });
-  await models.SolicitudItem.create({
-    solicitud_id: solPendiente.id,
-    libro_id: libro1.id,  // Pide el Libro (genérico) o Ejemplar específico si se soporta
-    cantidad: 1
-  });
+    // Prestamo 2: Vencido (de Sol 5)
+    var p2 = await models.Prestamo.create({ usuario_id: alumnos[4].id, solicitud_id: s5.id, tipo: 'b', estado: 'vencido', fecha_inicio: new Date(Date.now() - 5 * 86400000), fecha_devolucion_prevista: new Date(Date.now() - 1 * 86400000) });
+    await models.PrestamoItem.create({ prestamo_id: p2.id, unidad_id: unidades[4].id, devuelto: false });
 
-  // 2. Solicitud Aprobada (Alumno 2 pidió Cámara, se le da UnidadCam1)
-  var solAprobada = await models.Solicitud.create({
-    usuario_id: alumno2.id,
-    tipo: 'uso_propio',
-    estado: 'aprobada',
-    normas_aceptadas: true,
-    gestionado_por_id: pas.id,
-    resuelta_en: new Date()
-  });
-  await models.SolicitudItem.create({
-    solicitud_id: solAprobada.id,
-    equipo_id: camara.id,
-    cantidad: 1
-  });
+    // Prestamo 3: Cerrado
+    var p3 = await models.Prestamo.create({ usuario_id: alumnos[5].id, tipo: 'c', estado: 'cerrado', fecha_inicio: new Date(Date.now() - 10 * 86400000), fecha_devolucion_prevista: new Date(Date.now() - 9 * 86400000), fecha_devolucion_real: new Date(Date.now() - 9 * 86400000) });
 
-  // 3. Solicitud Rechazada (Alumno 3 pidió Microfono)
-  var solRechazada = await models.Solicitud.create({
-    usuario_id: alumno3.id,
-    tipo: 'uso_propio',
-    estado: 'rechazada',
-    normas_aceptadas: true,
-    gestionado_por_id: pas.id,
-    resuelta_en: new Date()
-  });
-  await models.SolicitudItem.create({
-    solicitud_id: solRechazada.id,
-    equipo_id: microfono.id,
-    cantidad: 1
-  });
+    // Sanciones
+    await models.Sancion.create({ usuario_id: alumnos[5].id, severidad: 'leve', estado: 'historica', inicio: new Date('2025-01-01'), fin: new Date('2025-01-07'), motivo: 'Retraso leve' });
+    await models.Sancion.create({ usuario_id: alumnos[2].id, severidad: 'grave', estado: 'activa', inicio: new Date(), fin: new Date(Date.now() + 15 * 86400000), motivo: 'Rotura Material' });
 
-  // ======================
-  // PRÉSTAMOS
-  // ======================
-  var ayer = new Date();
-  ayer.setDate(ayer.getDate() - 1);
+    // Generación extra para garantizar 5+ filas
+    for (let i = 0; i < 5; i++) {
+      // Prestamo dummy cerrado
+      let pExtra = await models.Prestamo.create({
+        usuario_id: alumnos[i % alumnos.length].id,
+        tipo: 'b',
+        estado: 'cerrado',
+        fecha_inicio: new Date(Date.now() - 30 * 86400000),
+        fecha_devolucion_prevista: new Date(Date.now() - 25 * 86400000),
+        fecha_devolucion_real: new Date(Date.now() - 25 * 86400000)
+      });
+      await models.PrestamoItem.create({ prestamo_id: pExtra.id, unidad_id: unidades[i % unidades.length].id, devuelto: true });
 
-  // Prestamo Activo (viene de solAprobada)
-  var prestamoActivo = await models.Prestamo.create({
-    usuario_id: alumno2.id,
-    solicitud_id: solAprobada.id,
-    tipo: 'b',
-    estado: 'activo',
-    fecha_inicio: ayer,
-    fecha_devolucion_prevista: new Date(Date.now() + 24 * 60 * 60 * 1000)
-  });
+      // Sancion dummy histórica
+      await models.Sancion.create({
+        usuario_id: alumnos[i % alumnos.length].id,
+        severidad: 'leve',
+        estado: 'historica',
+        inicio: new Date(Date.now() - 60 * 86400000),
+        fin: new Date(Date.now() - 55 * 86400000),
+        motivo: 'Seed generado #' + i
+      });
+    }
 
-  // Item entregado: UnidadCam1
-  await models.PrestamoItem.create({
-    prestamo_id: prestamoActivo.id,
-    unidad_id: unidadCam1.id,
-    devuelto: false
-  });
-  // Marcar unidad como prestada en seed
-  await unidadCam1.update({ esta_prestado: true });
+    console.log('✅ MEGA-SEED 5+ ROWS COMPLETO');
+    process.exit();
 
-  // Prestamo Vencido (sin solicitud previa explicita en seed, o creamos una dummy)
-  // Vamos a asumir que viene de una solicitud anterior no registrada o nula para simplificar, 
-  // O creamos una solicitud dummy para consistencia.
-
-  var solVencida = await models.Solicitud.create({
-    usuario_id: alumno3.id,
-    tipo: 'uso_propio',
-    estado: 'aprobada',
-    normas_aceptadas: true,
-    creada_en: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
-  });
-
-  var prestamoVencido = await models.Prestamo.create({
-    usuario_id: alumno3.id,
-    solicitud_id: solVencida.id,
-    tipo: 'b',
-    estado: 'vencido',
-    fecha_inicio: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    fecha_devolucion_prevista: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-  });
-
-  await models.PrestamoItem.create({
-    prestamo_id: prestamoVencido.id,
-    ejemplar_id: ej2.id,
-    devuelto: false
-  });
-
-  // ======================
-  // SANCIÓN DE EJEMPLO
-  // ======================
-  await models.Sancion.create({
-    usuario_id: alumno3.id,
-    severidad: 's1_1sem',
-    estado: 'activa',
-    inicio: new Date(),
-    fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    motivo: 'Retraso en devolución'
-  });
-
-  console.log('✅ Seed completo creado');
-  process.exit();
+  } catch (e) {
+    console.error('❌ Error Major:', e);
+    process.exit(1);
+  }
 }
 
 seed();
