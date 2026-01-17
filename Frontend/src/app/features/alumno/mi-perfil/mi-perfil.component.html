@@ -76,4 +76,31 @@
 
   </div>
 
+  <!-- Card Código de Barras -->
+  <div class="codigo-barras-section mt-4">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-upc-scan"></i>
+          Código de Identificación
+        </h5>
+      </div>
+      <div class="card-body text-center">
+        <div *ngIf="usuario?.codigo_tarjeta; else sinCodigo">
+          <svg id="codigoBarras" class="codigo-barras-svg"></svg>
+          <p class="codigo-texto mt-2">{{ usuario?.codigo_tarjeta }}</p>
+          <p class="text-muted small">
+            Usa este código para registrarte presencialmente en el departamento
+          </p>
+        </div>
+        <ng-template #sinCodigo>
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            No tienes código asignado. Contacta con administración.
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
 </div>

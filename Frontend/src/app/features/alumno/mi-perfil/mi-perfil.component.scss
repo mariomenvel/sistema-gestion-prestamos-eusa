@@ -126,4 +126,61 @@ $font-family: 'Inter', sans-serif;
     width: 100%;
     padding: 16px;
   }
+
+  .codigo-barras-section {
+    width: 100%;
+  }
+}
+
+// ========================================
+// CÓDIGO DE BARRAS
+// ========================================
+
+.codigo-barras-section {
+  width: 704px;
+  margin: 24px auto 0 auto;
+
+  .card {
+    border: 2px solid $color-primary-blue;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+    background: $color-white;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background-color: $color-primary-blue !important;
+    color: $color-white;
+    padding: 12px 20px;
+    
+    h5 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .card-body {
+    padding: 24px;
+    text-align: center;
+  }
+
+  .codigo-barras-svg {
+    max-width: 100%;
+    height: auto;
+    background-color: white;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+  }
+
+  .codigo-texto {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: $color-primary-blue;
+    letter-spacing: 2px;
+  }
 }
