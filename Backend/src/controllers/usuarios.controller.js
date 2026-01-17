@@ -79,11 +79,14 @@ function obtenerDetalleUsuario(req, res) {
     attributes: [
       'id',
       'email',
+      'codigo_tarjeta',
       'nombre',
       'apellidos',
       'rol',
       'estado_perfil',
       'tipo_estudios',
+      'grado_id',      
+      'curso',     
       'fecha_inicio_est',
       'fecha_fin_prev'
     ]

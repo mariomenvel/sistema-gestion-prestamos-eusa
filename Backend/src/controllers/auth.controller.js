@@ -72,9 +72,12 @@ function login(req, res) {
             usuario: {
               id: usuario.id,
               email: usuario.email,
+              codigo_tarjeta: usuario.codigo_tarjeta,
               nombre: usuario.nombre,
               apellidos: usuario.apellidos,
-              rol: usuario.rol
+              rol: usuario.rol,
+              grado_id: usuario.grado_id,
+              curso: usuario.curso
             }
           });
         });

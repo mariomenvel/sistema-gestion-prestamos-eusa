@@ -89,6 +89,12 @@ Solicitud.associate = function (models) {
   Solicitud.belongsTo(models.Grado, {
     foreignKey: 'grado_id'
   });
+
+  // Ítems de la solicitud
+  Solicitud.hasMany(models.SolicitudItem, {
+    foreignKey: 'solicitud_id',
+    as: 'items'  // 
+  });
 };
 
 module.exports = Solicitud;

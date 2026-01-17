@@ -50,7 +50,8 @@ var Unidad = db.sequelize.define('Unidad', {
 
 Unidad.associate = function (models) {
   Unidad.belongsTo(models.Equipo, {
-    foreignKey: 'equipo_id'
+    foreignKey: 'equipo_id',
+    as: 'equipo'
   });
 };
 

@@ -45,7 +45,8 @@ var Equipo = db.sequelize.define('Equipo', {
 
 Equipo.associate = function(models) {
   Equipo.belongsTo(models.Categoria, {
-    foreignKey: 'categoria_id'
+    foreignKey: 'categoria_id',
+    as: 'categoria'
   });
 
   Equipo.belongsTo(models.Nombre, {
@@ -53,7 +54,8 @@ Equipo.associate = function(models) {
   });
 
   Equipo.hasMany(models.Unidad, {
-    foreignKey: 'equipo_id'
+    foreignKey: 'equipo_id',
+    as: 'unidades'
   });
 };
 
