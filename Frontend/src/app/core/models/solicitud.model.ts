@@ -1,23 +1,27 @@
 import { Usuario } from './usuario.model';
 import { Ejemplar } from './ejemplar.model';
 import { Unidad } from './unidad.model';
+import { SolicitudItem } from './solicitud-item.model';
 
 export interface Solicitud {
   id: number;
   usuario_id: number;
-  
+  items: SolicitudItem[];
+  profesor_asociado_id?: number;
+  grado_id?: number;
+
   // Puede ser de uno u otro
   ejemplar_id?: number;
   unidad_id?: number;
-  
+
   tipo: 'prof_trabajo' | 'uso_propio';
   estado: 'pendiente' | 'aprobada' | 'rechazada' | 'cancelada';
-  
+
   normas_aceptadas: boolean;
   observaciones?: string;
-  
+
   gestionado_por_id?: number; // ID del PAS que la gestionó
-  
+
   creada_en: string;
   resuelta_en?: string;
 

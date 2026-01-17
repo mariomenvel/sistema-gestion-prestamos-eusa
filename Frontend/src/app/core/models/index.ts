@@ -7,4 +7,5 @@ export * from './unidad.model';
 export * from './prestamo.model';
 export * from './solicitud.model';
 export * from './sancion.model';
-export * from './notificacion.model'; 
+export * from './notificacion.model';
+export * from './solicitud-item.model'; 

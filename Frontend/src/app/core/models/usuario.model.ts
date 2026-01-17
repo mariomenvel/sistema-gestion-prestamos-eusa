@@ -1,6 +1,8 @@
 export interface Usuario {
-  grado?: string;                     
-  curso?: number; 
+  grado?: string;
+  grado_id?: number;
+  codigo_tarjeta?: string;
+  curso?: number;
   id: number;
   email: string;
   nombre: string;
@@ -12,7 +14,7 @@ export interface Usuario {
   tipo_estudios?: 'grado_uni' | 'grado_sup' | 'master';
   fecha_inicio_est?: string;  // DATEONLY viene como string en JSON
   fecha_fin_prev?: string;    // DATEONLY viene como string en JSON
-  
+
   // Propiedades generadas por Sequelize
   createdAt?: string;
   updatedAt?: string;
