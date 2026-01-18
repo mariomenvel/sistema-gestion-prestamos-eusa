@@ -85,8 +85,8 @@ function obtenerDetalleUsuario(req, res) {
       'rol',
       'estado_perfil',
       'tipo_estudios',
-      'grado_id',      
-      'curso',     
+      'grado_id',
+      'curso',
       'fecha_inicio_est',
       'fecha_fin_prev'
     ]
@@ -197,7 +197,7 @@ function actualizarUsuario(req, res) {
 function obtenerContadorPrestamosB(req, res) {
   var usuarioId = req.user.id;
   var Sequelize = require('sequelize');
-  
+
   // Obtener configuración de trimestres
   models.Configuracion.findAll({
     where: {
@@ -206,54 +206,54 @@ function obtenerContadorPrestamosB(req, res) {
       }
     }
   })
-  .then(function(configs) {
-    // Convertir a objeto
-    var cfg = {};
-    configs.forEach(function(c) {
-      cfg[c.clave] = c.valor;
-    });
-    
-    var rango = obtenerRangoTrimestreActual(cfg);
-    
-    if (!rango) {
-      // Fuera de curso (verano), devolver ceros
-      return res.json({
-        usados: 0,
-        limite: 5,
-        trimestre_actual: 0,
-        mensaje: 'Fuera del periodo lectivo'
+    .then(function (configs) {
+      // Convertir a objeto
+      var cfg = {};
+      configs.forEach(function (c) {
+        cfg[c.clave] = c.valor;
       });
-    }
-    
-    // Contar préstamos tipo B en el trimestre actual
-    return models.Prestamo.count({
-      where: {
-        usuario_id: usuarioId,
-        tipo: 'b',
-        fecha_inicio: {
-          [Sequelize.Op.between]: [rango.inicio, rango.fin]
-        }
+
+      var rango = obtenerRangoTrimestreActual(cfg);
+
+      if (!rango) {
+        // Fuera de curso (verano), devolver ceros
+        return res.json({
+          usados: 0,
+          limite: 5,
+          trimestre_actual: 0,
+          mensaje: 'Fuera del periodo lectivo'
+        });
       }
+
+      // Contar préstamos tipo B en el trimestre actual
+      return models.Prestamo.count({
+        where: {
+          usuario_id: usuarioId,
+          tipo: 'b',
+          fecha_inicio: {
+            [Sequelize.Op.between]: [rango.inicio, rango.fin]
+          }
+        }
+      })
+        .then(function (usados) {
+          res.json({
+            usados: usados,
+            limite: 5,
+            trimestre_actual: calcularNumeroTrimestre(rango, cfg)
+          });
+        });
     })
-    .then(function(usados) {
-      res.json({
-        usados: usados,
-        limite: 5,
-        trimestre_actual: calcularNumeroTrimestre(rango, cfg)
-      });
+    .catch(function (error) {
+      console.error('Error al obtener contador préstamos B:', error);
+      res.status(500).json({ mensaje: 'Error al obtener contador' });
     });
-  })
-  .catch(function(error) {
-    console.error('Error al obtener contador préstamos B:', error);
-    res.status(500).json({ mensaje: 'Error al obtener contador' });
-  });
 }
 
 function calcularNumeroTrimestre(rango, cfg) {
   var hoy = new Date();
   var finT1 = parsearFecha(cfg.TRIMESTRE_1_FIN);
   var finT2 = parsearFecha(cfg.TRIMESTRE_2_FIN);
-  
+
   if (hoy <= finT1) return 1;
   if (hoy <= finT2) return 2;
   return 3;
@@ -266,12 +266,12 @@ function parsearFecha(str) {
   var parts = str.split('-');
   var mes = parseInt(parts[1]) - 1;
   var dia = parseInt(parts[0]);
-  
+
   // Ajustar año si estamos en Q1 del año siguiente
   if (hoy.getMonth() < 8 && mes > 8) {
     year = year - 1;
   }
-  
+
   return new Date(year, mes, dia, 23, 59, 59);
 }
 ;
@@ -280,5 +280,61 @@ module.exports = {
   listarUsuarios: listarUsuarios,
   obtenerDetalleUsuario: obtenerDetalleUsuario,
   actualizarUsuario: actualizarUsuario,
-  obtenerContadorPrestamosB: obtenerContadorPrestamosB 
+  obtenerContadorPrestamosB: obtenerContadorPrestamosB,
+  obtenerContadorTipoB: obtenerContadorTipoB
 };
+
+function obtenerContadorTipoB(req, res) {
+  var usuarioId = req.params.id; // ID del usuario solicitado
+  var Sequelize = require('sequelize');
+
+  // Obtener configuración de trimestres
+  models.Configuracion.findAll({
+    where: {
+      clave: {
+        [Sequelize.Op.like]: 'TRIMESTRE_%_FIN'
+      }
+    }
+  })
+    .then(function (configs) {
+      // Convertir a objeto
+      var cfg = {};
+      configs.forEach(function (c) {
+        cfg[c.clave] = c.valor;
+      });
+
+      var rango = obtenerRangoTrimestreActual(cfg);
+
+      if (!rango) {
+        // Fuera de curso (verano), devolver ceros
+        return res.json({
+          usados: 0,
+          limite: 5,
+          trimestre_actual: 0,
+          mensaje: 'Fuera del periodo lectivo'
+        });
+      }
+
+      // Contar préstamos tipo B en el trimestre actual
+      return models.Prestamo.count({
+        where: {
+          usuario_id: usuarioId,
+          tipo: 'b',
+          fecha_inicio: {
+            [Sequelize.Op.between]: [rango.inicio, rango.fin]
+          }
+        }
+      })
+        .then(function (usados) {
+          res.json({
+            usados: usados,
+            limite: 5,
+            trimestre_actual: calcularNumeroTrimestre(rango, cfg)
+          });
+        });
+    })
+    .catch(function (error) {
+      console.error('Error al obtener contador préstamos B (PAS):', error);
+      res.status(500).json({ mensaje: 'Error al obtener contador' });
+    });
+}

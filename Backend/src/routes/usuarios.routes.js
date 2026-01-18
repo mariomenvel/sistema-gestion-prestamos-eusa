@@ -19,4 +19,7 @@ router.put('/:id', auth, roles.soloPAS, usuariosController.actualizarUsuario);
 // Obtener contador de préstamos tipo B del usuario actual (alumno/profesor)
 router.get('/me/contador-prestamos-b', auth, roles.alumnoOProfesor, usuariosController.obtenerContadorPrestamosB);
 
+// Obtener contador de préstamos tipo B para un usuario específico (solo PAS)
+router.get('/:id/contador-tipo-b', auth, roles.soloPAS, usuariosController.obtenerContadorTipoB);
+
 module.exports = router;

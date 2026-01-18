@@ -59,7 +59,16 @@ export class UsuariosService {
  * Endpoint: PUT /usuarios/:id
  * Auth: Requerido + soloPAS
  */
-actualizarUsuario(id: number, datos: Partial<Usuario>): Observable<any> {
-  return this.apiService.put(`/usuarios/${id}`, datos);
-}
+  actualizarUsuario(id: number, datos: Partial<Usuario>): Observable<any> {
+    return this.apiService.put(`/usuarios/${id}`, datos);
+  }
+
+  /**
+   * Obtiene el contador de préstamos tipo B para un usuario específico.
+   * Endpoint: GET /usuarios/:id/contador-tipo-b
+   * Auth: Requerido + soloPAS
+   */
+  obtenerContadorTipoB(usuarioId: number): Observable<any> {
+    return this.apiService.get(`/usuarios/${usuarioId}/contador-tipo-b`);
+  }
 }

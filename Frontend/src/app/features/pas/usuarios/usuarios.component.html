@@ -6,30 +6,36 @@
 
   <!-- Barra de búsqueda -->
   <div class="busqueda">
-    <input 
-      type="text" 
-      class="input-busqueda"
-      placeholder="Buscar alumno..."
-      [(ngModel)]="textoBusqueda"
-      (input)="buscar()"
-    />
+    <input type="text" class="input-busqueda" placeholder="Buscar alumno..." [(ngModel)]="textoBusqueda"
+      (input)="buscar()" />
   </div>
 
   <!-- Tabla de usuarios -->
   <div class="table-container">
-    
+
     <!-- Header tabla -->
     <div class="table-header">
       <div class="th th-nombre">Nombre</div>
       <div class="th th-email">Email</div>
       <div class="th th-grado">Grado</div>
       <div class="th th-curso">Curso</div>
+      <div class="th th-tipob">
+        Tipo B
+        <span class="info-icon" title="Cada alumno tiene un máximo de 5 préstamos tipo B por trimestre">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="feather feather-info">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </span>
+      </div>
       <div class="th th-estado">Estado</div>
     </div>
 
     <!-- Body tabla -->
     <div class="table-body">
-      
+
       <!-- Loading -->
       <div class="empty-state" *ngIf="isLoading">
         <p>Cargando usuarios...</p>
@@ -41,19 +47,12 @@
       </div>
 
       <!-- Sin usuarios -->
-      <div 
-        class="empty-state" 
-        *ngIf="!isLoading && !errorMessage && usuariosFiltrados.length === 0"
-      >
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && usuariosFiltrados.length === 0">
         <p>No hay usuarios disponibles</p>
       </div>
 
       <!-- Filas de usuarios -->
-      <div 
-        class="table-row" 
-        *ngFor="let usuario of usuariosFiltrados"
-        (click)="abrirModalEditar(usuario)"
-      >
+      <div class="table-row" *ngFor="let usuario of usuariosFiltrados" (click)="abrirModalEditar(usuario)">
         <!-- Nombre (clickeable) -->
         <div class="td td-nombre">
           <span class="nombre-clickeable">{{ usuario.nombre }} {{ usuario.apellidos }}</span>
@@ -74,6 +73,11 @@
           -
         </div>
 
+        <!-- Tipo B -->
+        <div class="td td-tipob">
+          {{ getContadorTipoB(usuario.id) }}
+        </div>
+
         <!-- Estado -->
         <div class="td td-estado">
           {{ getEstadoLabel(usuario.estado_perfil) }}
@@ -89,55 +93,37 @@
 <!-- MODAL DE EDICIÓN -->
 <div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
   <div class="modal-card" (click)="$event.stopPropagation()">
-    
+
     <!-- Título del modal -->
     <h2 class="modal-title">Perfil</h2>
 
     <!-- Formulario -->
     <form [formGroup]="formularioUsuario" (ngSubmit)="guardarCambios()">
-      
+
       <!-- Campo: Nombre Completo -->
       <div class="form-field">
         <label class="field-label">Nombre Completo</label>
-        <input 
-          type="text" 
-          class="field-input"
-          formControlName="nombre"
-        />
+        <input type="text" class="field-input" formControlName="nombre" />
       </div>
 
       <!-- Campo: Email -->
       <div class="form-field">
         <label class="field-label">Email</label>
-        <input 
-          type="email" 
-          class="field-input"
-          formControlName="email"
-        />
+        <input type="email" class="field-input" formControlName="email" />
       </div>
 
       <!-- Campo: Año de Matrícula -->
       <div class="form-field">
         <label class="field-label">Año de Matrícula</label>
-        <input 
-          type="date" 
-          class="field-input"
-          formControlName="fecha_inicio_est"
-        />
+        <input type="date" class="field-input" formControlName="fecha_inicio_est" />
       </div>
 
       <!-- Campo: Tipo de Estudios -->
       <div class="form-field">
         <label class="field-label">Tipo de Estudios</label>
-        <select 
-          class="field-select"
-          formControlName="tipo_estudios"
-        >
+        <select class="field-select" formControlName="tipo_estudios">
           <option value="">Seleccionar...</option>
-          <option 
-            *ngFor="let opcion of opcionesTipoEstudios"
-            [value]="opcion.valor"
-          >
+          <option *ngFor="let opcion of opcionesTipoEstudios" [value]="opcion.valor">
             {{ opcion.etiqueta }}
           </option>
         </select>
@@ -146,20 +132,13 @@
       <!-- Campo: Nombre del Grado -->
       <div class="form-field">
         <label class="field-label">Nombre del Grado</label>
-        <input 
-          type="text" 
-          class="field-input"
-          formControlName="apellidos"
-        />
+        <input type="text" class="field-input" formControlName="apellidos" />
       </div>
 
       <!-- Campo: Curso -->
       <div class="form-field">
         <label class="field-label">Curso</label>
-        <select 
-          class="field-select"
-          disabled
-        >
+        <select class="field-select" disabled>
           <option value="">-</option>
         </select>
       </div>
@@ -167,24 +146,14 @@
       <!-- Campo: Fecha Estimada de Finalización -->
       <div class="form-field">
         <label class="field-label">Fecha Estimada de Finalización</label>
-        <input 
-          type="date" 
-          class="field-input"
-          formControlName="fecha_fin_prev"
-        />
+        <input type="date" class="field-input" formControlName="fecha_fin_prev" />
       </div>
 
       <!-- Campo: Estado del Perfil -->
       <div class="form-field">
         <label class="field-label">Estado del Perfil</label>
-        <select 
-          class="field-select"
-          formControlName="estado_perfil"
-        >
-          <option 
-            *ngFor="let opcion of opcionesEstado"
-            [value]="opcion.valor"
-          >
+        <select class="field-select" formControlName="estado_perfil">
+          <option *ngFor="let opcion of opcionesEstado" [value]="opcion.valor">
             {{ opcion.etiqueta }}
           </option>
         </select>
@@ -192,18 +161,10 @@
 
       <!-- Botones -->
       <div class="modal-actions">
-        <button 
-          type="button" 
-          class="btn-cancelar"
-          (click)="cerrarModal()"
-        >
+        <button type="button" class="btn-cancelar" (click)="cerrarModal()">
           Cancelar
         </button>
-        <button 
-          type="submit" 
-          class="btn-guardar"
-          [disabled]="guardando || formularioUsuario.invalid"
-        >
+        <button type="submit" class="btn-guardar" [disabled]="guardando || formularioUsuario.invalid">
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
