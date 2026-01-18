@@ -30,30 +30,45 @@ function crearSolicitud(req, res) {
   })
     .then(function (sancionActiva) {
       if (sancionActiva) {
-        return res.status(403).json({
-          mensaje: 'No puedes crear nuevas solicitudes porque tienes una sanción activa en este curso',
-          sancion: sancionActiva
-        });
+        throw {
+          status: 403,
+          mensaje: 'No puedes crear nuevas solicitudes porque tienes una sanción activa en este curso'
+        };
       }
 
       // 2) Validaciones básicas
       if (!tipo || (tipo !== 'prof_trabajo' && tipo !== 'uso_propio')) {
-        return res.status(400).json({ mensaje: 'Tipo de solicitud inválido' });
-      }
+throw {
+          status: 400,
+          mensaje: 'Tipo de solicitud inválido'
+        };      }
 
       if (tipo === 'prof_trabajo') {
-        if (!profesorAsociadoId) return res.status(400).json({ mensaje: 'Debes asociar un profesor.' });
-        if (!gradoId) return res.status(400).json({ mensaje: 'Debes asociar un grado.' });
-      }
+ if (!profesorAsociadoId) {
+          throw {
+            status: 400,
+            mensaje: 'Debes asociar un profesor.'
+          };
+        }        
+  if (!gradoId) {
+          throw {
+            status: 400,
+            mensaje: 'Debes asociar un grado.'
+          };
+        }
+            }
 
       if (!normasAceptadas) {
-        return res.status(400).json({ mensaje: 'Debe aceptar las normas para crear una solicitud' });
-      }
+throw {
+          status: 400,
+          mensaje: 'Debe aceptar las normas para crear una solicitud'
+        };      }
 
       if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({
+        throw {
+          status: 400,
           mensaje: 'Debe indicar al menos un item en la solicitud'
-        });
+        };
       }
 
       // 2.2) Validar límite trimestral para 'uso_propio'
@@ -62,8 +77,11 @@ function crearSolicitud(req, res) {
         return validarLimiteTrimestral(usuarioId)
           .then(function (dentroDelLimite) {
             if (!dentroDelLimite) {
-              throw new Error('LIMITE_TRIMESTRAL_EXCEDIDO');
-            }
+ throw {
+                status: 403,
+                mensaje: 'Has superado el límite de 5 préstamos de uso propio este trimestre.'
+              };
+                        }
             return true;
           });
       }
@@ -106,9 +124,10 @@ function crearSolicitud(req, res) {
       });
     })
     .catch(function (error) {
-      if (error.message === 'LIMITE_TRIMESTRAL_EXCEDIDO') {
-        return res.status(403).json({ mensaje: 'Has superado el límite de 5 préstamos de uso propio este trimestre.' });
+       if (error.status) {
+        return res.status(error.status).json({ mensaje: error.mensaje });
       }
+
       console.error('Error al crear solicitud:', error);
       res.status(500).json({ mensaje: 'Error al crear la solicitud' });
     });
@@ -331,17 +350,17 @@ function cancelarSolicitud(req, res) {
   })
     .then(function (solicitud) {
       if (!solicitud) {
-        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+        throw new Error('NO_ENCONTRADA');
       }
 
       // Solo el propietario o el PAS pueden cancelar
       // Si es el usuario, debe ser SU solicitud
       if (req.user.rol !== 'pas' && solicitud.usuario_id !== usuarioId) {
-        return res.status(403).json({ mensaje: 'No tienes permisos para cancelar esta solicitud' });
+        throw new Error('NO_PERMISO');
       }
 
       if (solicitud.estado !== 'pendiente') {
-        return res.status(400).json({ mensaje: 'Solo se pueden cancelar solicitudes pendientes' });
+        throw new Error('NO_PENDIENTE_CANCELAR');
       }
 
       // Eliminar items primero (cascade lógico)
@@ -355,6 +374,10 @@ function cancelarSolicitud(req, res) {
       res.json({ mensaje: 'Solicitud cancelada y eliminada correctamente' });
     })
     .catch(function (error) {
+      if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      if (error.message === 'NO_PERMISO') return res.status(403).json({ mensaje: 'No tienes permisos para cancelar esta solicitud' });
+      if (error.message === 'NO_PENDIENTE_CANCELAR') return res.status(400).json({ mensaje: 'Solo se pueden cancelar solicitudes pendientes' });
+      
       console.error('Error al cancelar solicitud:', error);
       res.status(500).json({ mensaje: 'Error al cancelar la solicitud' });
     });
