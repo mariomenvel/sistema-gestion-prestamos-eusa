@@ -183,23 +183,28 @@ private adaptarPrestamo(prestamo: Prestamo): PrestamoVista {
   // Obtener el nombre del material (libro o equipo)
   let material = 'Material desconocido';
   
-  // IMPORTANTE: Sequelize devuelve los includes con mayúscula inicial
-  // Si tiene Ejemplar (mayúscula), es un libro
-  if (prestamo.Ejemplar) {
-    material = prestamo.Ejemplar.libro?.titulo || 'Libro sin título';
-  }
-  // Si tiene Unidad (mayúscula), es un equipo
-  else if (prestamo.Unidad) {
-    // Equipo tiene marca y modelo, no nombre
-    const marca = prestamo.Unidad.equipo?.marca || '';
-    const modelo = prestamo.Unidad.equipo?.modelo || '';
-    material = `${marca} ${modelo}`.trim() || 'Equipo sin identificar';
+  // Los datos vienen dentro de items[0]
+  const items = (prestamo as any).items;
+  
+  if (items && items.length > 0) {
+    const primerItem = items[0];
+    
+    // Si tiene Ejemplar (libro)
+    if (primerItem.Ejemplar && primerItem.Ejemplar.libro) {
+      material = primerItem.Ejemplar.libro.titulo;
+    }
+    // Si tiene Unidad (equipo)
+    else if (primerItem.Unidad && primerItem.Unidad.equipo) {
+      const marca = primerItem.Unidad.equipo.marca || '';
+      const modelo = primerItem.Unidad.equipo.modelo || '';
+      material = `${marca} ${modelo}`.trim() || 'Equipo sin identificar';
+    }
   }
 
   // El tipo viene directamente del préstamo ('a' o 'b')
   const tipo = prestamo.tipo === 'a' ? 'Tipo A' : 'Tipo B';
 
-  // Formatear fechas (nombre correcto: fecha_inicio)
+  // Formatear fechas
   const fechaPrestamo = this.formatearFecha(prestamo.fecha_inicio);
   const fechaDevolucion = this.formatearFecha(prestamo.fecha_devolucion_prevista);
 
@@ -212,7 +217,6 @@ private adaptarPrestamo(prestamo: Prestamo): PrestamoVista {
     estado: prestamo.estado as 'activo' | 'vencido' | 'devuelto'
   };
 }
-
   /**
    * Procesa las solicitudes del backend.
    */
