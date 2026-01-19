@@ -38,31 +38,28 @@ function crearSolicitud(req, res) {
 
       // 2) Validaciones básicas
       if (!tipo || (tipo !== 'prof_trabajo' && tipo !== 'uso_propio')) {
-throw {
+        throw {
           status: 400,
           mensaje: 'Tipo de solicitud inválido'
-        };      }
+        };
+      }
 
       if (tipo === 'prof_trabajo') {
- if (!profesorAsociadoId) {
+      
+        if (!gradoId) {
           throw {
             status: 400,
-            mensaje: 'Debes asociar un profesor.'
-          };
-        }        
-  if (!gradoId) {
-          throw {
-            status: 400,
-            mensaje: 'Debes asociar un grado.'
+            mensaje: 'No se pudo obtener el grado del alumno.'
           };
         }
-            }
+      }
 
       if (!normasAceptadas) {
-throw {
+        throw {
           status: 400,
           mensaje: 'Debe aceptar las normas para crear una solicitud'
-        };      }
+        };
+      }
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         throw {
@@ -77,11 +74,11 @@ throw {
         return validarLimiteTrimestral(usuarioId)
           .then(function (dentroDelLimite) {
             if (!dentroDelLimite) {
- throw {
+              throw {
                 status: 403,
                 mensaje: 'Has superado el límite de 5 préstamos de uso propio este trimestre.'
               };
-                        }
+            }
             return true;
           });
       }
@@ -124,7 +121,7 @@ throw {
       });
     })
     .catch(function (error) {
-       if (error.status) {
+      if (error.status) {
         return res.status(error.status).json({ mensaje: error.mensaje });
       }
 
@@ -377,7 +374,7 @@ function cancelarSolicitud(req, res) {
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PERMISO') return res.status(403).json({ mensaje: 'No tienes permisos para cancelar esta solicitud' });
       if (error.message === 'NO_PENDIENTE_CANCELAR') return res.status(400).json({ mensaje: 'Solo se pueden cancelar solicitudes pendientes' });
-      
+
       console.error('Error al cancelar solicitud:', error);
       res.status(500).json({ mensaje: 'Error al cancelar la solicitud' });
     });
