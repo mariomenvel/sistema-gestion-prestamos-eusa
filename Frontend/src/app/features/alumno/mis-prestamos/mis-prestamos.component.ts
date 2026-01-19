@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PrestamosService } from '../../../core/services/prestamos.service';
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
 import { Prestamo } from '../../../core/models/prestamo.model';
 
 /**
@@ -27,12 +28,19 @@ export class MisPrestamosComponent implements OnInit {
 
   // ===== CONSTRUCTOR =====
   constructor(
-    private prestamosService: PrestamosService
+    private prestamosService: PrestamosService,
+    private solicitudesService: SolicitudesService
   ) { }
 
   // ===== CICLO DE VIDA =====
   ngOnInit(): void {
     this.cargarPrestamos();
+    
+    // Suscribirse a cambios de solicitudes (cuando se crea una nueva)
+    // Así se actualiza la tabla cuando se crea un préstamo
+    this.solicitudesService.solicitudCreada$.subscribe(() => {
+      this.cargarPrestamos();
+    });
   }
 
   // ===== MÉTODOS PÚBLICOS =====
@@ -55,17 +63,28 @@ export class MisPrestamosComponent implements OnInit {
   }
 
   /**
-   * Obtiene el nombre del material
+   * Obtiene el nombre del material de un préstamo
+   * Los datos vienen dentro de items[0]
    */
   getNombreMaterial(prestamo: Prestamo): string {
-    // Si tiene ejemplar (libro) - Sequelize devuelve con mayúscula
-    if ((prestamo as any).Ejemplar && (prestamo as any).Ejemplar.libro) {
-      return (prestamo as any).Ejemplar.libro.titulo;
+    // El préstamo tiene items (array de PrestamoItem)
+    const items = (prestamo as any).items;
+    
+    if (!items || items.length === 0) {
+      return 'Material desconocido';
     }
 
-    // Si tiene unidad (equipo) - Sequelize devuelve con mayúscula
-    if ((prestamo as any).Unidad && (prestamo as any).Unidad.equipo) {
-      const equipo = (prestamo as any).Unidad.equipo;
+    // Tomar el primer item
+    const primerItem = items[0];
+
+    // Si es un ejemplar (libro)
+    if (primerItem.Ejemplar && primerItem.Ejemplar.libro) {
+      return primerItem.Ejemplar.libro.titulo;
+    }
+
+    // Si es una unidad (equipo)
+    if (primerItem.Unidad && primerItem.Unidad.equipo) {
+      const equipo = primerItem.Unidad.equipo;
       return `${equipo.marca} ${equipo.modelo}`;
     }
 
@@ -90,23 +109,29 @@ export class MisPrestamosComponent implements OnInit {
     return tipo === 'a' ? 'Tipo A' : 'Tipo B';
   }
   
-getEstadoClass(estado: string): string {
-  switch (estado) {
-    case 'activo': return 'badge-activo';
-    case 'vencido': return 'badge-vencido';
-    case 'cerrado': return 'badge-completado';
-    default: return '';
+  /**
+   * Obtiene la clase CSS para el estado
+   */
+  getEstadoClass(estado: string): string {
+    switch (estado) {
+      case 'activo': return 'badge-activo';
+      case 'vencido': return 'badge-vencido';
+      case 'cerrado': return 'badge-completado';
+      default: return '';
+    }
   }
-}
 
-getEstadoTexto(estado: string): string {
-  switch (estado) {
-    case 'activo': return 'Activo';
-    case 'vencido': return 'Vencido';
-    case 'cerrado': return 'Completado';
-    default: return estado;
+  /**
+   * Obtiene el texto del estado
+   */
+  getEstadoTexto(estado: string): string {
+    switch (estado) {
+      case 'activo': return 'Activo';
+      case 'vencido': return 'Vencido';
+      case 'cerrado': return 'Completado';
+      default: return estado;
+    }
   }
-}
 
   // ===== MÉTODOS PRIVADOS =====
 

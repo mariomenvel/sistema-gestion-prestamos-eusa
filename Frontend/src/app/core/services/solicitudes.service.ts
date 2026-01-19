@@ -1,13 +1,20 @@
 //Gestiona la creación de solicitudes (cuando un alumno pide un libro) y su gestión por parte del PAS (aprobar/rechazar).
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { ApiService } from './api.service';
 import { Solicitud } from '../models/solicitud.model';
 
 @Injectable({
   providedIn: 'root'
 })
+
+
 export class SolicitudesService {
+
+  // Subject para notificar cuando se crea una solicitud
+  public solicitudCreada$ = new Subject<void>();
 
   constructor(private apiService: ApiService) { }
 
@@ -15,15 +22,18 @@ export class SolicitudesService {
    * Crea una nueva solicitud de préstamo.
    * Endpoint: POST /solicitudes
    */
-  crearSolicitud(datos: { 
-    tipo: 'prof_trabajo' | 'uso_propio', 
-    ejemplar_id?: number, 
-    unidad_id?: number,
-    normas_aceptadas: boolean,
-    observaciones?: string 
-  }): Observable<Solicitud> {
-    return this.apiService.post<Solicitud>('/solicitudes', datos);
-  }
+  // ✅ CORRECTO
+crearSolicitud(datos: {
+  tipo: 'prof_trabajo' | 'uso_propio',
+  ejemplar_id?: number,
+  unidad_id?: number,
+  normas_aceptadas: boolean,
+  observaciones?: string
+}): Observable<Solicitud> {
+  return this.apiService.post<Solicitud>('/solicitudes', datos).pipe(
+    tap(() => this.solicitudCreada$.next())
+  );
+}
 
   /**
    * Obtiene las solicitudes del usuario logueado.
@@ -34,21 +44,21 @@ export class SolicitudesService {
   }
 
   // --- Funciones exclusivas para PAS ---
-/**
- * Obtiene todas las solicitudes pendientes.
- * Endpoint: GET /solicitudes/pendientes
- */
-getSolicitudesPendientes(): Observable<Solicitud[]> {
-  return this.apiService.get<Solicitud[]>('/solicitudes/pendientes');
-}
+  /**
+   * Obtiene todas las solicitudes pendientes.
+   * Endpoint: GET /solicitudes/pendientes
+   */
+  getSolicitudesPendientes(): Observable<Solicitud[]> {
+    return this.apiService.get<Solicitud[]>('/solicitudes/pendientes');
+  }
 
-/**
- * Obtiene TODAS las solicitudes (pendientes, aprobadas, rechazadas).
- * Endpoint: GET /solicitudes
- */
-getAllSolicitudes(): Observable<Solicitud[]> {
-  return this.apiService.get<Solicitud[]>('/solicitudes');
-}
+  /**
+   * Obtiene TODAS las solicitudes (pendientes, aprobadas, rechazadas).
+   * Endpoint: GET /solicitudes
+   */
+  getAllSolicitudes(): Observable<Solicitud[]> {
+    return this.apiService.get<Solicitud[]>('/solicitudes');
+  }
 
   /**
    * Aprueba una solicitud.
