@@ -1,4 +1,3 @@
-
 <div class="catalogo">
   
   <!-- TÍTULO -->
@@ -142,21 +141,9 @@
           <p class="material-description">{{ material.descripcion }}</p>
         </div>
 
-        <!-- Badge disponibilidad -->
-        <div class="material-badge">
-          <span 
-            class="badge"
-            [class.badge-disponible]="material.disponible"
-            [class.badge-no-disponible]="!material.disponible"
-          >
-            {{ material.disponible ? 'Disponible' : 'No disponible' }}
-          </span>
-        </div>
-
         <!-- Botón Solicitar -->
         <button 
           class="btn-solicitar"
-          [disabled]="!material.disponible"
           (click)="solicitarPrestamo(material)"
         >
           Solicitar
@@ -171,9 +158,9 @@
 </div>
 
 <!-- Modal Solicitar Préstamo -->
-<app-solicitar-prestamo
-  [isOpen]="mostrarModalSolicitud"
+<app-solicitar-prestamo 
+  [isOpen]="mostrarModalSolicitud" 
   [material]="materialSeleccionado"
-  (close)="cerrarModalSolicitud()"
-  (solicitudCreada)="onSolicitudCreada()"
-></app-solicitar-prestamo>
+  [todosLosMateriales]="materiales"
+  (close)="cerrarModalSolicitud()" 
+  (solicitudCreada)="onSolicitudCreada()"></app-solicitar-prestamo>

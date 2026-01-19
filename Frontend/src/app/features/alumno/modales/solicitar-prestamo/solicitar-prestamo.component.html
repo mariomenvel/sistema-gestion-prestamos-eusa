@@ -8,7 +8,7 @@
     <div class="modal-header">
       <div class="header-content">
         <h2 class="modal-title">Solicitar Préstamo Material</h2>
-        <p class="modal-subtitle">Material Seleccionado</p>
+        <p class="modal-subtitle">{{ carrito.length > 0 ? carrito.length + ' material(es)' : 'Material Seleccionado' }}</p>
       </div>
       <button class="btn-close" (click)="cerrarModal()" type="button">
         ✕
@@ -18,21 +18,97 @@
     <!-- Body -->
     <div class="modal-body">
 
-      <!-- Card Material Seleccionado -->
-      <div class="material-card" *ngIf="material">
-        <div class="material-image">
-          <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo">
-          <div *ngIf="!material.imagenUrl" class="image-placeholder">
-            {{ material.tipo === 'libro' ? '📚' : '📷' }}
-          </div>
-        </div>
-
+      <!-- Card Material Seleccionado (ahora es Item en Carrito) -->
+      <div class="material-card" *ngIf="material && carrito.length > 0">
         <div class="material-info">
           <h3 class="material-title">{{ material.titulo }}</h3>
           <p class="material-category">{{ material.categoria }} - {{ material.marcaModelo }}</p>
-          <span class="badge" [class.badge-disponible]="material.disponible">
-            Disponible
-          </span>
+        </div>
+      </div>
+
+      <!-- Otros items en carrito (si hay más de uno) -->
+      <div class="otros-items" *ngIf="carrito.length > 1">
+        <h4 class="otros-items-titulo">Otros materiales ({{ carrito.length - 1 }})</h4>
+        <div class="otros-items-lista">
+          <div class="otro-item" *ngFor="let item of carrito.slice(1); let i = index">
+            <span class="otro-item-titulo">{{ item.titulo }}</span>
+            <button type="button" class="btn-eliminar-item" (click)="eliminarDelCarrito(i + 1)" title="Eliminar">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón para agregar más materiales (siempre visible si no está el buscador) -->
+      <button 
+        *ngIf="!mostrarBuscador"
+        class="btn-agregar-mas"
+        (click)="mostrarBuscador = true"
+        type="button"
+      >
+        + Agregar más materiales
+      </button>
+
+      <!-- Sección de búsqueda (aparece solo después de hacer clic) -->
+      <div class="seccion-busqueda" *ngIf="mostrarBuscador && carrito.length > 0">
+        <div class="busqueda-header">
+          <h4>Buscar más materiales</h4>
+          <button type="button" class="btn-cerrar-busqueda" (click)="cerrarBuscador()" title="Cerrar búsqueda">✕</button>
+        </div>
+
+        <input 
+          type="text" 
+          placeholder="Busca por título, autor, marca..."
+          [(ngModel)]="busquedaTexto"
+          (keyup.enter)="buscarMateriales()"
+          (ngModelChange)="buscarMateriales()"
+          class="input-busqueda"
+          name="busquedaTexto"
+        >
+
+        <!-- Filtros -->
+        <div class="filtros-busqueda">
+          <button 
+            [class.activo]="filtroTipoBusqueda === 'todos'"
+            (click)="cambiarFiltroTipo('todos')"
+            type="button"
+          >
+            Todos
+          </button>
+          <button 
+            [class.activo]="filtroTipoBusqueda === 'libro'"
+            (click)="cambiarFiltroTipo('libro')"
+            type="button"
+          >
+            📚 Libros
+          </button>
+          <button 
+            [class.activo]="filtroTipoBusqueda === 'equipo'"
+            (click)="cambiarFiltroTipo('equipo')"
+            type="button"
+          >
+            📷 Equipos
+          </button>
+        </div>
+
+        <!-- Resultados -->
+        <div class="resultados-busqueda" *ngIf="resultadosBusqueda.length > 0">
+          <div class="resultado-item" *ngFor="let mat of resultadosBusqueda">
+            <div class="resultado-info">
+              <p class="resultado-titulo">{{ mat.titulo }}</p>
+              <p class="resultado-detalles">{{ mat.categoria }} - {{ mat.marcaModelo }}</p>
+            </div>
+            <button 
+              class="btn-agregar-item"
+              (click)="agregarAlCarrito(mat)"
+              type="button"
+            >
+              Agregar
+            </button>
+          </div>
+        </div>
+
+        <!-- Sin resultados -->
+        <div class="sin-resultados" *ngIf="resultadosBusqueda.length === 0 && busquedaTexto.length > 0">
+          <p>No se encontraron materiales</p>
         </div>
       </div>
 
@@ -122,16 +198,16 @@
         <div class="error-message" *ngIf="errorSolicitud">
           {{ errorSolicitud }}
         </div>
+
         <!-- Modal de Normas (componente separado) -->
         <app-normas [isOpen]="mostrarModalNormas" (close)="cerrarModalNormas()"
           (normasAceptadas)="onNormasAceptadas()"></app-normas>
+
         <!-- Botón Solicitar -->
         <button type="button" class="btn-solicitar" [disabled]="!formularioValido || enviandoSolicitud"
           (click)="enviarSolicitud()">
-          {{ enviandoSolicitud ? 'Enviando...' : 'Solicitar' }}
+          {{ enviandoSolicitud ? 'Enviando...' : 'Solicitar (' + carrito.length + ')' }}
         </button>
-
-
 
       </form>
 
@@ -139,4 +215,24 @@
 
   </div>
 
+</div>
+
+<!-- MODAL DE ÉXITO -->
+<div class="modal-overlay" *ngIf="mostrarModalExito" (click)="$event.stopPropagation()">
+  <div class="modal-exito">
+    <div class="exito-icono">✓</div>
+    <h3 class="exito-titulo">Solicitud Registrada</h3>
+    <p class="exito-mensaje">{{ mensajeExito }}</p>
+    <button class="btn-exito" (click)="cerrarModalExito()" type="button">Continuar</button>
+  </div>
+</div>
+
+<!-- MODAL DE ERROR -->
+<div class="modal-overlay" *ngIf="mostrarModalError" (click)="$event.stopPropagation()">
+  <div class="modal-error">
+    <div class="error-icono">!</div>
+    <h3 class="error-titulo">Error en la Solicitud</h3>
+    <p class="error-mensaje">{{ mensajeError }}</p>
+    <button class="btn-error" (click)="cerrarModalError()" type="button">Cerrar</button>
+  </div>
 </div>
