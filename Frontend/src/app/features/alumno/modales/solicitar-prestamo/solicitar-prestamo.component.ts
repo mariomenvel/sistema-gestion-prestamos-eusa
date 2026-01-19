@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { SolicitudesService } from '../../../../core/services/solicitudes.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -39,7 +39,7 @@ interface ItemCarrito {
   templateUrl: './solicitar-prestamo.component.html',
   styleUrls: ['./solicitar-prestamo.component.scss']
 })
-export class SolicitarPrestamoComponent implements OnInit {
+export class SolicitarPrestamoComponent implements OnInit, OnChanges {
 
   /**
    * Controla si el modal está abierto
@@ -102,6 +102,24 @@ export class SolicitarPrestamoComponent implements OnInit {
 
   ngOnInit(): void {
     this.inicializarFormulario();
+  }
+
+  /**
+   * Detecta cambios en los @Input
+   * Se ejecuta cuando material cambia
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    // Si cambia material y el modal está abierto
+    if (changes['material'] && changes['material'].currentValue && this.isOpen) {
+      this.carrito = [];
+      this.agregarMaterialInicial();
+    }
+
+    // Si cambia isOpen y se abre el modal
+    if (changes['isOpen'] && changes['isOpen'].currentValue && !changes['isOpen'].previousValue) {
+      this.carrito = [];
+      this.agregarMaterialInicial();
+    }
   }
 
   // ===== MÉTODOS PÚBLICOS - CARRITO =====
