@@ -61,6 +61,155 @@ $font-family: 'Inter', sans-serif;
   margin-bottom: 24px;
 }
 
+// ========================================
+// CONTENEDOR BÚSQUEDA Y FILTROS
+// ========================================
+
+.search-filters-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 300px;
+}
+
+// ========================================
+// FILTROS
+// ========================================
+
+.filters-box {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 15px;
+  color: $color-text-primary;
+}
+
+.filter-select,
+.filter-date {
+  height: 44px;
+  padding: 0 12px;
+  
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: $color-text-primary;
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+}
+
+.filter-select {
+  min-width: 100px;
+  cursor: pointer;
+}
+
+.filter-date {
+  min-width: 140px;
+  
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    color: $color-primary-blue;
+  }
+}
+
+.btn-limpiar {
+  height: 44px;
+  padding: 0 16px;
+  
+  background: #F5F5F5;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  color: $color-text-primary;
+  
+  cursor: pointer;
+  transition: background 0.2s;
+  
+  &:hover {
+    background: #EEEEEE;
+  }
+  
+  &:active {
+    background: #E0E0E0;
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+
+@media (max-width: 1200px) {
+  .search-filters-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    min-width: 100%;
+  }
+  
+  .filters-box {
+    width: 100%;
+  }
+  
+  .filter-select,
+  .filter-date {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-filters-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filters-box {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .filter-select,
+  .filter-date,
+  .btn-limpiar {
+    width: 100%;
+  }
+}
+
 .search-input {
   width: 500px;
   height: 44px;
@@ -278,4 +427,21 @@ $font-family: 'Inter', sans-serif;
   .td {
     padding: 8px 0;
   }
+}
+.badge-pendiente {
+  background: $color-warning-bg;
+  border-color: $color-warning-yellow;
+  color: $color-warning-text;
+}
+
+.badge-aprobada {
+  background: $color-success-bg;
+  border-color: $color-success-green;
+  color: $color-success-text;
+}
+
+.badge-rechazada {
+  background: $color-error-bg;
+  border-color: $color-error-red;
+  color: $color-error-text;
 }
