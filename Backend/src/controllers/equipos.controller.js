@@ -183,11 +183,57 @@ async function subirImagenEquipo(req, res) {
 }
 
 
+/**
+ * GET /equipos/buscar?codigo_barras=...
+ */
+function buscarPorCodigoBarras(req, res) {
+  var codigoBarras = req.query.codigo_barras;
+
+  if (!codigoBarras) {
+    return res.status(400).json({ mensaje: "Código de barras requerido" });
+  }
+
+  // 1. Buscar por código de barras de la unidad
+  models.Unidad.findOne({
+    where: { codigo_barra: codigoBarras }, // Unidad uses codigo_barra (singular)
+    include: [
+      {
+        model: models.Equipo
+      }
+    ]
+  })
+    .then(function (unidad) {
+      if (!unidad) {
+        return res.status(404).json({ mensaje: "Equipo no encontrado" });
+      }
+
+      res.json({
+        id: unidad.Equipo.id,
+        marca: unidad.Equipo.marca,
+        modelo: unidad.Equipo.modelo,
+        // categoria: unidad.Equipo.categoria, // Equipo has categoria_id
+        descripcion: unidad.Equipo.descripcion,
+        unidades: [{
+          id: unidad.id,
+          codigo_barras: unidad.codigo_barra,
+          estado_fisico: unidad.estado_fisico,
+          esta_prestado: unidad.esta_prestado
+        }],
+        disponible: !unidad.esta_prestado && unidad.estado_fisico === 'funciona'
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al buscar equipo:', error);
+      res.status(500).json({ mensaje: "Error al buscar equipo" });
+    });
+}
+
 module.exports = {
   obtenerEquipos: obtenerEquipos,
   obtenerEquipoPorId: obtenerEquipoPorId,
   crearEquipo: crearEquipo,
   actualizarEquipo: actualizarEquipo,
   eliminarEquipo: eliminarEquipo,
-  subirImagenEquipo: subirImagenEquipo
+  subirImagenEquipo: subirImagenEquipo,
+  buscarPorCodigoBarras: buscarPorCodigoBarras
 };

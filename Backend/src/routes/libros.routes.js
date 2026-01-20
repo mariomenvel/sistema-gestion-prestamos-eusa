@@ -8,6 +8,9 @@ var uploadLibro = require('../middlewares/uploadLibro');
 // Catálogo (alumnos, profesores, PAS)
 router.get('/', auth, librosController.obtenerLibros);
 
+// Buscar libro por código de barras (PAS)
+router.get('/buscar', auth, librosController.buscarPorCodigoBarras);
+
 // Gestión (solo PAS)
 router.get('/:id', auth, roles.soloPAS, librosController.obtenerLibroPorId);
 router.post(

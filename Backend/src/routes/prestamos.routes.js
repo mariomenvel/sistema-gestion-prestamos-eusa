@@ -19,4 +19,7 @@ router.put('/:id/ampliar', auth, roles.soloPAS, prestamosController.ampliarPrest
 // Detalle de un prestamo (PAS o dueño)
 router.get('/:id', auth, prestamosController.obtenerDetallePrestamo);
 
+// Crear préstamo presencial (solo PAS)
+router.post('/presencial', auth, roles.soloPAS, prestamosController.crearPrestamoPresencial);
+
 module.exports = router;
