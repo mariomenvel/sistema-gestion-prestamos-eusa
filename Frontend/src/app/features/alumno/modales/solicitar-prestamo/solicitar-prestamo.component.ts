@@ -151,44 +151,42 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
     return this.carrito.some(item => item.id === material.id && item.tipo === material.tipo);
   }
 
-  /**
-   * Busca materiales localmente con normalización de tildes
-   */
-  buscarMateriales(): void {
-    if (this.busquedaTexto.trim().length === 0) {
-      this.resultadosBusqueda = [];
-      return;
-    }
-
-    // Normalizar búsqueda: quitar tildes y convertir a minúsculas
-    const termino = this.normalizarTexto(this.busquedaTexto);
-
-    let resultados = this.todosLosMateriales.filter(material => {
-      const materialesNormalizados = {
-        titulo: this.normalizarTexto(material.titulo),
-        categoria: this.normalizarTexto(material.categoria),
-        marcaModelo: this.normalizarTexto(material.marcaModelo),
-        descripcion: this.normalizarTexto(material.descripcion)
-      };
-
-      const coincide = 
-        materialesNormalizados.titulo.includes(termino) ||
-        materialesNormalizados.categoria.includes(termino) ||
-        materialesNormalizados.marcaModelo.includes(termino) ||
-        materialesNormalizados.descripcion.includes(termino);
-
-      return coincide && material.disponible;
-    });
-
-    // Aplicar filtro de tipo
-    if (this.filtroTipoBusqueda !== 'todos') {
-      resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
-    }
-
-    // NO filtrar materiales ya en carrito - permitir agregar duplicados (ej: 2 camaras iguales)
-
-    this.resultadosBusqueda = resultados;
+/**
+ * Busca materiales localmente con normalización de tildes
+ */
+buscarMateriales(): void {
+  if (this.busquedaTexto.trim().length === 0) {
+    this.resultadosBusqueda = [];
+    return;
   }
+
+  // Normalizar búsqueda: quitar tildes y convertir a minúsculas
+  const termino = this.normalizarTexto(this.busquedaTexto);
+
+  let resultados = this.todosLosMateriales.filter(material => {
+    // Normalizar campos (algunos pueden ser undefined)
+    const titulo = material.titulo ? this.normalizarTexto(material.titulo) : '';
+    const marcaModelo = material.marcaModelo ? this.normalizarTexto(material.marcaModelo) : '';
+    const categoria = material.categoria ? this.normalizarTexto(material.categoria) : '';
+    const descripcion = material.descripcion ? this.normalizarTexto(material.descripcion) : '';
+
+    const coincide = 
+      titulo.includes(termino) ||
+      marcaModelo.includes(termino) ||
+      categoria.includes(termino) ||
+      descripcion.includes(termino);
+
+    return coincide;
+    // ← Eliminamos "&& material.disponible" - permitimos buscar TODO
+  });
+
+  // Aplicar filtro de tipo
+  if (this.filtroTipoBusqueda !== 'todos') {
+    resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
+  }
+
+  this.resultadosBusqueda = resultados;
+}
 
   /**
    * Normaliza texto: minúsculas y sin tildes
