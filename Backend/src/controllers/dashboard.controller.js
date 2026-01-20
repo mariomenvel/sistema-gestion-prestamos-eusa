@@ -24,7 +24,7 @@ function obtenerDashboardPAS(req, res) {
   // 3) Devoluciones realizadas HOY (Card 3 - Nueva lógica)
   promesas.push(models.Prestamo.count({
     where: {
-      estado: 'devuelto',
+      estado: 'cerrado',
       fecha_devolucion_real: {
         [Op.between]: [startOfDay, endOfDay]
       }
@@ -32,11 +32,14 @@ function obtenerDashboardPAS(req, res) {
   }));
 
   // 4) Equipos Prestados (Para Card 4)
-  promesas.push(models.Unidad.count({ where: { estado: 'prestado' } }));
-  
+ promesas.push(models.Unidad.count({ 
+    where: { esta_prestado: true } 
+  }));  
   // 5) Libros (Ejemplares) Prestados (Para Card 4)
-  promesas.push(models.Ejemplar.count({ where: { estado: 'prestado' } }));
-
+promesas.push(models.Ejemplar.count({ 
+    where: { estado: 'no_disponible' } 
+  }));
+  
   Promise.all(promesas)
     .then(function (resultados) {
       var solicitudesPendientes = resultados[0];
