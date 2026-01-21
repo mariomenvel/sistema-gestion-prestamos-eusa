@@ -1,6 +1,7 @@
 var models = require('../models');
 var db = require('../db');
 var Sequelize = require('sequelize');
+var DateUtils = require('../utils/date.utils');
 
 function crearSolicitud(req, res) {
   // Usuario autenticado (viene del middleware auth)
@@ -14,7 +15,7 @@ function crearSolicitud(req, res) {
   var profesorAsociadoId = req.body.profesor_asociado_id; // Nuevo
   var gradoId = req.body.grado_id; // Nuevo
 
-  var inicioCurso = obtenerInicioCurso();
+  var inicioCurso = DateUtils.obtenerInicioCurso();
 
   // 1) Comprobar si el usuario tiene sanción activa
   models.Sancion.findOne({
@@ -45,7 +46,7 @@ function crearSolicitud(req, res) {
       }
 
       if (tipo === 'prof_trabajo') {
-      
+
         if (!gradoId) {
           throw {
             status: 400,
@@ -184,7 +185,7 @@ function aprobarSolicitud(req, res) {
 
         // Calcular fechas de préstamo
         var ahora = new Date();
-        var fechaPrevista = calcularSiguienteDiaLectivo(ahora);
+        var fechaPrevista = DateUtils.calcularSiguienteDiaLectivo(ahora);
 
         // 1. Crear CABECERA Préstamo
         return models.Prestamo.create({
@@ -406,23 +407,6 @@ function obtenerMisSolicitudes(req, res) {
     });
 }
 
-// Observa se la sancion es de este curso
-function obtenerInicioCurso() {
-  var hoy = new Date();
-  var year = hoy.getFullYear();
-
-  // INICIO DE CURSO: 1 de septiembre (cámbialo si quieres)
-  var inicio = new Date(year, 8, 1); // Mes 8 = septiembre (0-based)
-
-  // Si todavía no hemos llegado a esa fecha este año,
-  // el curso actual empezó el año anterior
-  if (hoy < inicio) {
-    inicio = new Date(year - 1, 8, 1);
-  }
-
-  return inicio;
-}
-
 function obtenerTodasLasSolicitudes(req, res) {
   models.Solicitud.findAll({
     include: [
@@ -447,28 +431,6 @@ function obtenerTodasLasSolicitudes(req, res) {
 }
 
 
-function calcularSiguienteDiaLectivo(desdeFecha) {
-  var fecha = new Date(desdeFecha);
-  var diaSemana = fecha.getDay(); // 0 = Domingo, 1 = Lunes, ... 6 = Sabado
-
-  // Si es Viernes (5) -> Lunes (+3 dias)
-  // Si es Sabado (6)  -> Lunes (+2 dias)
-  // Si es Domingo (0) -> Lunes (+1 dia)
-  // Si es Lunes-Jueves -> Dia siguiente (+1 dia)
-
-  if (diaSemana === 5) {
-    fecha.setDate(fecha.getDate() + 3);
-  } else if (diaSemana === 6) {
-    fecha.setDate(fecha.getDate() + 2);
-  } else {
-    fecha.setDate(fecha.getDate() + 1);
-  }
-
-  // Fijar a las 9:00 AM
-  fecha.setHours(9, 0, 0, 0);
-  return fecha;
-}
-
 module.exports = {
   crearSolicitud: crearSolicitud,
   obtenerMisSolicitudes: obtenerMisSolicitudes,
@@ -486,7 +448,7 @@ function validarLimiteTrimestral(usuarioId) {
       var cfg = {};
       configs.forEach(c => cfg[c.clave] = c.valor); // "15-12", etc.
 
-      var rango = obtenerRangoTrimestreActual(cfg);
+      var rango = DateUtils.obtenerRangoTrimestreActual(cfg);
       if (!rango) return true; // Si falla algo, permitimos por defecto (fail-open)
 
       return models.Solicitud.count({
@@ -504,57 +466,3 @@ function validarLimiteTrimestral(usuarioId) {
       });
     });
 }
-
-function obtenerRangoTrimestreActual(config) {
-  // Config: { TRIMESTRE_1_FIN: '15-12', ... }
-  // Formato 'DD-MM'
-
-  var hoy = new Date();
-  var year = hoy.getFullYear();
-
-  // Parsear fechas fin
-  // Asumimos fechas de fin naturales: 15-12 (del año actual), 15-03 (del año siguiente), 15-06 (año siguiente)
-  // PERO curso fiscal es Sep-Junio.
-  // T1: Sep 1 - 15 Dic
-  // T2: 16 Dic - 15 Marzo
-  // T3: 16 Marzo - 15 Junio
-
-  // Helper para crear fecha
-  var makeDate = function (str, y) {
-    var parts = str.split('-'); // DD-MM
-    return new Date(y, parseInt(parts[1]) - 1, parseInt(parts[0]), 23, 59, 59);
-  };
-
-  var finT1 = makeDate(config.TRIMESTRE_1_FIN || '15-12', year);
-  var finT2 = makeDate(config.TRIMESTRE_2_FIN || '15-03', year);
-  var finT3 = makeDate(config.TRIMESTRE_3_FIN || '15-06', year);
-
-  // Ajuste de años si estamos en Q1 (Ene-Feb-Mar)
-  // Si hoy es Enero 2026, finT1 fue Dic 2025. finT2 es Mar 2026.
-
-  // Simplificación Lógica de Curso:
-  // Curso empieza Sep año X.
-  // T1: Sep X -> Dic X
-  // T2: Dic X -> Mar X+1
-  // T3: Mar X+1 -> Jun X+1
-
-  var mesActual = hoy.getMonth(); // 0-11
-  var inicioCursoYear = (mesActual >= 8) ? year : year - 1; // Si estamos en Ene-Ago, el curso empezó el año pasado
-
-  finT1 = makeDate(config.TRIMESTRE_1_FIN || '15-12', inicioCursoYear); // Dic YearBase
-  finT2 = makeDate(config.TRIMESTRE_2_FIN || '15-03', inicioCursoYear + 1); // Marzo YearBase+1
-  finT3 = makeDate(config.TRIMESTRE_3_FIN || '15-06', inicioCursoYear + 1); // Junio YearBase+1
-
-  var inicioT1 = new Date(inicioCursoYear, 8, 1); // 1 Sept
-  var inicioT2 = new Date(finT1); inicioT2.setDate(inicioT2.getDate() + 1); inicioT2.setHours(0, 0, 0, 0);
-  var inicioT3 = new Date(finT2); inicioT3.setDate(inicioT3.getDate() + 1); inicioT3.setHours(0, 0, 0, 0);
-
-  if (hoy <= finT1) return { inicio: inicioT1, fin: finT1 };
-  if (hoy <= finT2) return { inicio: inicioT2, fin: finT2 };
-  if (hoy <= finT3) return { inicio: inicioT3, fin: finT3 };
-
-  // Fuera de curso (Verano)? 
-  // Devolvemos rango verano o null
-  return null;
-}
-

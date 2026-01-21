@@ -1,6 +1,7 @@
 var models = require("../models");
 var db = require("../db");
 var Sequelize = require('sequelize');
+var DateUtils = require('../utils/date.utils');
 
 /**
  * Prestamos del usuario (alumno/profesor)
@@ -183,7 +184,7 @@ function checkSancion(prestamo, t) {
 
   if (diasRetraso <= 0) return;
 
-  var inicioCurso = obtenerInicioCurso();
+  var inicioCurso = DateUtils.obtenerInicioCurso();
   return models.Sancion.count({
     where: {
       usuario_id: prestamo.usuario_id,
@@ -301,21 +302,161 @@ function ampliarPrestamo(req, res) {
     });
 }
 
-// Observa se la sancion es de este curso
-function obtenerInicioCurso() {
-  var hoy = new Date();
-  var year = hoy.getFullYear();
+// Crear préstamo presencial (solo PAS)
+function crearPrestamoPresencial(req, res) {
+  var usuarioId = req.body.usuario_id;
+  var materiales = req.body.materiales;  // Array de {tipo, ejemplar_id/unidad_id}
+  var fechaDevolucion = req.body.fecha_devolucion_prevista;
+  var observaciones = req.body.observaciones || 'Préstamo presencial';
+  var pasId = req.user.id;  // Quién registra el préstamo
 
-  // INICIO DE CURSO: 1 de septiembre (cámbialo si quieres)
-  var inicio = new Date(year, 8, 1); // Mes 8 = septiembre (0-based)
+  // 1. Validar que el alumno existe y no tiene sanciones
+  models.Usuario.findByPk(usuarioId)
+    .then(function (usuario) {
+      if (!usuario) {
+        throw { status: 404, mensaje: "Usuario no encontrado" };
+      }
 
-  // Si todavía no hemos llegado a esa fecha este año,
-  // el curso actual empezó el año anterior
-  if (hoy < inicio) {
-    inicio = new Date(year - 1, 8, 1);
-  }
+      // 2. Verificar si el usuario tiene sanciones activas
+      var inicioCurso = DateUtils.obtenerInicioCurso();
 
-  return inicio;
+      return models.Sancion.findOne({
+        where: {
+          usuario_id: usuarioId,
+          estado: 'activa',
+          inicio: { [Sequelize.Op.gte]: inicioCurso },
+          [Sequelize.Op.or]: [
+            { fin: null },
+            { fin: { [Sequelize.Op.gt]: new Date() } }
+          ]
+        }
+      }).then(function (sancion) {
+        if (sancion) {
+          throw { status: 403, mensaje: "El usuario tiene sanciones activas" };
+        }
+        return usuario;
+      });
+    })
+    .then(function (usuario) {
+      // 3. Crear transacción para préstamo + items
+      return db.sequelize.transaction(function (t) {
+        // 3a. Crear el préstamo
+        return models.Prestamo.create({
+          usuario_id: usuarioId,
+          tipo: 'b',  // Siempre Tipo B (uso personal)
+          estado: 'activo',
+          fecha_inicio: new Date(),
+          fecha_devolucion_prevista: fechaDevolucion,
+          observaciones: observaciones,
+          // registrado_por_id: pasId // Note: Prestamo model may not have 'registrado_por_id'. I will check model or just omit if unnecessary.
+          // Viewing Prestamo.js model earlier: It has usuario_id, solicitud_id, tipo, estado, fecha_inicio, fecha_devolucion_prevista, fecha_devolucion_real, profesor_solicitante_id.
+          // It DOES NOT have registrado_por_id. So I will omit this field to avoid SQL error.
+        }, { transaction: t })
+          .then(function (prestamo) {
+            // 3b. Procesar cada material
+            var promesasItems = [];
+
+            if (!materiales || materiales.length === 0) {
+              throw { status: 400, mensaje: "Debe agregar al menos un libro o equipo" };
+            }
+
+            materiales.forEach(function (material) {
+              if (material.tipo === 'libro' && material.ejemplar_id) {
+                // Procesar libro
+                var pLibro = models.Ejemplar.findByPk(material.ejemplar_id, { transaction: t })
+                  .then(function (ejemplar) {
+                    if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
+                    if (ejemplar.estado !== 'disponible') {
+                      throw new Error('EJEMPLAR_NO_DISPONIBLE');
+                    }
+
+                    // Marcar como no disponible
+                    ejemplar.estado = 'no_disponible';
+                    return ejemplar.save({ transaction: t });
+                  })
+                  .then(function () {
+                    // Crear item del préstamo
+                    return models.PrestamoItem.create({
+                      prestamo_id: prestamo.id,
+                      ejemplar_id: material.ejemplar_id,
+                      unidad_id: null,
+                      devuelto: false
+                    }, { transaction: t });
+                  });
+
+                promesasItems.push(pLibro);
+              }
+              else if (material.tipo === 'equipo' && material.unidad_id) {
+                // Procesar equipo
+                var pEquipo = models.Unidad.findByPk(material.unidad_id, { transaction: t })
+                  .then(function (unidad) {
+                    if (!unidad) throw new Error('UNIDAD_NO_EXISTE');
+                    if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA');
+
+                    // Marcar como prestado
+                    unidad.esta_prestado = true;
+                    return unidad.save({ transaction: t });
+                  })
+                  .then(function () {
+                    // Crear item del préstamo
+                    return models.PrestamoItem.create({
+                      prestamo_id: prestamo.id,
+                      ejemplar_id: null,
+                      unidad_id: material.unidad_id,
+                      devuelto: false
+                    }, { transaction: t });
+                  });
+
+                promesasItems.push(pEquipo);
+              }
+            });
+
+            return Promise.all(promesasItems).then(function () {
+              return prestamo;
+            });
+          });
+      });
+    })
+    .then(function (prestamo) {
+      // 4. Obtener préstamo con items para responder
+      return models.Prestamo.findByPk(prestamo.id, {
+        include: [
+          {
+            model: models.PrestamoItem,
+            as: 'items',
+            include: [
+              { model: models.Unidad, include: [{ model: models.Equipo, as: 'equipo' }] },
+              { model: models.Ejemplar, include: [{ model: models.Libro, as: 'libro' }] }
+            ]
+          }
+        ]
+      }).then(function (prestamoCompleto) {
+        res.status(201).json({
+          mensaje: "Préstamo presencial registrado exitosamente",
+          prestamo: prestamoCompleto
+        });
+      });
+    })
+    .catch(function (error) {
+      if (error.status) {
+        return res.status(error.status).json({ mensaje: error.mensaje });
+      }
+      if (error.message === 'EJEMPLAR_NO_EXISTE') {
+        return res.status(404).json({ mensaje: "Ejemplar no encontrado" });
+      }
+      if (error.message === 'EJEMPLAR_NO_DISPONIBLE') {
+        return res.status(400).json({ mensaje: "El ejemplar no está disponible (ya prestado o bloqueado)" });
+      }
+      if (error.message === 'UNIDAD_NO_EXISTE') {
+        return res.status(404).json({ mensaje: "Unidad no encontrada" });
+      }
+      if (error.message === 'UNIDAD_YA_PRESTADA') {
+        return res.status(400).json({ mensaje: "La unidad ya está prestada" });
+      }
+
+      console.error('Error al crear préstamo presencial:', error);
+      res.status(500).json({ mensaje: "Error al crear préstamo presencial" });
+    });
 }
 
 module.exports = {
@@ -323,5 +464,6 @@ module.exports = {
   obtenerPrestamosActivos: obtenerPrestamosActivos,
   devolverPrestamo: devolverPrestamo,
   ampliarPrestamo: ampliarPrestamo,
-  obtenerDetallePrestamo: obtenerDetallePrestamo
+  obtenerDetallePrestamo: obtenerDetallePrestamo,
+  crearPrestamoPresencial: crearPrestamoPresencial
 };

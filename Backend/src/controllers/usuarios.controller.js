@@ -1,5 +1,6 @@
 var models = require('../models');
 var Sequelize = require('sequelize');
+var DateUtils = require('../utils/date.utils');
 
 function obtenerPerfilActual(req, res) {
   var usuarioId = req.user.id;
@@ -213,7 +214,7 @@ function obtenerContadorPrestamosB(req, res) {
         cfg[c.clave] = c.valor;
       });
 
-      var rango = obtenerRangoTrimestreActual(cfg);
+      var rango = DateUtils.obtenerRangoTrimestreActual(cfg);
 
       if (!rango) {
         // Fuera de curso (verano), devolver ceros
@@ -239,7 +240,7 @@ function obtenerContadorPrestamosB(req, res) {
           res.json({
             usados: usados,
             limite: 5,
-            trimestre_actual: calcularNumeroTrimestre(rango, cfg)
+            trimestre_actual: rango.numero
           });
         });
     })
@@ -249,39 +250,64 @@ function obtenerContadorPrestamosB(req, res) {
     });
 }
 
-function calcularNumeroTrimestre(rango, cfg) {
-  var hoy = new Date();
-  var finT1 = parsearFecha(cfg.TRIMESTRE_1_FIN);
-  var finT2 = parsearFecha(cfg.TRIMESTRE_2_FIN);
+;
+// Buscar usuario por código de barras (PAS)
+function buscarPorCodigoBarras(req, res) {
+  var codigoBarras = req.query.codigo_barras;
 
-  if (hoy <= finT1) return 1;
-  if (hoy <= finT2) return 2;
-  return 3;
-}
-
-function parsearFecha(str) {
-  // str = "15-12" (DD-MM)
-  var hoy = new Date();
-  var year = hoy.getFullYear();
-  var parts = str.split('-');
-  var mes = parseInt(parts[1]) - 1;
-  var dia = parseInt(parts[0]);
-
-  // Ajustar año si estamos en Q1 del año siguiente
-  if (hoy.getMonth() < 8 && mes > 8) {
-    year = year - 1;
+  if (!codigoBarras) {
+    return res.status(400).json({ mensaje: "Código de barras requerido" });
   }
 
-  return new Date(year, mes, dia, 23, 59, 59);
+  // 1. Buscar usuario por código de barras
+  models.Usuario.findOne({
+    where: { codigo_barras: codigoBarras },
+    attributes: ['id', 'nombre', 'email', 'grado_id', 'codigo_barras', 'estado_perfil']
+  })
+    .then(function (usuario) {
+      if (!usuario) {
+        return res.status(404).json({ mensaje: "Alumno no encontrado" });
+      }
+
+      // 2. Verificar si tiene sanciones activas
+      var inicioCurso = DateUtils.obtenerInicioCurso();
+
+      return models.Sancion.findOne({
+        where: {
+          usuario_id: usuario.id,
+          estado: 'activa',
+          inicio: { [Sequelize.Op.gte]: inicioCurso },
+          [Sequelize.Op.or]: [
+            { fin: null },
+            { fin: { [Sequelize.Op.gt]: new Date() } }
+          ]
+        }
+      }).then(function (sancion) {
+        res.json({
+          id: usuario.id,
+          nombre: usuario.nombre,
+          email: usuario.email,
+          grado_id: usuario.grado_id,
+          codigo_barras: usuario.codigo_barras,
+          estado: usuario.estado_perfil,
+          tieneOSanciones: !!sancion
+        });
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al buscar usuario:', error);
+      res.status(500).json({ mensaje: "Error al buscar usuario" });
+    });
 }
-;
+
 module.exports = {
   obtenerPerfilActual: obtenerPerfilActual,
   listarUsuarios: listarUsuarios,
   obtenerDetalleUsuario: obtenerDetalleUsuario,
   actualizarUsuario: actualizarUsuario,
   obtenerContadorPrestamosB: obtenerContadorPrestamosB,
-  obtenerContadorTipoB: obtenerContadorTipoB
+  obtenerContadorTipoB: obtenerContadorTipoB,
+  buscarPorCodigoBarras: buscarPorCodigoBarras
 };
 
 function obtenerContadorTipoB(req, res) {
@@ -303,7 +329,7 @@ function obtenerContadorTipoB(req, res) {
         cfg[c.clave] = c.valor;
       });
 
-      var rango = obtenerRangoTrimestreActual(cfg);
+      var rango = DateUtils.obtenerRangoTrimestreActual(cfg);
 
       if (!rango) {
         // Fuera de curso (verano), devolver ceros
@@ -329,7 +355,7 @@ function obtenerContadorTipoB(req, res) {
           res.json({
             usados: usados,
             limite: 5,
-            trimestre_actual: calcularNumeroTrimestre(rango, cfg)
+            trimestre_actual: rango.numero
           });
         });
     })

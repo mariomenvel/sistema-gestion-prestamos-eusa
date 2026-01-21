@@ -7,6 +7,9 @@ var uploadEquipo = require("../middlewares/uploadEquipo");
 // Obtener todos los equipos
 router.get("/", equiposController.obtenerEquipos);
 
+// Buscar equipos por código de barras (PAS)
+router.get("/buscar", auth, equiposController.buscarPorCodigoBarras);
+
 var roles = require("../middlewares/roles");
 
 router.get("/:id", auth, roles.soloPAS, equiposController.obtenerEquipoPorId);

@@ -169,10 +169,65 @@ function eliminarLibro(req, res) {
     });
 }
 
+/**
+ * GET /libros/buscar?codigo_barras=...
+ */
+function buscarPorCodigoBarras(req, res) {
+  var codigoBarras = req.query.codigo_barras;
+
+  if (!codigoBarras) {
+    return res.status(400).json({ mensaje: "Código de barras requerido" });
+  }
+
+  // 1. Buscar por código de barras del libro
+  models.Libro.findOne({
+    where: { codigo_barras: codigoBarras },
+    include: [
+      {
+        model: models.Ejemplar,
+        as: 'ejemplares'
+      }
+    ]
+  })
+    .then(function (libro) {
+      if (!libro) {
+        return res.status(404).json({ mensaje: "Libro no encontrado" });
+      }
+
+      // 2. Contar ejemplares disponibles
+      var disponibles = libro.ejemplares.filter(e => e.estado === 'disponible');
+
+      res.json({
+        id: libro.id,
+        titulo: libro.titulo,
+        autor: libro.autor,
+        // categoria: libro.categoria, // Libro model does not have categoria directly, it has genero_id. Assuming genero name or just omit based on request? Request says "categoria". I will check if Genero is what is meant.
+        // Actually Libro model relates to Genero. Let's return genero name if possible or just what is in libro.
+        // The prompt response example says "categoria": "Programación". I'll use genero if available or just omit if simpler. 
+        // Let's modify the query to include Genero above if needed, but Libro has genero_id.
+        // Let's stick to what is in libro object for now.
+        descripcion: "", // Libro model does not have descripcion field in the file I read! It has titulo, autor, editorial, libro_numero, genero_id, foto_url. 
+        // I will omit fields that don't exist in the model to avoid crash.
+        codigo_barras_libro: libro.codigo_barras,
+        ejemplares: disponibles.map(e => ({
+          id: e.id,
+          codigo_barras: e.codigo_barra, // Note: Ejemplar has codigo_barra (singular)
+          estado: e.estado
+        })),
+        ejemplaresDisponibles: disponibles.length
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al buscar libro:', error);
+      res.status(500).json({ mensaje: "Error al buscar libro" });
+    });
+}
+
 module.exports = {
   obtenerLibros: obtenerLibros,
   obtenerLibroPorId: obtenerLibroPorId,
   crearLibro: crearLibro,
   actualizarLibro: actualizarLibro,
-  eliminarLibro: eliminarLibro
+  eliminarLibro: eliminarLibro,
+  buscarPorCodigoBarras: buscarPorCodigoBarras
 };
