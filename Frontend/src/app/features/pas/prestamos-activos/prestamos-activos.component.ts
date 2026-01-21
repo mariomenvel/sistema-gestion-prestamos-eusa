@@ -7,6 +7,7 @@ import { Prestamo } from '../../../core/models/prestamo.model';
  * 
  * Permite al personal administrativo:
  * - Ver todos los préstamos activos del sistema
+ * - Ver tipo de préstamo (A, B, C)
  * - Registrar devoluciones
  * - Marcar préstamos como finalizados
  */
@@ -111,6 +112,27 @@ export class PrestamosActivosComponent implements OnInit {
     const hoy = new Date();
     const fechaPrevista = new Date(prestamo.fecha_devolucion_prevista);
     return hoy > fechaPrevista;
+  }
+
+  // ===== NUEVOS MÉTODOS - PARA TIPO =====
+
+  /**
+   * CAMBIO: Obtiene el texto del tipo de préstamo
+   * Tipo 'a' = Tipo A (Académico)
+   * Tipo 'b' = Tipo B (Personal)
+   * Tipo 'c' = Tipo C (Presencial)
+   */
+  getTipoTexto(tipo: string): string {
+    switch(tipo) {
+      case 'a':
+        return 'Tipo A';
+      case 'b':
+        return 'Tipo B';
+      case 'c':
+        return 'Presencial';
+      default:
+        return tipo;
+    }
   }
 
   // ===== MÉTODOS PRIVADOS =====

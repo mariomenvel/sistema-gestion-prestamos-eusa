@@ -5,6 +5,8 @@
 $color-primary-blue: #0066CC;
 $color-info-blue-light: #E3F2FD;
 $color-success-green: #4CAF50;
+$color-warning-orange: #E65100;
+$color-purple: #9C27B0;
 
 $color-white: #FFFFFF;
 $color-bg-gray: #EEEEEE;
@@ -71,9 +73,10 @@ $font-family: 'Inter', sans-serif;
 }
 
 // Header de la tabla
+// CAMBIO: Actualizada para 6 columnas (se agregó "Tipo")
 .table-header {
   display: grid;
-  grid-template-columns: 1.5fr 2fr 1.2fr 1.2fr 1.5fr;
+  grid-template-columns: 1.2fr 0.8fr 2fr 1.2fr 1.2fr 1.5fr;
   gap: 16px;
   
   background: $color-primary-blue;
@@ -121,9 +124,10 @@ $font-family: 'Inter', sans-serif;
 }
 
 // Fila de la tabla
+// CAMBIO: Actualizada para 6 columnas (se agregó "Tipo")
 .table-row {
   display: grid;
-  grid-template-columns: 1.5fr 2fr 1.2fr 1.2fr 1.5fr;
+  grid-template-columns: 1.2fr 0.8fr 2fr 1.2fr 1.2fr 1.5fr;
   gap: 16px;
   align-items: center;
   
@@ -241,10 +245,11 @@ $font-family: 'Inter', sans-serif;
 // RESPONSIVE
 // ========================================
 
+// CAMBIO: Actualizado para 6 columnas
 @media (max-width: 1200px) {
   .table-header,
   .table-row {
-    grid-template-columns: 1fr 1.5fr 1fr 1fr 1.3fr;
+    grid-template-columns: 1fr 0.7fr 1.5fr 1fr 1fr 1.2fr;
   }
   
   .btn-devolucion {

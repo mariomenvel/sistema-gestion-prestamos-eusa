@@ -13,6 +13,8 @@
     <!-- Header de la tabla -->
     <div class="table-header">
       <div class="th th-alumno">Alumno</div>
+      <div class="th th-tipo">Tipo</div>
+      <!-- CAMBIO: Nueva columna "Tipo" agregada aquí (después de Alumno) -->
       <div class="th th-material">Material</div>
       <div class="th th-fecha-prestamo">Fecha Préstamo</div>
       <div class="th th-fecha-devolucion">Fecha Devolución</div>
@@ -46,6 +48,13 @@
         <!-- Columna: Alumno -->
         <div class="td td-alumno">
           {{ getNombreUsuario(prestamo) }}
+        </div>
+
+        <!-- CAMBIO: Nueva columna "Tipo" agregada aquí -->
+        <div class="td td-tipo">
+          <span class="badge-tipo">
+            {{ getTipoTexto(prestamo.tipo) }}
+          </span>
         </div>
 
         <!-- Columna: Material -->
