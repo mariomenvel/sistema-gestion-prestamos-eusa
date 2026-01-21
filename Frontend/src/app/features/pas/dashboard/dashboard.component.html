@@ -33,21 +33,21 @@
 
   </div>
 
-  <!-- Sección de solicitudes pendientes -->
-  <div class="solicitudes-section">
+  <!-- Sección de préstamos activos -->
+  <div class="prestamos-section">
     
     <!-- Título de sección -->
     <h2 class="section-title">Solicitudes Pendientes</h2>
 
-    <!-- Tabla de solicitudes -->
-    <div class="solicitudes-table">
+    <!-- Tabla de préstamos -->
+    <div class="prestamos-table">
       
       <!-- Header de la tabla -->
       <div class="table-header">
         <div class="th th-alumno">Alumno</div>
         <div class="th th-material">Material</div>
         <div class="th th-tipo">Tipo de Solicitud</div>
-        <div class="th th-fecha">Fecha de Solicitud</div>
+        <div class="th th-fecha-solicitud">Fecha de Solicitud</div>
         <div class="th th-estado">Estado</div>
       </div>
 
@@ -55,49 +55,55 @@
       <div class="table-body">
         
         <!-- Loading -->
-        <div class="empty-state" *ngIf="isLoading">
+        <div class="empty-state" *ngIf="isLoadingPrestamos">
           <p>Cargando solicitudes...</p>
         </div>
 
         <!-- Error -->
-        <div class="empty-state error" *ngIf="errorMessage">
-          <p>{{ errorMessage }}</p>
+        <div class="empty-state error" *ngIf="errorMessagePrestamos">
+          <p>{{ errorMessagePrestamos }}</p>
         </div>
 
-        <!-- Sin solicitudes -->
-        <div class="empty-state" *ngIf="!isLoading && !errorMessage && ultimasSolicitudes.length === 0">
+        <!-- Sin solicitudes pendientes -->
+        <div class="empty-state" *ngIf="!isLoadingPrestamos && !errorMessagePrestamos && prestamosActivosData.length === 0">
           <p>No hay solicitudes pendientes</p>
         </div>
 
         <!-- Filas de solicitudes -->
         <div 
           class="table-row" 
-          *ngFor="let solicitud of ultimasSolicitudes"
+          *ngFor="let solicitud of prestamosActivosData"
         >
           <!-- Columna: Alumno -->
           <div class="td td-alumno">
-            {{ getNombreUsuario(solicitud) }}
+            <strong>{{ getNombreAlumno(solicitud) }}</strong>
           </div>
 
           <!-- Columna: Material -->
           <div class="td td-material">
-            {{ getNombreMaterial(solicitud) }}
+            <div class="material-info">
+              <div class="material-icon">📦</div>
+              <span>{{ getNombreMaterial(solicitud) }}</span>
+            </div>
           </div>
 
-          <!-- Columna: Tipo -->
+          <!-- Columna: Tipo de Solicitud -->
           <div class="td td-tipo">
             {{ getTipoTexto(solicitud.tipo) }}
           </div>
 
-          <!-- Columna: Fecha -->
-          <div class="td td-fecha">
-            {{ formatearFecha(solicitud.creada_en) }}
+          <!-- Columna: Fecha de Solicitud -->
+          <div class="td td-fecha-solicitud">
+            {{ formatearFecha(solicitud.fecha_inicio) }}
           </div>
 
           <!-- Columna: Estado -->
           <div class="td td-estado">
-            <span class="badge badge-pendiente">
-              Pendiente
+            <span 
+              class="badge"
+              [ngClass]="getEstadoClass(solicitud.estado)"
+            >
+              {{ getEstadoTexto(solicitud.estado) }}
             </span>
           </div>
         </div>
@@ -108,7 +114,7 @@
 
     <!-- Botón Ver todas las Solicitudes -->
     <button 
-      class="btn-ver-todas"
+      class="btn-ver-solicitudes"
       (click)="verTodasSolicitudes()"
     >
       Ver todas las Solicitudes

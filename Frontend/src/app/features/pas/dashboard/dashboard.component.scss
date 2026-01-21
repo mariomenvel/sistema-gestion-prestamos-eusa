@@ -1,21 +1,20 @@
 // ========================================
-// VARIABLES
+// VARIABLES (Iguales al dashboard alumno)
 // ========================================
 
 $color-primary-blue: #0066CC;
-$color-info-blue-light: #E3F2FD;
+$color-warning-orange: #E65100;
 $color-success-green: #28A745;
-$color-warning-orange: #FF9800;
-$color-warning-orange-dark: #E65100;
-$color-warning-orange-light: #FFF3E0;
+$color-success-green-dark: #2E7D32;
+$color-success-green-light: #E8F5E9;
 $color-purple: #9C27B0;
 
 $color-white: #FFFFFF;
 $color-bg-gray: #EEEEEE;
-$color-bg-light: #F5F5F5;
 $color-border: #E0E0E0;
 $color-text-primary: #212121;
 $color-text-secondary: #6C757D;
+$color-text-disabled: #9E9E9E;
 
 $font-family: 'Inter', sans-serif;
 
@@ -24,299 +23,402 @@ $font-family: 'Inter', sans-serif;
 // ========================================
 
 .dashboard {
-  width: 100%;
-  max-width: 1152px;
-  margin: 0 auto;
-  padding-top: 24px;
-  padding-bottom: 40px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 16px;
+    padding-bottom: 60px;
 }
 
 // ========================================
-// TÍTULO
+// TÍTULO PRINCIPAL
 // ========================================
 
 .dashboard-title {
-  font-family: $font-family;
-  font-weight: 700;
-  font-size: 32px;
-  line-height: 39px;
-  letter-spacing: -0.03em;
-  color: $color-text-primary;
-  
-  margin: 0 0 24px 0;
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 39px;
+    color: $color-text-primary;
+    margin: 0 0 24px 0;
 }
 
 // ========================================
-// CARDS DE MÉTRICAS
+// CARDS DE MÉTRICAS - 4 COLUMNAS PAS
 // ========================================
 
 .metrics-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  
-  margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
 .metric-card {
-  background: $color-white;
-  border: 2px solid $color-border;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  
-  padding: 24px;
-  
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  
-  min-height: 120px;
+    height: 120px;
+    background: $color-white;
+    border: 2px solid $color-border;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
 }
 
 .metric-number {
-  font-family: $font-family;
-  font-weight: 700;
-  font-size: 48px;
-  line-height: 58px;
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 58px;
 }
 
-// Colores de números según el mockup
+// Colores de números
+.number-blue {
+    color: $color-primary-blue;
+}
+
 .number-orange {
-  color: $color-warning-orange-dark;
+    color: $color-warning-orange;
 }
 
 .number-green {
-  color: $color-success-green;
-}
-
-.number-blue {
-  color: $color-primary-blue;
+    color: $color-success-green;
 }
 
 .number-purple {
-  color: $color-purple;
+    color: $color-purple;
 }
 
 .metric-label {
-  font-family: $font-family;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
-  color: $color-text-secondary;
-  
-  text-align: center;
+    font-family: $font-family;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-text-secondary;
+    text-align: center;
 }
 
 // ========================================
-// SECCIÓN DE SOLICITUDES
+// SECCIÓN DE PRÉSTAMOS
 // ========================================
 
-.solicitudes-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.prestamos-section {
+    margin-top: 32px;
+    margin-bottom: 40px;
 }
 
 .section-title {
-  font-family: $font-family;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 24px;
-  letter-spacing: -0.03em;
-  color: $color-text-secondary;
-  
-  margin: 0;
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    letter-spacing: -0.03em;
+    color: $color-text-secondary;
+    margin: 0 0 16px 0;
 }
 
 // ========================================
-// TABLA DE SOLICITUDES
+// TABLA DE SOLICITUDES - 5 COLUMNAS
 // ========================================
 
-.solicitudes-table {
-  background: $color-white;
-  border: 2px solid $color-border;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  
-  overflow: hidden;
-  min-height: 280px;
+.prestamos-table {
+    background: $color-white;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    width: 936px;
 }
 
 // Header de la tabla
 .table-header {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr 1.2fr 1.2fr 1fr;
-  gap: 16px;
-  
-  background: $color-primary-blue;
-  border: 1px solid $color-border;
-  
-  padding: 16px 24px;
+    display: grid;
+    // ✅ 5 columnas: Alumno | Material | Tipo | Fecha | Estado
+    grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr;
+    gap: 16px;
+
+    background: $color-primary-blue;
+    padding: 16px 20px;
+    border-bottom: 1px solid $color-border;
 }
 
 .th {
-  font-family: $font-family;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
-  color: $color-white;
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-white;
 }
 
 // Body de la tabla
 .table-body {
-  min-height: 200px;
+    min-height: 100px;
 }
 
-// Fila de la tabla
 .table-row {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr 1.2fr 1.2fr 1fr;
-  gap: 16px;
-  align-items: center;
-  
-  padding: 16px 24px;
-  border-bottom: 1px solid $color-border;
-  
-  transition: background 0.2s ease;
-  
-  &:hover {
-    background: rgba($color-info-blue-light, 0.3);
-  }
-  
-  &:last-child {
-    border-bottom: none;
-  }
+    display: grid;
+    // ✅ 5 columnas (DEBE SER IGUAL al header)
+    grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr;
+    gap: 16px;
+
+    padding: 20px;
+    border-bottom: 1px solid $color-border;
+
+    transition: background 0.2s ease;
+
+    &:hover {
+        background: rgba($color-primary-blue, 0.02);
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .td {
-  font-family: $font-family;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
-  color: $color-text-primary;
-  
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    font-family: $font-family;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 17px;
+    letter-spacing: -0.03em;
+    color: $color-text-primary;
+
+    display: flex;
+    align-items: center;
+}
+
+/* ===== COLUMNAS ESPECÍFICAS PAS ===== */
+
+.td-alumno {
+    font-weight: 500;
+
+    strong {
+        color: $color-text-primary;
+    }
+}
+
+.td-material {
+    .material-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .material-icon {
+        width: 48px;
+        height: 48px;
+        background: $color-bg-gray;
+        border: 2px solid $color-border;
+        border-radius: 8px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    span {
+        word-break: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.td-tipo {
+    text-align: center;
+}
+
+.td-fecha-inicio {
+    text-align: center;
+    font-size: 13px;
+}
+
+.td-fecha-devolucion {
+    text-align: center;
+    font-size: 13px;
+}
+
+.td-estado {
+    text-align: center;
+}
+
+// Clases para tabla alumno (5 columnas)
+.th-material,
+.th-tipo,
+.th-fecha,
+.th-estado {
+    // Heredan estilos de .th
+}
+
+.td-fecha {
+    text-align: center;
+    font-size: 13px;
+}
+
+// Estado vacío
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: $color-text-secondary;
+    font-size: 14px;
+
+    &.error {
+        color: #D32F2F;
+    }
 }
 
 // ========================================
-// BADGE DE ESTADO
+// BADGES DE ESTADO (Iguales al alumno)
 // ========================================
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  
-  min-width: 80px;
-  height: 32px;
-  padding: 0 12px;
-  
-  border-radius: 14px;
-  
-  font-family: $font-family;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 15px;
-  
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-}
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-.badge-pendiente {
-  background: $color-warning-orange-light;
-  border: 2px solid $color-warning-orange;
-  color: $color-warning-orange-dark;
-}
+    padding: 6px 16px;
+    border-radius: 14px;
 
-// ========================================
-// ESTADOS (Loading, Error, Empty)
-// ========================================
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  min-height: 200px;
-  padding: 40px;
-  
-  p {
     font-family: $font-family;
-    font-size: 16px;
-    color: $color-text-secondary;
-    text-align: center;
-    margin: 0;
-  }
-  
-  &.error p {
-    color: #D32F2F;
-  }
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+.badge-activo {
+    background: $color-success-green-light;
+    border: 2px solid $color-success-green;
+    color: $color-success-green-dark;
+}
+
+.badge-vencido {
+    background: #FFEBEE;
+    border: 2px solid #D32F2F;
+    color: #C62828;
+}
+
+.badge-devuelto {
+    background: #F5F5F5;
+    border: 2px solid #9E9E9E;
+    color: #616161;
+}
+
+.badge-completado {
+    background: #F5F5F5;
+    border: 2px solid #9E9E9E;
+    color: #616161;
 }
 
 // ========================================
-// BOTÓN VER TODAS
+// BOTONES
 // ========================================
 
-.btn-ver-todas {
-  width: 220px;
-  height: 44px;
-  
-  background: $color-white;
-  border: 2px solid $color-primary-blue;
-  border-radius: 4px;
-  
-  font-family: $font-family;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 19px;
-  color: $color-primary-blue;
-  
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: $color-info-blue-light;
-    transform: translateY(-2px);
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
+.btn-solicitar {
+    width: 220px;
+    height: 44px;
+
+    background: $color-primary-blue;
+    border: none;
+    border-radius: 4px;
+
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+    color: $color-white;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    display: block;
+    margin-top: 16px;
+
+    &:hover {
+        background: darken($color-primary-blue, 8%);
+        box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+}
+
+.btn-ver-solicitudes {
+    width: 220px;
+    height: 44px;
+
+    background: $color-white;
+    border: 2px solid $color-primary-blue;
+    border-radius: 4px;
+
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+    color: $color-primary-blue;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    display: block;
+    margin-top: 16px;
+
+    &:hover {
+        background: rgba($color-primary-blue, 0.05);
+        box-shadow: 0 4px 12px rgba($color-primary-blue, 0.2);
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
 }
 
 // ========================================
 // RESPONSIVE
 // ========================================
 
-@media (max-width: 1200px) {
-  .metrics-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .table-header,
-  .table-row {
-    grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr;
-  }
+@media (max-width: 1024px) {
+    .metrics-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr;
+    }
 }
 
 @media (max-width: 768px) {
-  .metrics-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .solicitudes-table {
-    overflow-x: auto;
-  }
-  
-  .table-header,
-  .table-row {
-    min-width: 800px;
-  }
+    .metrics-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-card {
+        width: 100%;
+    }
+
+    .prestamos-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .table-header,
+    .table-row {
+        min-width: 600px;
+        grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr;
+        gap: 8px;
+    }
+
+    .th,
+    .td {
+        padding: 8px 0;
+    }
 }
