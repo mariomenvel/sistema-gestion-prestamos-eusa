@@ -308,9 +308,29 @@ if (this.textoBusqueda.trim()) {
            nombreMaterial.includes(textoNormalizado);
   });
 }
+  //Filtro por fecha
+  if (this.filtroFecha) {
 
+      const fechaLimite= new Date();
+      fechaLimite.setHours(0,0,0,0);
+
+      switch(this.filtroFecha){
+        case 'hoy':
+          break;
+        case 'semana':
+          fechaLimite.setDate(fechaLimite.getDate()-7);
+          break;
+        case 'mes':
+          fechaLimite.setMonth(fechaLimite.getMonth()-1);
+          break;
+      }
+      resultado = resultado.filter(s => {
+        const fechaSolicitud= new Date(s.creada_en);
+        return fechaSolicitud >= fechaLimite;
+      });
+    }
     this.solicitudesFiltradas = resultado;
-    console.log('🔍 Solicitudes filtradas:', this.solicitudesFiltradas.length);
+    console.log('Solicitudes filtradas:', this.solicitudesFiltradas.length);
   }
   /**
  * Normaliza texto eliminando tildes para búsqueda
