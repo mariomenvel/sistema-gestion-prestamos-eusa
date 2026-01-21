@@ -81,7 +81,8 @@
     <!-- Header de la tabla -->
     <div class="table-header">
       <div class="th th-alumno">Alumno</div>
-      <div class="th th-material">Material</div>
+      <!-- CAMBIO: Nueva columna "Materiales" agregada aquí (después de Alumno) -->
+      <div class="th th-materiales">Materiales</div>
       <div class="th th-tipo">Tipo</div>
       <div class="th th-fecha">Fecha Solicitud</div>
       <div class="th th-estado">Estado</div>
@@ -117,9 +118,9 @@
           {{ getNombreUsuario(solicitud) }}
         </div>
 
-        <!-- Columna: Material -->
-        <div class="td td-material">
-          {{ getNombreMaterial(solicitud) }}
+        <!-- CAMBIO: Nueva columna "Materiales" agregada aquí -->
+        <div class="td td-materiales">
+          {{ getContadorMateriales(solicitud) }}
         </div>
 
         <!-- Columna: Tipo -->

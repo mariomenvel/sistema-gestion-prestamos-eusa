@@ -250,11 +250,29 @@ getNombreMaterial(solicitud: Solicitud): string {
   }
 
   /**
+ * Obtiene el contador de materiales en la solicitud
+ * Muestra en formato: "1 item", "2 items", "3 items", etc.
+ */
+getContadorMateriales(solicitud: Solicitud): string {
+  const items = (solicitud as any).items;
+  
+  if (!items || items.length === 0) {
+    return '0 items';
+  }
+  
+  const cantidad = items.length;
+  const plural = cantidad === 1 ? 'item' : 'items';
+  return `${cantidad} ${plural}`;
+}
+
+  /**
    * Obtiene el texto del tipo de solicitud
    */
   getTipoTexto(tipo: string): string {
     return tipo === 'prof_trabajo' ? 'Tipo A' : 'Tipo B';
   }
+
+  
 
   // ===== MÉTODOS PRIVADOS =====
   
