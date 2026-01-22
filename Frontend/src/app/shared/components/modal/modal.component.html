@@ -1,1 +1,36 @@
-<p>modal works!</p>
+<!-- Overlay -->
+<div class="modal-overlay" *ngIf="mostrar" (click)="cerrarModal()">
+  <!-- Modal Card -->
+  <div 
+    class="modal-card"
+    [ngClass]="'modal-' + tipo"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Ícono -->
+    <div 
+      class="modal-icono"
+      [ngClass]="tipo + '-icono'"
+    >
+      {{ getIcono() }}
+    </div>
+
+    <!-- Título -->
+    <h2 class="modal-titulo">
+      {{ titulo }}
+    </h2>
+
+    <!-- Mensaje -->
+    <p class="modal-mensaje">
+      {{ mensaje }}
+    </p>
+
+    <!-- Botón -->
+    <button 
+      class="modal-btn"
+      [ngClass]="'btn-' + tipo"
+      (click)="cerrarModal()"
+    >
+      {{ textoBtnPrincipal }}
+    </button>
+  </div>
+</div>

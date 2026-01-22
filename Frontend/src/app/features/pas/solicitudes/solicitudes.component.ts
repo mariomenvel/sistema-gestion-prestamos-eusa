@@ -46,6 +46,30 @@ fechaDevolucion: string = '';
 
 // Datos del modal rechazar
 motivoRechazo: string = '';
+
+// ===== MODAL DE NOTIFICACIONES =====
+
+mostrarModalNotificacion: boolean = false;
+tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+tituloModalNotificacion: string = '';
+mensajeModalNotificacion: string = '';
+
+/**
+ * Muestra modal de notificación
+ */
+mostrarNotificacion(tipo: 'exito' | 'error' | 'info', titulo: string, mensaje: string): void {
+  this.tipoModalNotificacion = tipo;
+  this.tituloModalNotificacion = titulo;
+  this.mensajeModalNotificacion = mensaje;
+  this.mostrarModalNotificacion = true;
+}
+
+/**
+ * Cierra modal de notificación
+ */
+cerrarModalNotificacion(): void {
+  this.mostrarModalNotificacion = false;
+}
   
   // ===== CONSTRUCTOR =====
   
@@ -106,27 +130,46 @@ confirmarAprobacion(): void {
 
   // Solo validar fecha si es Tipo A (prof_trabajo)
   if (this.solicitudSeleccionada.tipo === 'prof_trabajo' && !this.fechaDevolucion) {
-    alert('Debes seleccionar una fecha de devolución para préstamos Tipo A');
+    this.mostrarNotificacion(
+      'error',
+      'Fecha requerida',
+      'Debes seleccionar una fecha de devolución para préstamos Tipo A'
+    );
     return;
   }
 
-  // ⬇️ NUEVO: Preparar objeto con datos
   const datosAprobacion = {
     solicitud_id: this.solicitudSeleccionada.id,
     fecha_devolucion: this.solicitudSeleccionada.tipo === 'prof_trabajo' ? this.fechaDevolucion : null
   };
 
-  // ⬇️ CAMBIO: Enviar objeto en lugar de solo ID
   this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
     next: () => {
       console.log('✅ Solicitud aprobada');
-      alert('Solicitud aprobada correctamente. El préstamo ha sido creado.');
+      this.mostrarNotificacion(
+        'exito',
+        'Solicitud aprobada',
+        'El préstamo ha sido creado correctamente.'
+      );
       this.cerrarModalAprobar();
-      this.cargarSolicitudes();
+      setTimeout(() => {
+        this.cargarSolicitudes();
+      }, 500);
     },
     error: (err: any) => {
       console.error('❌ Error al aprobar solicitud:', err);
-      alert('Error al aprobar la solicitud');
+      
+      // Mensaje de error más específico según el tipo
+      let mensajeError = 'Error al aprobar la solicitud';
+      if (err.error && err.error.mensaje) {
+        mensajeError = err.error.mensaje;
+      }
+      
+      this.mostrarNotificacion(
+        'error',
+        'Error en la aprobación',
+        mensajeError
+      );
     }
   });
 }
@@ -158,20 +201,40 @@ confirmarRechazo(): void {
   }
 
   if (!this.motivoRechazo || this.motivoRechazo.trim() === '') {
-    alert('Debes indicar un motivo de rechazo');
+    this.mostrarNotificacion(
+      'error',
+      'Motivo requerido',
+      'Debes indicar un motivo de rechazo'
+    );
     return;
   }
 
   this.solicitudesService.rechazarSolicitud(this.solicitudSeleccionada.id, this.motivoRechazo).subscribe({
     next: () => {
       console.log('✅ Solicitud rechazada');
-      alert('Solicitud rechazada correctamente');
+      this.mostrarNotificacion(
+        'exito',
+        'Solicitud rechazada',
+        'La solicitud ha sido rechazada correctamente.'
+      );
       this.cerrarModalRechazar();
-      this.cargarSolicitudes();
+      setTimeout(() => {
+        this.cargarSolicitudes();
+      }, 500);
     },
     error: (err: any) => {
       console.error('❌ Error al rechazar solicitud:', err);
-      alert('Error al rechazar la solicitud');
+      
+      let mensajeError = 'Error al rechazar la solicitud';
+      if (err.error && err.error.mensaje) {
+        mensajeError = err.error.mensaje;
+      }
+      
+      this.mostrarNotificacion(
+        'error',
+        'Error en el rechazo',
+        mensajeError
+      );
     }
   });
 }
@@ -207,7 +270,7 @@ cerrarModalRechazar(): void {
  * Obtiene el nombre del material
  */
 getNombreMaterial(solicitud: Solicitud): string {
-  
+
   // La solicitud tiene ITEMS (SolicitudItem)
   const items = (solicitud as any).items;
   

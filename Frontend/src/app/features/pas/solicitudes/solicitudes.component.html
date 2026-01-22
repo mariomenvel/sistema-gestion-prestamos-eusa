@@ -309,4 +309,13 @@
     </div>
 
   </div>
+  <!-- MODAL DE NOTIFICACIONES -->
+<app-modal
+  [mostrar]="mostrarModalNotificacion"
+  [tipo]="tipoModalNotificacion"
+  [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion"
+  [textoBtnPrincipal]="'Aceptar'"
+  (cerrar)="cerrarModalNotificacion()"
+></app-modal>
 </div>
