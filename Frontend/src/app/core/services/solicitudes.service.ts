@@ -64,9 +64,11 @@ crearSolicitud(datos: {
    * Aprueba una solicitud.
    * Endpoint: POST /solicitudes/:id/aprobar
    */
-  aprobarSolicitud(id: number): Observable<any> {
-    return this.apiService.put(`/solicitudes/${id}/aprobar`);
-  }
+ aprobarSolicitud(datos: { solicitud_id: number; fecha_devolucion: string | null }): Observable<any> {
+  return this.apiService.put(`/solicitudes/${datos.solicitud_id}/aprobar`, {
+    fecha_devolucion: datos.fecha_devolucion
+  });
+}
 
   /**
    * Rechaza una solicitud.
