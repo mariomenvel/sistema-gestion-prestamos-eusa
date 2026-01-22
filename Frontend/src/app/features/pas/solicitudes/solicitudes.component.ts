@@ -110,7 +110,14 @@ confirmarAprobacion(): void {
     return;
   }
 
-  this.solicitudesService.aprobarSolicitud(this.solicitudSeleccionada.id).subscribe({
+  // ⬇️ NUEVO: Preparar objeto con datos
+  const datosAprobacion = {
+    solicitud_id: this.solicitudSeleccionada.id,
+    fecha_devolucion: this.solicitudSeleccionada.tipo === 'prof_trabajo' ? this.fechaDevolucion : null
+  };
+
+  // ⬇️ CAMBIO: Enviar objeto en lugar de solo ID
+  this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
     next: () => {
       console.log('✅ Solicitud aprobada');
       alert('Solicitud aprobada correctamente. El préstamo ha sido creado.');
