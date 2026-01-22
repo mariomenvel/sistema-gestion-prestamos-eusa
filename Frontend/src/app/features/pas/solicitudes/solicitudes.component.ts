@@ -207,17 +207,28 @@ cerrarModalRechazar(): void {
  * Obtiene el nombre del material
  */
 getNombreMaterial(solicitud: Solicitud): string {
-  // Si tiene ejemplar (libro) - Sequelize devuelve con mayúscula
-  if (solicitud.Ejemplar && solicitud.Ejemplar.libro) {
-    return solicitud.Ejemplar.libro.titulo;
-  }
   
-  // Si tiene unidad (equipo) - Sequelize devuelve con mayúscula
-  if (solicitud.Unidad && solicitud.Unidad.equipo) {
-    const equipo = solicitud.Unidad.equipo;
-    return `${equipo.marca} ${equipo.modelo}`;
-  }
+  // La solicitud tiene ITEMS (SolicitudItem)
+  const items = (solicitud as any).items;
   
+  if (!items || items.length === 0) {
+    return 'Material desconocido';
+  }
+
+  const primerItem = items[0];
+
+  // Si el item tiene LIBRO
+  if (primerItem.Libro) {
+    return primerItem.Libro.titulo || 'Libro sin título';
+  }
+
+  // Si el item tiene EQUIPO
+  if (primerItem.Equipo) {
+    const marca = primerItem.Equipo.marca || '';
+    const modelo = primerItem.Equipo.modelo || '';
+    return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
+  }
+
   return 'Material desconocido';
 }
 
