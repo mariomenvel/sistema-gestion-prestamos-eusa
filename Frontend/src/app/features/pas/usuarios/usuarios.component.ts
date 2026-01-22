@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../core/services/usuarios.service';
 import { Usuario } from '../../../core/models/usuario.model';
+import * as JsBarcode from 'jsbarcode';
 
 /**
  * Componente Gestión de Usuarios (PAS)
@@ -32,6 +33,7 @@ export class UsuariosComponent implements OnInit {
   mostrarModal: boolean = false;
   usuarioSeleccionado: Usuario | null = null;
   formularioUsuario!: FormGroup;
+  codigoBarrasUsuario: string = '';
 
   // ===== ESTADO =====
 
@@ -78,6 +80,7 @@ export class UsuariosComponent implements OnInit {
     this.cargarUsuarios();
   }
 
+
   // ===== MÉTODOS PÚBLICOS =====
 
   /**
@@ -105,26 +108,59 @@ export class UsuariosComponent implements OnInit {
 
     console.log('✅ Usuarios filtrados:', this.usuariosFiltrados.length);
   }
+
+  /**
+ * Genera el barcode cuando se abre el modal
+ */
+generarBarcode(): void {
+  if (this.usuarioSeleccionado) {
+    setTimeout(() => {
+      const barcodeSvg = document.getElementById('barcodeModal');
+      if (barcodeSvg) {
+        try {
+          // Usar codigo_tarjeta si existe, si no usar ID
+          const codigoParaBarcode = this.usuarioSeleccionado!.codigo_tarjeta || 
+                                     this.usuarioSeleccionado!.id.toString();
+          
+          JsBarcode(barcodeSvg, codigoParaBarcode, {
+            format: 'CODE128',
+            width: 2,
+            height: 80,
+            displayValue: true
+          });
+          console.log('✅ Barcode generado:', codigoParaBarcode);
+        } catch (err) {
+          console.error('❌ Error generando barcode:', err);
+        }
+      }
+    }, 100);
+  }
+}
+
   /**
    * Abre el modal de edición de un usuario
    */
-  abrirModalEditar(usuario: Usuario): void {
-    console.log('👤 Abriendo modal para:', usuario.nombre);
-    this.usuarioSeleccionado = usuario;
+ abrirModalEditar(usuario: Usuario): void {
+  console.log('👤 Abriendo modal para:', usuario.nombre);
+  this.usuarioSeleccionado = usuario;
+  this.codigoBarrasUsuario = usuario.id.toString(); // ⬅️ CAMBIO: Usar ID para barcode
 
-    // Cargar datos en el formulario
-    this.formularioUsuario.patchValue({
-      nombre: usuario.nombre,
-      apellidos: usuario.apellidos || '',
-      email: usuario.email,
-      tipo_estudios: usuario.tipo_estudios || '',
-      fecha_inicio_est: usuario.fecha_inicio_est || '',
-      fecha_fin_prev: usuario.fecha_fin_prev || '',
-      estado_perfil: usuario.estado_perfil || 'activo'
-    });
+  // Cargar datos en el formulario
+  this.formularioUsuario.patchValue({
+    nombre: usuario.nombre,
+    apellidos: usuario.apellidos || '',
+    email: usuario.email,
+    tipo_estudios: usuario.tipo_estudios || '',
+    fecha_inicio_est: usuario.fecha_inicio_est || '',
+    fecha_fin_prev: usuario.fecha_fin_prev || '',
+    estado_perfil: usuario.estado_perfil || 'activo'
+  });
 
-    this.mostrarModal = true;
-  }
+  this.mostrarModal = true;
+
+  //Generar el el cod de barras cuando se abre el modal
+  this.generarBarcode();
+}
 
   /**
    * Cierra el modal
@@ -133,6 +169,7 @@ export class UsuariosComponent implements OnInit {
     this.mostrarModal = false;
     this.usuarioSeleccionado = null;
     this.formularioUsuario.reset();
+    this.codigoBarrasUsuario = '';
   }
 
   /**

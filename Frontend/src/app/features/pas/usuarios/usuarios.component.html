@@ -97,6 +97,14 @@
     <!-- Título del modal -->
     <h2 class="modal-title">Perfil</h2>
 
+    <!-- SECCIÓN: Código de Barras Personal -->
+    <div class="codigo-barras-section" *ngIf="usuarioSeleccionado">
+      <div class="codigo-barras-label">Código de Barras Personal:</div>
+      <div class="codigo-barras-container">
+        <svg id="barcodeModal"></svg>
+      </div>
+    </div>
+
     <!-- Formulario -->
     <form [formGroup]="formularioUsuario" (ngSubmit)="guardarCambios()">
 

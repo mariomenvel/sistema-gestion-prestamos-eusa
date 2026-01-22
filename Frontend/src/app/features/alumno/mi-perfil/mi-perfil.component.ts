@@ -32,12 +32,16 @@ export class MiPerfilComponent implements OnInit, AfterViewInit {
     if (this.usuario && this.usuario.codigo_tarjeta) {
       var svg = document.getElementById('codigoBarras');
       if (svg) {
-        JsBarcode(svg, this.usuario.codigo_tarjeta, {
+        // Usar codigo_tarjeta si existe, si no usar ID como fallback
+        const codigoParaBarcode = this.usuario.codigo_tarjeta || this.usuario.id.toString();
+
+        JsBarcode(svg, codigoParaBarcode, {
           format: 'CODE128',
           width: 2,
           height: 80,
-          displayValue: false
+          displayValue: true  // ⬅️ Mostrar el código debajo
         });
+
       }
     }
   }
