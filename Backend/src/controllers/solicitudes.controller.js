@@ -165,36 +165,134 @@ function obtenerSolicitudesPendientes(req, res) {
 function aprobarSolicitud(req, res) {
   var solicitudId = req.params.id;
   var pasId = req.user.id;
-
-  // Array de IDs físicos que se entregan (escaneados)
-  // ej: { unidades: [1, 2], ejemplares: [5] }
-  var entregas = req.body.entregas || {};
-  var unidadesIds = entregas.unidades || [];
-  var ejemplaresIds = entregas.ejemplares || [];
+  
+  // NUEVO: Recibir fecha_devolucion del body
+  var fechaDevolucionBody = req.body.fecha_devolucion;
 
   db.sequelize.transaction(function (t) {
-    return models.Solicitud.findByPk(solicitudId, { transaction: t })
+    return models.Solicitud.findByPk(solicitudId, { 
+      transaction: t,
+      include: [
+        {
+          model: models.SolicitudItem,
+          as: 'items'
+        }
+      ]
+    })
       .then(function (solicitud) {
         if (!solicitud) throw new Error('NO_ENCONTRADA');
         if (solicitud.estado !== 'pendiente') throw new Error('NO_PENDIENTE');
 
-        // Validar que se entregue ALGO
-        if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
-          throw new Error('SIN_ENTREGAS'); // No se puede aprobar sin dar nada
+        // NUEVO: Validar fecha según tipo
+        if (solicitud.tipo === 'prof_trabajo' && !fechaDevolucionBody) {
+          throw new Error('TIPO_A_SIN_FECHA');
         }
 
-        // Calcular fechas de préstamo
+        // NUEVO: Determinar fecha a usar
         var ahora = new Date();
-        var fechaPrevista = DateUtils.calcularSiguienteDiaLectivo(ahora);
+        var fechaAUsar;
+        
+        if (solicitud.tipo === 'prof_trabajo') {
+          // Tipo A: Usar la fecha que envió el PAS
+          fechaAUsar = new Date(fechaDevolucionBody);
+          
+          // Validar que sea una fecha válida
+          if (isNaN(fechaAUsar.getTime())) {
+            throw new Error('FECHA_INVALIDA');
+          }
+          
+          // Validar que sea futura
+          if (fechaAUsar <= ahora) {
+            throw new Error('FECHA_PASADA');
+          }
+        } else {
+          // Tipo B: Calcular automáticamente (siguiente día lectivo)
+          fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
+        }
 
-        // 1. Crear CABECERA Préstamo
+        // NUEVO: Buscar unidades/ejemplares disponibles para cada item
+        var promesasBuscarItems = solicitud.items.map(function (item) {
+          // Si es un LIBRO
+          if (item.libro_id) {
+            return models.Ejemplar.findOne({
+              where: {
+                libro_id: item.libro_id,
+                estado: 'disponible'
+              },
+              transaction: t
+            }).then(function (ejemplar) {
+              if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
+              return {
+                tipo: 'ejemplar',
+                id: ejemplar.id
+              };
+            });
+          }
+          
+          // Si es un EQUIPO
+          if (item.equipo_id) {
+            return models.Unidad.findOne({
+              where: {
+                equipo_id: item.equipo_id,
+                esta_prestado: false,
+                estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
+              },
+              transaction: t
+            }).then(function (unidad) {
+              if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
+              return {
+                tipo: 'unidad',
+                id: unidad.id
+              };
+            });
+          }
+          
+          return Promise.resolve(null);
+        });
+
+        // Resolver todas las búsquedas
+        return Promise.all(promesasBuscarItems).then(function (itemsEncontrados) {
+          var unidadesIds = [];
+          var ejemplaresIds = [];
+          
+          itemsEncontrados.forEach(function (item) {
+            if (item && item.tipo === 'unidad') {
+              unidadesIds.push(item.id);
+            } else if (item && item.tipo === 'ejemplar') {
+              ejemplaresIds.push(item.id);
+            }
+          });
+          
+          if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+            throw new Error('SIN_ITEMS_DISPONIBLES');
+          }
+          
+          return { 
+            solicitud: solicitud, 
+            unidadesIds: unidadesIds, 
+            ejemplaresIds: ejemplaresIds,
+            fechaAUsar: fechaAUsar,
+            ahora: ahora,
+            pasId: pasId
+          };
+        });
+      })
+      .then(function (data) {
+        var solicitud = data.solicitud;
+        var unidadesIds = data.unidadesIds;
+        var ejemplaresIds = data.ejemplaresIds;
+        var fechaAUsar = data.fechaAUsar;
+        var ahora = data.ahora;
+        var pasId = data.pasId;
+
+        // 1. Crear CABECERA Préstamo con fecha correcta
         return models.Prestamo.create({
           usuario_id: solicitud.usuario_id,
           solicitud_id: solicitud.id,
           tipo: (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b',
           estado: 'activo',
           fecha_inicio: ahora,
-          fecha_devolucion_prevista: fechaPrevista,
+          fecha_devolucion_prevista: fechaAUsar,  // ✅ USA la fecha correcta
           profesor_solicitante_id: null
         }, { transaction: t })
           .then(function (prestamo) {
@@ -235,7 +333,7 @@ function aprobarSolicitud(req, res) {
                   if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
                   if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_NO_DISPONIBLE');
 
-                  // Marcar como no disponible (modelo antiguo Ejemplar)
+                  // Marcar como no disponible
                   ejemplar.estado = 'no_disponible';
                   return ejemplar.save({ transaction: t });
                 })
@@ -260,12 +358,17 @@ function aprobarSolicitud(req, res) {
       });
   })
     .then(function () {
-      res.json({ mensaje: 'Préstamo generado con los items indicados' });
+      res.json({ mensaje: 'Préstamo generado correctamente' });
     })
     .catch(function (error) {
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'La solicitud no está pendiente' });
-      if (error.message === 'SIN_ENTREGAS') return res.status(400).json({ mensaje: 'Debe entregar al menos un item' });
+      if (error.message === 'TIPO_A_SIN_FECHA') return res.status(400).json({ mensaje: 'Para Tipo A es obligatorio enviar fecha_devolucion' });
+      if (error.message === 'FECHA_INVALIDA') return res.status(400).json({ mensaje: 'La fecha de devolución no es válida' });
+      if (error.message === 'FECHA_PASADA') return res.status(400).json({ mensaje: 'La fecha de devolución no puede ser en el pasado' });
+      if (error.message === 'SIN_ITEMS_DISPONIBLES') return res.status(400).json({ mensaje: 'No hay materiales disponibles para esta solicitud' });
+      if (error.message.startsWith('EJEMPLAR_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay ejemplares disponibles del libro solicitado' });
+      if (error.message.startsWith('UNIDAD_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay unidades disponibles del equipo solicitado' });
       if (error.message === 'UNIDAD_YA_PRESTADA') return res.status(400).json({ mensaje: 'Alguna unidad ya está prestada' });
 
       console.error('Error al aprobar solicitud:', error);
@@ -414,7 +517,10 @@ function obtenerTodasLasSolicitudes(req, res) {
       {
         model: models.SolicitudItem,
         as: 'items',
-        include: [{ model: models.Libro }, { model: models.Equipo }]
+        include: [
+          { model: models.Libro },
+          { model: models.Equipo }
+        ]
       }
     ],
     order: [['creada_en', 'DESC']]
