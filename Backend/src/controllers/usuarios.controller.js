@@ -13,6 +13,7 @@ function obtenerPerfilActual(req, res) {
       'apellidos',
       'rol',
       'estado_perfil',
+      'codigo_tarjeta',
       'tipo_estudios',
       'fecha_inicio_est',
       'fecha_fin_prev'
@@ -57,6 +58,7 @@ function listarUsuarios(req, res) {
       'apellidos',
       'rol',
       'estado_perfil',
+      'codigo_tarjeta',
       'tipo_estudios'
     ],
     order: [['nombre', 'ASC']]
@@ -300,11 +302,79 @@ function buscarPorCodigoBarras(req, res) {
     });
 }
 
+/**
+ * Genera un código de tarjeta único con formato EUSA[YYYY][NNNN]
+ * Ejemplo: EUSA202400001
+ */
+function generarCodigoTarjeta() {
+  const anio = new Date().getFullYear();
+  const numeroAleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `EUSA${anio}${numeroAleatorio}`;
+}
+
+// CREAR NUEVO USUARIO (solo PAS)
+function crearUsuario(req, res) {
+  var datos = req.body;
+
+  models.Usuario.create({
+    nombre: datos.nombre,
+    apellidos: datos.apellidos,
+    email: datos.email,
+    password_hash: datos.password_hash || '123456', // Password por defecto si no viene
+    rol: datos.rol || 'alumno',
+    grado_id: datos.grado_id,
+    curso: datos.curso,
+    tipo_estudios: datos.tipo_estudios,
+    fecha_inicio_est: datos.fecha_inicio_est,
+    fecha_fin_prev: datos.fecha_fin_prev,
+    codigo_tarjeta: generarCodigoTarjeta() // ⬅️ AGREGAR ESTA LÍNEA
+  })
+    .then(function (usuario) {
+      res.status(201).json({
+        mensaje: 'Usuario creado correctamente',
+        usuario: usuario
+      });
+    })
+    .catch(function (error) {
+      console.error('Error al crear usuario:', error);
+      res.status(500).json({ mensaje: 'Error al crear el usuario', error: error.message });
+    });
+}
+
+// Regenerar código de tarjeta de un usuario (solo PAS)
+function regenerarCodigoTarjeta(req, res) {
+  var usuarioId = req.params.id;
+
+  models.Usuario.findByPk(usuarioId)
+    .then(function (usuario) {
+      if (!usuario) {
+        return res.status(404).json({ mensaje: "Usuario no encontrado" });
+      }
+
+      // Generar nuevo código
+      const nuevoCodigoTarjeta = generarCodigoTarjeta();
+
+      return usuario.update({ codigo_tarjeta: nuevoCodigoTarjeta })
+        .then(function () {
+          res.json({
+            mensaje: "Código de tarjeta regenerado",
+            codigo_tarjeta: nuevoCodigoTarjeta
+          });
+        });
+    })
+    .catch(function (error) {
+      console.error('Error regenerando código:', error);
+      res.status(500).json({ error: error.message });
+    });
+}
+
 module.exports = {
   obtenerPerfilActual: obtenerPerfilActual,
   listarUsuarios: listarUsuarios,
+  crearUsuario: crearUsuario,
   obtenerDetalleUsuario: obtenerDetalleUsuario,
   actualizarUsuario: actualizarUsuario,
+  regenerarCodigoTarjeta: regenerarCodigoTarjeta,
   obtenerContadorPrestamosB: obtenerContadorPrestamosB,
   obtenerContadorTipoB: obtenerContadorTipoB,
   buscarPorCodigoBarras: buscarPorCodigoBarras
