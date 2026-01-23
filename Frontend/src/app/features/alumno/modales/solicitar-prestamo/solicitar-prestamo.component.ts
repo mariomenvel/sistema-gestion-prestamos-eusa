@@ -93,10 +93,11 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   errorSolicitud: string = '';
   mostrarModalNormas: boolean = false;
   normasLeidas: boolean = false;
-  mostrarModalExito: boolean = false;
-  mostrarModalError: boolean = false;
-  mensajeExito: string = '';
-  mensajeError: string = '';
+  // ===== MODAL DE NOTIFICACIONES (Reutilizable) =====
+  mostrarModalNotificacion: boolean = false;
+  tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+  tituloModalNotificacion: string = '';
+  mensajeModalNotificacion: string = '';
 
   // ===== CICLO DE VIDA =====
 
@@ -151,42 +152,42 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
     return this.carrito.some(item => item.id === material.id && item.tipo === material.tipo);
   }
 
-/**
- * Busca materiales localmente con normalización de tildes
- */
-buscarMateriales(): void {
-  if (this.busquedaTexto.trim().length === 0) {
-    this.resultadosBusqueda = [];
-    return;
+  /**
+   * Busca materiales localmente con normalización de tildes
+   */
+  buscarMateriales(): void {
+    if (this.busquedaTexto.trim().length === 0) {
+      this.resultadosBusqueda = [];
+      return;
+    }
+
+    // Normalizar búsqueda: quitar tildes y convertir a minúsculas
+    const termino = this.normalizarTexto(this.busquedaTexto);
+
+    let resultados = this.todosLosMateriales.filter(material => {
+      // Normalizar campos (algunos pueden ser undefined)
+      const titulo = material.titulo ? this.normalizarTexto(material.titulo) : '';
+      const marcaModelo = material.marcaModelo ? this.normalizarTexto(material.marcaModelo) : '';
+      const categoria = material.categoria ? this.normalizarTexto(material.categoria) : '';
+      const descripcion = material.descripcion ? this.normalizarTexto(material.descripcion) : '';
+
+      const coincide =
+        titulo.includes(termino) ||
+        marcaModelo.includes(termino) ||
+        categoria.includes(termino) ||
+        descripcion.includes(termino);
+
+      return coincide;
+      // ← Eliminamos "&& material.disponible" - permitimos buscar TODO
+    });
+
+    // Aplicar filtro de tipo
+    if (this.filtroTipoBusqueda !== 'todos') {
+      resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
+    }
+
+    this.resultadosBusqueda = resultados;
   }
-
-  // Normalizar búsqueda: quitar tildes y convertir a minúsculas
-  const termino = this.normalizarTexto(this.busquedaTexto);
-
-  let resultados = this.todosLosMateriales.filter(material => {
-    // Normalizar campos (algunos pueden ser undefined)
-    const titulo = material.titulo ? this.normalizarTexto(material.titulo) : '';
-    const marcaModelo = material.marcaModelo ? this.normalizarTexto(material.marcaModelo) : '';
-    const categoria = material.categoria ? this.normalizarTexto(material.categoria) : '';
-    const descripcion = material.descripcion ? this.normalizarTexto(material.descripcion) : '';
-
-    const coincide = 
-      titulo.includes(termino) ||
-      marcaModelo.includes(termino) ||
-      categoria.includes(termino) ||
-      descripcion.includes(termino);
-
-    return coincide;
-    // ← Eliminamos "&& material.disponible" - permitimos buscar TODO
-  });
-
-  // Aplicar filtro de tipo
-  if (this.filtroTipoBusqueda !== 'todos') {
-    resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
-  }
-
-  this.resultadosBusqueda = resultados;
-}
 
   /**
    * Normaliza texto: minúsculas y sin tildes
@@ -260,10 +261,10 @@ buscarMateriales(): void {
     this.filtroTipoBusqueda = 'todos';
     this.resultadosBusqueda = [];
     this.mostrarBuscador = false;
-    this.mostrarModalExito = false;
-    this.mostrarModalError = false;
-    this.mensajeExito = '';
-    this.mensajeError = '';
+    this.mostrarModalNotificacion = false;
+    this.tipoModalNotificacion = 'info';
+    this.tituloModalNotificacion = '';
+    this.mensajeModalNotificacion = '';
 
     // Agregar material inicial al carrito
     if (this.material) {
@@ -318,17 +319,19 @@ buscarMateriales(): void {
    */
   enviarSolicitud(): void {
     if (!this.formularioValido || this.carrito.length === 0) {
-      this.mostrarModalError = true;
-      this.mensajeError = 'Debe haber al menos un material en el carrito';
+      this.tipoModalNotificacion = 'error';
+      this.tituloModalNotificacion = 'Formulario Incompleto';
+      this.mensajeModalNotificacion = 'Debe haber al menos un material en el carrito';
+      this.mostrarModalNotificacion = true;
       return;
     }
 
     this.enviandoSolicitud = true;
     this.errorSolicitud = '';
-  
+
     // Preparar array de items - SIN el campo "tipo"
-    const items = this.carrito.map(item => 
-      item.tipo === 'libro' 
+    const items = this.carrito.map(item =>
+      item.tipo === 'libro'
         ? { libro_id: item.id }
         : { equipo_id: item.id }
     );
@@ -358,10 +361,12 @@ buscarMateriales(): void {
     this.solicitudesService.crearSolicitud(datos).subscribe({
       next: (response) => {
         console.log('✅ Solicitud creada:', response);
-        this.mostrarModalExito = true;
-        this.mensajeExito = `Solicitud registrada correctamente con ${this.carrito.length} material(es). Recibirás actualizaciones sobre el estado de tu solicitud por correo.`;
+        this.tipoModalNotificacion = 'exito';
+        this.tituloModalNotificacion = 'Solicitud Registrada';
+        this.mensajeModalNotificacion = `Solicitud registrada correctamente con ${this.carrito.length} material(es). Recibirás actualizaciones sobre el estado de tu solicitud por correo.`;
+        this.mostrarModalNotificacion = true;
         this.solicitudCreada.emit();
-        
+
         // Cerrar modal después de 3 segundos
         setTimeout(() => {
           this.cerrarModal();
@@ -369,9 +374,10 @@ buscarMateriales(): void {
       },
       error: (err) => {
         console.error('❌ Error al crear solicitud:', err);
-        this.mostrarModalError = true;
-        this.mensajeError = err.error?.mensaje || 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
-        this.enviandoSolicitud = false;
+        this.tipoModalNotificacion = 'error';
+        this.tituloModalNotificacion = 'Error en la Solicitud';
+        this.mensajeModalNotificacion = err.error?.mensaje || 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
+        this.mostrarModalNotificacion = true; this.enviandoSolicitud = false;
       },
       complete: () => {
         this.enviandoSolicitud = false;
@@ -380,18 +386,15 @@ buscarMateriales(): void {
   }
 
   /**
-   * Cierra el modal de éxito
-   */
-  cerrarModalExito(): void {
-    this.mostrarModalExito = false;
-    this.cerrarModal();
-  }
+ * Cierra el modal de notificación
+ */
+  cerrarModalNotificacion(): void {
+    this.mostrarModalNotificacion = false;
 
-  /**
-   * Cierra el modal de error
-   */
-  cerrarModalError(): void {
-    this.mostrarModalError = false;
+    // Si fue éxito, cerrar el modal principal
+    if (this.tipoModalNotificacion === 'exito') {
+      this.cerrarModal();
+    }
   }
 
   /**

@@ -76,6 +76,9 @@ import { CommonModule } from '@angular/common';
       multi: true
     }
   ],
+  exports: [
+    ModalComponent,
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
