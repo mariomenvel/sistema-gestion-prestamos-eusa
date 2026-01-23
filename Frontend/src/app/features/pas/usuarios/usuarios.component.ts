@@ -41,6 +41,13 @@ export class UsuariosComponent implements OnInit {
   errorMessage: string = '';
   guardando: boolean = false;
 
+// ===== MODAL DE NOTIFICACIONES =====
+
+mostrarModalNotificacion: boolean = false;
+tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+tituloModalNotificacion: string = '';
+mensajeModalNotificacion: string = '';  
+
   // ===== OPCIONES DE DROPDOWNS =====
 
   opcionesTipoEstudios = [
@@ -117,20 +124,25 @@ generarBarcode(): void {
     setTimeout(() => {
       const barcodeSvg = document.getElementById('barcodeModal');
       if (barcodeSvg) {
-        try {
-          // Usar codigo_tarjeta si existe, si no usar ID
-          const codigoParaBarcode = this.usuarioSeleccionado!.codigo_tarjeta || 
-                                     this.usuarioSeleccionado!.id.toString();
-          
-          JsBarcode(barcodeSvg, codigoParaBarcode, {
-            format: 'CODE128',
-            width: 2,
-            height: 80,
-            displayValue: true
-          });
-          console.log('✅ Barcode generado:', codigoParaBarcode);
-        } catch (err) {
-          console.error('❌ Error generando barcode:', err);
+        // Solo usar codigo_tarjeta del backend
+        const codigoTarjeta = this.usuarioSeleccionado!.codigo_tarjeta;
+        
+        if (codigoTarjeta) {
+          try {
+            JsBarcode(barcodeSvg, codigoTarjeta, {
+              format: 'CODE128',
+              width: 2,
+              height: 80,
+              displayValue: true
+            });
+            console.log('✅ Barcode generado:', codigoTarjeta);
+          } catch (err) {
+            console.error('❌ Error generando barcode:', err);
+          }
+        } else {
+          // Si no tiene código, limpiar el SVG y mostrar mensaje
+          barcodeSvg.innerHTML = '';
+          console.warn('⚠️ Usuario sin código de tarjeta asignado');
         }
       }
     }, 100);
@@ -181,25 +193,41 @@ generarBarcode(): void {
     }
 
     if (this.formularioUsuario.invalid) {
-      alert('Por favor, completa todos los campos requeridos');
-      return;
-    }
+  this.tipoModalNotificacion = 'error';
+  this.tituloModalNotificacion = 'Formulario Incompleto';
+  this.mensajeModalNotificacion = 'Por favor, completa todos los campos requeridos';
+  this.mostrarModalNotificacion = true;
+  return;
+}
 
     this.guardando = true;
     const datos = this.formularioUsuario.value;
 
     this.usuariosService.actualizarUsuario(this.usuarioSeleccionado.id, datos).subscribe({
-      next: (response: any) => {
-        console.log('✅ Usuario actualizado:', response);
-        alert('Usuario actualizado correctamente');
-        this.cerrarModal();
-        this.cargarUsuarios(); // Recargar lista
-      },
-      error: (err: any) => {
-        console.error('❌ Error al actualizar usuario:', err);
-        alert('Error al actualizar el usuario');
-        this.guardando = false;
-      }
+next: (response: any) => {
+  console.log('✅ Usuario actualizado:', response);
+  this.guardando = false;
+  
+  // Primero mostrar notificación, luego cerrar modal de edición
+  this.tipoModalNotificacion = 'exito';
+  this.tituloModalNotificacion = 'Usuario Actualizado';
+  this.mensajeModalNotificacion = 'Los datos del usuario se han guardado correctamente';
+  this.mostrarModalNotificacion = true;
+  
+  // Cerrar modal de edición y recargar datos
+  this.mostrarModal = false;
+  this.usuarioSeleccionado = null;
+  this.formularioUsuario.reset();
+  this.cargarUsuarios();
+},
+     error: (err: any) => {
+  console.error('❌ Error al actualizar usuario:', err);
+  this.tipoModalNotificacion = 'error';
+  this.tituloModalNotificacion = 'Error al Guardar';
+  this.mensajeModalNotificacion = 'No se pudo actualizar el usuario. Inténtalo de nuevo.';
+  this.mostrarModalNotificacion = true;
+  this.guardando = false;
+}
     });
   }
 
@@ -292,4 +320,10 @@ generarBarcode(): void {
       }
     });
   }
+  /**
+ * Cierra el modal de notificación
+ */
+cerrarModalNotificacion(): void {
+  this.mostrarModalNotificacion = false;
+}
 }

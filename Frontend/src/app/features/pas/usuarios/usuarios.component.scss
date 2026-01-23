@@ -470,6 +470,19 @@ form {
     height: auto;
   }
 }
+.sin-codigo {
+  padding: 20px;
+  text-align: center;
+  background: #FFF3E0;
+  border: 1px solid #FFB74D;
+  border-radius: 4px;
+  
+  p {
+    margin: 0;
+    color: #E65100;
+    font-size: 14px;
+  }
+}
 
 // ========================================
 // RESPONSIVE

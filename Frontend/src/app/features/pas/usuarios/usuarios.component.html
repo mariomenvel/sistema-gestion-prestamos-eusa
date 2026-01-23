@@ -97,13 +97,19 @@
     <!-- Título del modal -->
     <h2 class="modal-title">Perfil</h2>
 
-    <!-- SECCIÓN: Código de Barras Personal -->
-    <div class="codigo-barras-section" *ngIf="usuarioSeleccionado">
-      <div class="codigo-barras-label">Código de Barras Personal:</div>
-      <div class="codigo-barras-container">
-        <svg id="barcodeModal"></svg>
-      </div>
+   <!-- SECCIÓN: Código de Barras Personal -->
+<div class="codigo-barras-section" *ngIf="usuarioSeleccionado">
+  <div class="codigo-barras-label">Código de Barras Personal:</div>
+  <div class="codigo-barras-container">
+    <!-- Si tiene código de tarjeta -->
+    <svg id="barcodeModal" *ngIf="usuarioSeleccionado.codigo_tarjeta"></svg>
+    
+    <!-- Si NO tiene código de tarjeta -->
+    <div class="sin-codigo" *ngIf="!usuarioSeleccionado.codigo_tarjeta">
+      <p>Este usuario no tiene código de tarjeta asignado</p>
     </div>
+  </div>
+</div>
 
     <!-- Formulario -->
     <form [formGroup]="formularioUsuario" (ngSubmit)="guardarCambios()">
@@ -167,7 +173,7 @@
         </select>
       </div>
 
-      <!-- Botones -->
+ <!-- Botones -->
       <div class="modal-actions">
         <button type="button" class="btn-cancelar" (click)="cerrarModal()">
           Cancelar
@@ -181,3 +187,13 @@
 
   </div>
 </div>
+
+<!-- MODAL DE NOTIFICACIONES (Reutilizable) - FUERA del modal de edición -->
+<app-modal
+  [mostrar]="mostrarModalNotificacion"
+  [tipo]="tipoModalNotificacion"
+  [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion"
+  [textoBtnPrincipal]="'Aceptar'"
+  (cerrar)="cerrarModalNotificacion()"
+></app-modal>
