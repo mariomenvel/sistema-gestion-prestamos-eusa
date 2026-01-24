@@ -68,30 +68,44 @@ export class PrestamosActivosComponent implements OnInit {
   /**
    * Obtiene el nombre del usuario
    */
-  getNombreUsuario(prestamo: Prestamo): string {
-    if (prestamo.usuario) {
-      return prestamo.usuario.nombre || prestamo.usuario.email;
-    }
-    return 'Usuario desconocido';
+  getNombreUsuario(prestamo: any): string {
+  if (prestamo.Usuario) {
+    const u = prestamo.Usuario;
+    return u.nombre ? `${u.nombre} ${u.apellidos || ''}`.trim() : u.email;
   }
+  return 'Usuario desconocido';
+}
 
   /**
    * Obtiene el nombre del material
    */
-  getNombreMaterial(prestamo: Prestamo): string {
-    // Si tiene ejemplar (libro)
-    if (prestamo.Ejemplar && prestamo.Ejemplar.libro) {
-      return prestamo.Ejemplar.libro.titulo;
-    }
-    
-    // Si tiene unidad (equipo)
-    if (prestamo.Unidad && prestamo.Unidad.equipo) {
-      const equipo = prestamo.Unidad.equipo;
-      return `${equipo.marca} ${equipo.modelo}`;
-    }
-    
-    return 'Material desconocido';
+  getNombreMaterial(prestamo: any): string {
+  // Los materiales están en prestamo.items[] (array de PrestamoItem)
+  if (!prestamo.items || prestamo.items.length === 0) {
+    return 'Sin materiales';
   }
+
+  // Si hay múltiples items, mostrar cantidad
+  if (prestamo.items.length > 1) {
+    return `${prestamo.items.length} materiales`;
+  }
+
+  // Si hay un solo item, mostrar su nombre
+  const item = prestamo.items[0];
+
+  // Si es ejemplar (libro)
+  if (item.Ejemplar && item.Ejemplar.libro) {
+    return item.Ejemplar.libro.titulo;
+  }
+
+  // Si es unidad (equipo)
+  if (item.Unidad && item.Unidad.equipo) {
+    const equipo = item.Unidad.equipo;
+    return `${equipo.marca} ${equipo.modelo}`;
+  }
+
+  return 'Material desconocido';
+}
 
   /**
    * Formatea fecha DD/MM/YYYY
