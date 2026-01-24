@@ -62,6 +62,12 @@ export class DashboardComponent implements OnInit {
   verTodasSolicitudes(): void {
     this.router.navigate(['/pas/solicitudes']);
   }
+  /**
+ * Navega a la página de préstamo presencial
+ */
+realizarPrestamoPresencial(): void {
+  this.router.navigate(['/pas/prestamo-presencial']);
+}
 
   /**
    * Obtiene el nombre completo del alumno desde el objeto Préstamo
@@ -178,7 +184,7 @@ export class DashboardComponent implements OnInit {
     this.isLoadingPrestamos = true;
     this.errorMessagePrestamos = '';
 
-    // ✅ Llamar al endpoint de solicitudes pendientes
+    // Llamar al endpoint de solicitudes pendientes
     this.prestamosService.getPrestamosActivos().subscribe({
       next: (solicitudes: Prestamo[]) => {
         console.log('📋 Solicitudes pendientes recibidas:', solicitudes);

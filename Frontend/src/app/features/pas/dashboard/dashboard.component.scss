@@ -350,6 +350,17 @@ $font-family: 'Inter', sans-serif;
         transform: translateY(1px);
     }
 }
+// ========================================
+// BOTONES DE ACCIÓN
+// ========================================
+
+.botones-accion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  width: 936px; // Mismo ancho que la tabla
+}
 
 .btn-ver-solicitudes {
     width: 220px;
@@ -361,19 +372,44 @@ $font-family: 'Inter', sans-serif;
 
     font-family: $font-family;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 14px;
     line-height: 19px;
     color: $color-primary-blue;
 
     cursor: pointer;
     transition: all 0.3s ease;
 
-    display: block;
-    margin-top: 16px;
-
     &:hover {
         background: rgba($color-primary-blue, 0.05);
         box-shadow: 0 4px 12px rgba($color-primary-blue, 0.2);
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+}
+
+.btn-prestamo-presencial {
+    width: 260px;
+    height: 44px;
+
+    background: $color-primary-blue;
+    border: 2px solid $color-primary-blue;
+    border-radius: 4px;
+
+    font-family: $font-family;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 19px;
+    color: $color-white;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: darken($color-primary-blue, 10%);
+        border-color: darken($color-primary-blue, 10%);
+        box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
     }
 
     &:active {
