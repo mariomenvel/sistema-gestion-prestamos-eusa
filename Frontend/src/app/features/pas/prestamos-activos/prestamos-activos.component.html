@@ -14,7 +14,6 @@
     <div class="table-header">
       <div class="th th-alumno">Alumno</div>
       <div class="th th-tipo">Tipo</div>
-      <!-- CAMBIO: Nueva columna "Tipo" agregada aquí (después de Alumno) -->
       <div class="th th-material">Material</div>
       <div class="th th-fecha-prestamo">Fecha Préstamo</div>
       <div class="th th-fecha-devolucion">Fecha Devolución</div>
@@ -50,7 +49,7 @@
           {{ getNombreUsuario(prestamo) }}
         </div>
 
-        <!-- CAMBIO: Nueva columna "Tipo" agregada aquí -->
+        <!-- Columna: Tipo -->
         <div class="td td-tipo">
           <span class="badge-tipo">
             {{ getTipoTexto(prestamo.tipo) }}
@@ -59,7 +58,19 @@
 
         <!-- Columna: Material -->
         <div class="td td-material">
-          {{ getNombreMaterial(prestamo) }}
+          <!-- Si tiene múltiples materiales, mostrar como enlace clickeable -->
+          <span 
+            *ngIf="tieneMultiplesMateriales(prestamo)"
+            class="material-link"
+            (click)="verDetallesMateriales(prestamo, $event)"
+          >
+            {{ getNombreMaterial(prestamo) }}
+          </span>
+          
+          <!-- Si tiene un solo material, mostrar texto normal -->
+          <span *ngIf="!tieneMultiplesMateriales(prestamo)">
+            {{ getNombreMaterial(prestamo) }}
+          </span>
         </div>
 
         <!-- Columna: Fecha Préstamo -->
@@ -96,4 +107,44 @@
 
   </div>
 
+</div>
+
+<!<!-- MODAL: Detalle de Materiales -->
+<div class="modal-overlay" *ngIf="mostrarModalMateriales" (click)="cerrarModalMateriales()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalMateriales()">✕</button>
+
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Materiales del Préstamo</h2>
+    </div>
+
+    <!-- Info del alumno -->
+    <div class="modal-alumno" *ngIf="prestamoSeleccionado">
+      <span class="alumno-label">Alumno:</span>
+      <span class="alumno-nombre">{{ getNombreUsuario(prestamoSeleccionado) }}</span>
+    </div>
+
+    <!-- Lista de materiales -->
+    <div class="materiales-lista">
+      <div class="material-item" *ngFor="let item of materialesSeleccionados; let i = index">
+        <div class="material-numero">{{ i + 1 }}</div>
+        <div class="material-info">
+          <div class="material-nombre">{{ getNombreItem(item) }}</div>
+          <div class="material-detalles">
+            <span class="material-tipo">{{ getTipoItem(item) }}</span>
+            <span class="material-codigo">Código: {{ getCodigoItem(item) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cerrar-modal" (click)="cerrarModalMateriales()">Cerrar</button>
+    </div>
+
+  </div>
 </div>

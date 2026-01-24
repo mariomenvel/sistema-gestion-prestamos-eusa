@@ -19,35 +19,40 @@ import { Prestamo } from '../../../core/models/prestamo.model';
 export class PrestamosActivosComponent implements OnInit {
 
   // ===== DATOS =====
-  
+
   prestamos: Prestamo[] = [];
 
+  // ===== MODAL MATERIALES =====
+  mostrarModalMateriales: boolean = false;
+  materialesSeleccionados: any[] = [];
+  prestamoSeleccionado: any = null;
+
   // ===== ESTADO =====
-  
+
   isLoading: boolean = false;
   errorMessage: string = '';
 
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private prestamosService: PrestamosService
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     this.cargarPrestamos();
   }
 
   // ===== MÉTODOS PÚBLICOS =====
-  
+
   /**
    * Registra la devolución de un préstamo
    */
   registrarDevolucion(prestamo: Prestamo): void {
     const nombreUsuario = this.getNombreUsuario(prestamo);
     const nombreMaterial = this.getNombreMaterial(prestamo);
-    
+
     if (!confirm(`¿Registrar devolución del material "${nombreMaterial}" de ${nombreUsuario}?`)) {
       return;
     }
@@ -69,23 +74,22 @@ export class PrestamosActivosComponent implements OnInit {
    * Obtiene el nombre del usuario
    */
   getNombreUsuario(prestamo: any): string {
-  if (prestamo.Usuario) {
-    const u = prestamo.Usuario;
-    return u.nombre ? `${u.nombre} ${u.apellidos || ''}`.trim() : u.email;
+    if (prestamo.Usuario) {
+      const u = prestamo.Usuario;
+      return u.nombre ? `${u.nombre} ${u.apellidos || ''}`.trim() : u.email;
+    }
+    return 'Usuario desconocido';
   }
-  return 'Usuario desconocido';
-}
 
   /**
    * Obtiene el nombre del material
    */
-  getNombreMaterial(prestamo: any): string {
-  // Los materiales están en prestamo.items[] (array de PrestamoItem)
+ getNombreMaterial(prestamo: any): string {
   if (!prestamo.items || prestamo.items.length === 0) {
     return 'Sin materiales';
   }
 
-  // Si hay múltiples items, mostrar cantidad
+  // Si hay múltiples items, mostrar cantidad como enlace
   if (prestamo.items.length > 1) {
     return `${prestamo.items.length} materiales`;
   }
@@ -93,18 +97,23 @@ export class PrestamosActivosComponent implements OnInit {
   // Si hay un solo item, mostrar su nombre
   const item = prestamo.items[0];
 
-  // Si es ejemplar (libro)
   if (item.Ejemplar && item.Ejemplar.libro) {
     return item.Ejemplar.libro.titulo;
   }
 
-  // Si es unidad (equipo)
   if (item.Unidad && item.Unidad.equipo) {
     const equipo = item.Unidad.equipo;
     return `${equipo.marca} ${equipo.modelo}`;
   }
 
   return 'Material desconocido';
+}
+
+/**
+ * Verifica si el préstamo tiene múltiples materiales
+ */
+tieneMultiplesMateriales(prestamo: any): boolean {
+  return prestamo.items && prestamo.items.length > 1;
 }
 
   /**
@@ -137,7 +146,7 @@ export class PrestamosActivosComponent implements OnInit {
    * Tipo 'c' = Tipo C (Presencial)
    */
   getTipoTexto(tipo: string): string {
-    switch(tipo) {
+    switch (tipo) {
       case 'a':
         return 'Tipo A';
       case 'b':
@@ -149,8 +158,72 @@ export class PrestamosActivosComponent implements OnInit {
     }
   }
 
+  /**
+ * Abre el modal con los detalles de los materiales
+ */
+  verDetallesMateriales(prestamo: any, event: Event): void {
+    event.stopPropagation(); // Evitar que se propague el click
+
+    if (!prestamo.items || prestamo.items.length === 0) {
+      return;
+    }
+
+    this.prestamoSeleccionado = prestamo;
+    this.materialesSeleccionados = prestamo.items;
+    this.mostrarModalMateriales = true;
+  }
+
+  /**
+   * Cierra el modal de materiales
+   */
+  cerrarModalMateriales(): void {
+    this.mostrarModalMateriales = false;
+    this.materialesSeleccionados = [];
+    this.prestamoSeleccionado = null;
+  }
+
+  /**
+   * Obtiene el nombre de un item individual
+   */
+  getNombreItem(item: any): string {
+    if (item.Ejemplar && item.Ejemplar.libro) {
+      return item.Ejemplar.libro.titulo;
+    }
+    if (item.Unidad && item.Unidad.equipo) {
+      const equipo = item.Unidad.equipo;
+      return `${equipo.marca} ${equipo.modelo}`;
+    }
+    return 'Material desconocido';
+  }
+
+  /**
+   * Obtiene el tipo de item (libro o equipo)
+   */
+  getTipoItem(item: any): string {
+    if (item.Ejemplar) {
+      return 'Libro';
+    }
+    if (item.Unidad) {
+      return 'Equipo';
+    }
+    return 'Desconocido';
+  }
+
+  /**
+   * Obtiene el código de barras del item
+   */
+  getCodigoItem(item: any): string {
+    if (item.Ejemplar) {
+      return item.Ejemplar.codigo_barra || '-';
+    }
+    if (item.Unidad) {
+      return item.Unidad.codigo_barra || '-';
+    }
+    return '-';
+  }
+
   // ===== MÉTODOS PRIVADOS =====
-  
+
   /**
    * Carga todos los préstamos activos
    */
