@@ -21,6 +21,7 @@ import { PrestamosActivosComponent } from './features/pas/prestamos-activos/pres
 import { MaterialesComponent } from './features/pas/materiales/materiales.component';
 import { ReportesComponent } from './features/pas/reportes/reportes.component';
 import { UsuariosComponent } from './features/pas/usuarios/usuarios.component';
+import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/prestamo-presencial.component';
 
 /**
  * Configuración de rutas de la aplicación.
@@ -44,14 +45,14 @@ const routes: Routes = [
   {
     path: 'auth',
     children: [
-      { 
-        path: 'login', 
-        component: LoginComponent 
+      {
+        path: 'login',
+        component: LoginComponent
       }
     ]
   },
 
-  
+
   // RUTAS DE ALUMNO/PROFESOR
   // Guards aplicados a TODAS las rutas hijas
   {
@@ -60,35 +61,35 @@ const routes: Routes = [
     data: { roles: ['alumno', 'profesor'] }, // ← Ambos roles pueden acceder
     children: [
       // Ruta por defecto de alumno
-      { 
-        path: '', 
-        redirectTo: 'dashboard', 
-        pathMatch: 'full' 
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
       },
       // Dashboard del alumno
-      { 
-        path: 'dashboard', 
-        component: AlumnoDashboardComponent 
+      {
+        path: 'dashboard',
+        component: AlumnoDashboardComponent
       },
       // Catálogo de libros y equipos
-      { 
-        path: 'catalogo', 
-        component: CatalogoComponent 
+      {
+        path: 'catalogo',
+        component: CatalogoComponent
       },
       // Mis préstamos (activos e histórico)
-      { 
-        path: 'mis-prestamos', 
-        component: MisPrestamosComponent 
+      {
+        path: 'mis-prestamos',
+        component: MisPrestamosComponent
       },
       // Mi perfil (editar datos personales)
-      { 
-        path: 'mi-perfil', 
-        component: MiPerfilComponent 
+      {
+        path: 'mi-perfil',
+        component: MiPerfilComponent
       }
     ]
   },
 
-  // RUTAS DE PAS (Personal Administrativo)
+  // RUTAS DE PAS 
   // Guards aplicados a TODAS las rutas hijas
   {
     path: 'pas',
@@ -96,49 +97,53 @@ const routes: Routes = [
     data: { roles: ['pas'] }, // ← Solo PAS puede acceder
     children: [
       // Ruta por defecto de PAS
-      { 
-        path: '', 
-        redirectTo: 'dashboard', 
-        pathMatch: 'full' 
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
       },
       // Dashboard con métricas
-      { 
-        path: 'dashboard', 
-        component: PASDashboardComponent 
+      {
+        path: 'dashboard',
+        component: PASDashboardComponent
       },
       // Gestión de solicitudes pendientes
-      { 
-        path: 'solicitudes', 
-        component: SolicitudesComponent 
+      {
+        path: 'solicitudes',
+        component: SolicitudesComponent
       },
       // Gestión de préstamos activos
-      { 
-        path: 'prestamos-activos', 
-        component: PrestamosActivosComponent 
+      {
+        path: 'prestamos-activos',
+        component: PrestamosActivosComponent
       },
       // Gestión de materiales (libros y equipos)
-      { 
-        path: 'materiales', 
-        component: MaterialesComponent 
+      {
+        path: 'materiales',
+        component: MaterialesComponent
       },
       // Reportes con filtros
-      { 
-        path: 'reportes', 
-        component: ReportesComponent 
+      {
+        path: 'reportes',
+        component: ReportesComponent
       },
       // Gestión de usuarios
-      { 
-        path: 'usuarios', 
-        component: UsuariosComponent 
+      {
+        path: 'usuarios',
+        component: UsuariosComponent
+      },
+      {
+        path: 'prestamo-presencial',
+        component: PrestamoPresencialComponent
       }
     ]
   },
 
 
   // RUTA 404 (cualquier otra URL no válida)
-  { 
-    path: '**', 
-    redirectTo: '/auth/login' 
+  {
+    path: '**',
+    redirectTo: '/auth/login'
   }
 ];
 

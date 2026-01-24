@@ -213,7 +213,7 @@ function buscarItemPorCodigo(req, res) {
     // 1. Buscar en Unidades (Equipos)
     models.Unidad.findOne({
         where: { codigo_barra: codigo },
-        include: [{ model: models.Equipo }]
+        include: [{ model: models.Equipo, as: 'equipo' }]
     })
         .then(function (unidad) {
             if (unidad) {
@@ -221,7 +221,7 @@ function buscarItemPorCodigo(req, res) {
                     tipo: 'unidad',
                     id: unidad.id, // ID interno para el checkout
                     codigo: unidad.codigo_barra,
-                    titulo: unidad.Equipo ? unidad.Equipo.nombre : 'Equipo desconocido',
+                    titulo: unidad.equipo ? unidad.equipo.nombre : 'Equipo desconocido',
                     estado: unidad.estado_fisico,
                     disponible: !unidad.esta_prestado
                 });

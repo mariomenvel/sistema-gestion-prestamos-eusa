@@ -34,7 +34,7 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { CommonModule } from '@angular/common';
-
+import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/prestamo-presencial.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -59,7 +59,8 @@ import { CommonModule } from '@angular/common';
     // Shared
     HeaderComponent,
     SidebarComponent,
-    ModalComponent
+    ModalComponent,
+    PrestamoPresencialComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,202 @@
+<div class="prestamo-presencial">
+
+  <!-- Título -->
+  <h1 class="page-title">Realizar Préstamo Presencial</h1>
+
+  <!-- Indicador de pasos -->
+  <div class="pasos-indicador">
+    <div class="paso" [class.activo]="pasoActual === 'buscar-alumno'" [class.completado]="pasoActual !== 'buscar-alumno'">
+      <span class="paso-numero">1</span>
+      <span class="paso-texto">Buscar Alumno</span>
+    </div>
+    <div class="paso-linea" [class.completado]="pasoActual !== 'buscar-alumno'"></div>
+    <div class="paso" [class.activo]="pasoActual === 'agregar-materiales'" [class.completado]="pasoActual === 'confirmar'">
+      <span class="paso-numero">2</span>
+      <span class="paso-texto">Agregar Materiales</span>
+    </div>
+    <div class="paso-linea" [class.completado]="pasoActual === 'confirmar'"></div>
+    <div class="paso" [class.activo]="pasoActual === 'confirmar'">
+      <span class="paso-numero">3</span>
+      <span class="paso-texto">Confirmar</span>
+    </div>
+  </div>
+
+  <!-- ==================== PASO 1: BUSCAR ALUMNO ==================== -->
+  <div class="paso-contenido" *ngIf="pasoActual === 'buscar-alumno'">
+    
+    <div class="card">
+      <h2 class="card-title">Escanear Tarjeta del Alumno</h2>
+      <p class="card-description">Escanea o introduce el código de la tarjeta del alumno</p>
+
+      <div class="input-group">
+        <input 
+          type="text" 
+          class="input-codigo"
+          placeholder="Código de tarjeta (ej: EUSA20260001)"
+          [(ngModel)]="codigoAlumno"
+          (keyup.enter)="buscarAlumno()"
+          [disabled]="buscandoAlumno"
+        />
+        <button 
+          class="btn-buscar"
+          (click)="buscarAlumno()"
+          [disabled]="buscandoAlumno"
+        >
+          {{ buscandoAlumno ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </div>
+
+      <div class="error-mensaje" *ngIf="errorAlumno">
+        {{ errorAlumno }}
+      </div>
+    </div>
+
+    <div class="botones-navegacion">
+      <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+    </div>
+
+  </div>
+
+  <!-- ==================== PASO 2: AGREGAR MATERIALES ==================== -->
+  <div class="paso-contenido" *ngIf="pasoActual === 'agregar-materiales'">
+
+    <!-- Info del alumno -->
+    <div class="card alumno-info">
+      <div class="alumno-header">
+        <div class="alumno-avatar">{{ alumnoEncontrado?.usuario?.nombre?.charAt(0) }}</div>
+        <div class="alumno-datos">
+          <h3 class="alumno-nombre">{{ nombreCompletoAlumno }}</h3>
+          <p class="alumno-email">{{ alumnoEncontrado?.usuario?.email }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buscar material -->
+    <div class="card">
+      <h2 class="card-title">Escanear Materiales</h2>
+      <p class="card-description">Escanea el código de barras de cada material</p>
+
+      <div class="input-group">
+        <input 
+          type="text" 
+          class="input-codigo"
+          placeholder="Código de barras del material"
+          [(ngModel)]="codigoMaterial"
+          (keyup.enter)="buscarMaterial()"
+          [disabled]="buscandoMaterial"
+        />
+        <button 
+          class="btn-buscar"
+          (click)="buscarMaterial()"
+          [disabled]="buscandoMaterial"
+        >
+          {{ buscandoMaterial ? 'Buscando...' : 'Añadir' }}
+        </button>
+      </div>
+
+      <div class="error-mensaje" *ngIf="errorMaterial">
+        {{ errorMaterial }}
+      </div>
+    </div>
+
+    <!-- Carrito -->
+    <div class="card" *ngIf="carrito.length > 0">
+      <h2 class="card-title">Materiales a Prestar ({{ carrito.length }})</h2>
+      
+      <div class="carrito-lista">
+        <div class="carrito-item" *ngFor="let item of carrito; let i = index">
+          <div class="item-info">
+            <span class="item-tipo">{{ item.tipo === 'unidad' ? '📷' : '📚' }}</span>
+            <div class="item-detalles">
+              <span class="item-titulo">{{ item.titulo }}</span>
+              <span class="item-codigo">{{ item.codigo }}</span>
+            </div>
+          </div>
+          <button class="btn-eliminar" (click)="eliminarDelCarrito(i)">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fecha devolución -->
+    <div class="card">
+      <h2 class="card-title">Fecha de Devolución</h2>
+      
+      <div class="fecha-grupo">
+        <div class="fecha-campo">
+          <label>Fecha:</label>
+          <input type="date" [(ngModel)]="fechaDevolucion" class="input-fecha" />
+        </div>
+        <div class="fecha-campo">
+          <label>Hora:</label>
+          <input type="time" [(ngModel)]="horaDevolucion" class="input-fecha" />
+        </div>
+      </div>
+    </div>
+
+    <div class="botones-navegacion">
+      <button class="btn-secundario" (click)="volverAPaso('buscar-alumno')">← Volver</button>
+      <button 
+        class="btn-primario" 
+        (click)="continuarAConfirmar()"
+        [disabled]="carrito.length === 0"
+      >
+        Continuar →
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ==================== PASO 3: CONFIRMAR ==================== -->
+  <div class="paso-contenido" *ngIf="pasoActual === 'confirmar'">
+
+    <div class="card resumen">
+      <h2 class="card-title">Resumen del Préstamo</h2>
+
+      <!-- Alumno -->
+      <div class="resumen-seccion">
+        <h4>Alumno</h4>
+        <p class="resumen-valor">{{ nombreCompletoAlumno }}</p>
+        <p class="resumen-secundario">{{ alumnoEncontrado?.usuario?.email }}</p>
+      </div>
+
+      <!-- Materiales -->
+      <div class="resumen-seccion">
+        <h4>Materiales ({{ carrito.length }})</h4>
+        <ul class="resumen-lista">
+          <li *ngFor="let item of carrito">
+            {{ item.tipo === 'unidad' ? '📷' : '📚' }} {{ item.titulo }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Fecha -->
+      <div class="resumen-seccion">
+        <h4>Fecha de Devolución</h4>
+        <p class="resumen-valor">{{ fechaDevolucion }} a las {{ horaDevolucion }}</p>
+      </div>
+    </div>
+
+    <div class="botones-navegacion">
+      <button class="btn-secundario" (click)="volverAPaso('agregar-materiales')">← Volver</button>
+      <button 
+        class="btn-confirmar" 
+        (click)="confirmarPrestamo()"
+        [disabled]="creandoPrestamo"
+      >
+        {{ creandoPrestamo ? 'Creando...' : 'Confirmar Préstamo' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal de notificaciones -->
+<app-modal
+  [mostrar]="mostrarModalNotificacion"
+  [tipo]="tipoModalNotificacion"
+  [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion"
+  [textoBtnPrincipal]="'Aceptar'"
+  (cerrar)="cerrarModalNotificacion()"
+></app-modal>
