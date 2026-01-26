@@ -166,8 +166,10 @@ function aprobarSolicitud(req, res) {
   var solicitudId = req.params.id;
   var pasId = req.user.id;
   
-  // NUEVO: Recibir fecha_devolucion del body
+  // Recibir fecha_devolucion del body
   var fechaDevolucionBody = req.body.fecha_devolucion;
+  // Items adicionales que el PAS quiera añadir
+  var itemsAdicionales = req.body.items_adicionales || [];
 
   db.sequelize.transaction(function (t) {
     return models.Solicitud.findByPk(solicitudId, { 
@@ -183,36 +185,31 @@ function aprobarSolicitud(req, res) {
         if (!solicitud) throw new Error('NO_ENCONTRADA');
         if (solicitud.estado !== 'pendiente') throw new Error('NO_PENDIENTE');
 
-        // NUEVO: Validar fecha según tipo
+        // Validar fecha según tipo
         if (solicitud.tipo === 'prof_trabajo' && !fechaDevolucionBody) {
           throw new Error('TIPO_A_SIN_FECHA');
         }
 
-        // NUEVO: Determinar fecha a usar
+        // Determinar fecha a usar
         var ahora = new Date();
         var fechaAUsar;
         
         if (solicitud.tipo === 'prof_trabajo') {
-          // Tipo A: Usar la fecha que envió el PAS
           fechaAUsar = new Date(fechaDevolucionBody);
           
-          // Validar que sea una fecha válida
           if (isNaN(fechaAUsar.getTime())) {
             throw new Error('FECHA_INVALIDA');
           }
           
-          // Validar que sea futura
           if (fechaAUsar <= ahora) {
             throw new Error('FECHA_PASADA');
           }
         } else {
-          // Tipo B: Calcular automáticamente (siguiente día lectivo)
           fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
         }
 
-        // NUEVO: Buscar unidades/ejemplares disponibles para cada item
+        // Buscar unidades/ejemplares disponibles para cada item
         var promesasBuscarItems = solicitud.items.map(function (item) {
-          // Si es un LIBRO
           if (item.libro_id) {
             return models.Ejemplar.findOne({
               where: {
@@ -229,7 +226,6 @@ function aprobarSolicitud(req, res) {
             });
           }
           
-          // Si es un EQUIPO
           if (item.equipo_id) {
             return models.Unidad.findOne({
               where: {
@@ -262,19 +258,61 @@ function aprobarSolicitud(req, res) {
               ejemplaresIds.push(item.id);
             }
           });
-          
-          if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
-            throw new Error('SIN_ITEMS_DISPONIBLES');
-          }
-          
-          return { 
-            solicitud: solicitud, 
-            unidadesIds: unidadesIds, 
-            ejemplaresIds: ejemplaresIds,
-            fechaAUsar: fechaAUsar,
-            ahora: ahora,
-            pasId: pasId
-          };
+
+          // Procesar items adicionales del PAS
+          var promesasAdicionales = itemsAdicionales.map(function (item) {
+            if (item.libro_id) {
+              return models.Ejemplar.findOne({
+                where: {
+                  libro_id: item.libro_id,
+                  estado: 'disponible'
+                },
+                transaction: t
+              }).then(function (ejemplar) {
+                if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
+                return { tipo: 'ejemplar', id: ejemplar.id };
+              });
+            }
+            
+            if (item.equipo_id) {
+              return models.Unidad.findOne({
+                where: {
+                  equipo_id: item.equipo_id,
+                  esta_prestado: false,
+                  estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
+                },
+                transaction: t
+              }).then(function (unidad) {
+                if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
+                return { tipo: 'unidad', id: unidad.id };
+              });
+            }
+            
+            return Promise.resolve(null);
+          });
+
+          return Promise.all(promesasAdicionales).then(function (adicionalesEncontrados) {
+            adicionalesEncontrados.forEach(function (item) {
+              if (item && item.tipo === 'unidad') {
+                unidadesIds.push(item.id);
+              } else if (item && item.tipo === 'ejemplar') {
+                ejemplaresIds.push(item.id);
+              }
+            });
+
+            if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+              throw new Error('SIN_ITEMS_DISPONIBLES');
+            }
+            
+            return { 
+              solicitud: solicitud, 
+              unidadesIds: unidadesIds, 
+              ejemplaresIds: ejemplaresIds,
+              fechaAUsar: fechaAUsar,
+              ahora: ahora,
+              pasId: pasId
+            };
+          });
         });
       })
       .then(function (data) {
@@ -292,7 +330,7 @@ function aprobarSolicitud(req, res) {
           tipo: (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b',
           estado: 'activo',
           fecha_inicio: ahora,
-          fecha_devolucion_prevista: fechaAUsar,  // ✅ USA la fecha correcta
+          fecha_devolucion_prevista: fechaAUsar,
           profesor_solicitante_id: null
         }, { transaction: t })
           .then(function (prestamo) {
@@ -306,17 +344,14 @@ function aprobarSolicitud(req, res) {
                   if (!unidad) throw new Error('UNIDAD_NO_EXISTE');
                   if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA');
 
-                  // Permitir 'funciona' u 'obsoleto'
                   if (['funciona', 'obsoleto'].indexOf(unidad.estado_fisico) === -1) {
                     throw new Error('UNIDAD_NO_APTA');
                   }
 
-                  // Marcar prestado
                   unidad.esta_prestado = true;
                   return unidad.save({ transaction: t });
                 })
                 .then(function () {
-                  // Crear Linea Prestamo
                   return models.PrestamoItem.create({
                     prestamo_id: prestamo.id,
                     unidad_id: uId,
@@ -333,7 +368,6 @@ function aprobarSolicitud(req, res) {
                   if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
                   if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_NO_DISPONIBLE');
 
-                  // Marcar como no disponible
                   ejemplar.estado = 'no_disponible';
                   return ejemplar.save({ transaction: t });
                 })
