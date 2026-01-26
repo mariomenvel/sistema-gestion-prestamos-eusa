@@ -27,6 +27,17 @@ export class PrestamosActivosComponent implements OnInit {
   materialesSeleccionados: any[] = [];
   prestamoSeleccionado: any = null;
 
+  // ===== MODAL DEVOLUCIÓN =====
+mostrarModalDevolucion: boolean = false;
+prestamoDevolucion: any = null;
+procesandoDevolucion: boolean = false;
+
+// ===== MODAL NOTIFICACIÓN =====
+mostrarModalNotificacion: boolean = false;
+tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+tituloModalNotificacion: string = '';
+mensajeModalNotificacion: string = '';
+
   // ===== ESTADO =====
 
   isLoading: boolean = false;
@@ -47,28 +58,75 @@ export class PrestamosActivosComponent implements OnInit {
   // ===== MÉTODOS PÚBLICOS =====
 
   /**
-   * Registra la devolución de un préstamo
-   */
-  registrarDevolucion(prestamo: Prestamo): void {
-    const nombreUsuario = this.getNombreUsuario(prestamo);
-    const nombreMaterial = this.getNombreMaterial(prestamo);
+ * Abre el modal de confirmación de devolución
+ */
+abrirModalDevolucion(prestamo: any): void {
+  console.log('🔵 Abriendo modal devolución:', prestamo);
+  this.prestamoDevolucion = prestamo;
+  this.mostrarModalDevolucion = true;
+}
 
-    if (!confirm(`¿Registrar devolución del material "${nombreMaterial}" de ${nombreUsuario}?`)) {
-      return;
+/**
+ * Cierra el modal de devolución
+ */
+cerrarModalDevolucion(): void {
+  this.mostrarModalDevolucion = false;
+  this.prestamoDevolucion = null;
+}
+
+/**
+ * Confirma y registra la devolución
+ */
+confirmarDevolucion(): void {
+  if (!this.prestamoDevolucion) return;
+
+  this.procesandoDevolucion = true;
+
+  this.prestamosService.registrarDevolucion(this.prestamoDevolucion.id).subscribe({
+    next: () => {
+      console.log('✅ Devolución registrada');
+      this.procesandoDevolucion = false;
+      this.cerrarModalDevolucion();
+      
+      // Mostrar notificación de éxito
+      this.tipoModalNotificacion = 'exito';
+      this.tituloModalNotificacion = 'Devolución Registrada';
+      this.mensajeModalNotificacion = 'La devolución se ha registrado correctamente. Los materiales vuelven a estar disponibles.';
+      this.mostrarModalNotificacion = true;
+      
+      // Recargar lista
+      this.cargarPrestamos();
+    },
+    error: (err) => {
+      console.error('❌ Error al registrar devolución:', err);
+      this.procesandoDevolucion = false;
+      this.cerrarModalDevolucion();
+      
+      // Mostrar notificación de error
+      this.tipoModalNotificacion = 'error';
+      this.tituloModalNotificacion = 'Error en la Devolución';
+      this.mensajeModalNotificacion = err.error?.mensaje || 'No se pudo registrar la devolución. Inténtalo de nuevo.';
+      this.mostrarModalNotificacion = true;
     }
+  });
+}
 
-    this.prestamosService.registrarDevolucion(prestamo.id).subscribe({
-      next: () => {
-        console.log('✅ Devolución registrada');
-        alert('Devolución registrada correctamente');
-        this.cargarPrestamos(); // Recargar lista
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar devolución:', err);
-        alert('Error al registrar la devolución');
-      }
-    });
+/**
+ * Cierra el modal de notificación
+ */
+cerrarModalNotificacion(): void {
+  this.mostrarModalNotificacion = false;
+}
+
+/**
+ * Obtiene la lista de materiales para mostrar en el modal
+ */
+getMaterialesDevolucion(): any[] {
+  if (!this.prestamoDevolucion || !this.prestamoDevolucion.items) {
+    return [];
   }
+  return this.prestamoDevolucion.items;
+}
 
   /**
    * Obtiene el nombre del usuario

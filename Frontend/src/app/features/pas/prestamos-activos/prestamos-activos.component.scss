@@ -456,7 +456,218 @@ $font-family: 'Inter', sans-serif;
     background: darken($color-primary-blue, 10%);
     box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
   }
+}// ========================================
+// MODAL DEVOLUCIÓN
+// ========================================
+
+.modal-devolucion {
+  width: 520px;
 }
+
+.devolucion-contenido {
+  margin-bottom: 24px;
+}
+
+.devolucion-seccion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid $color-border;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.seccion-label {
+  font-family: $font-family;
+  font-size: 14px;
+  font-weight: 500;
+  color: $color-text-secondary;
+}
+
+.seccion-valor {
+  font-family: $font-family;
+  font-size: 14px;
+  font-weight: 600;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.texto-vencido {
+  color: #DC3545;
+}
+
+.badge-tipo-modal {
+  background: #E3F2FD;
+  color: $color-primary-blue;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-vencido {
+  background: #FFEBEE;
+  color: #DC3545;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// Materiales a devolver
+.devolucion-materiales {
+  margin-top: 20px;
+  background: $color-bg-gray;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.materiales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.materiales-titulo {
+  font-family: $font-family;
+  font-size: 14px;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.materiales-count {
+  background: $color-primary-blue;
+  color: $color-white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.materiales-lista-devolucion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.material-devolucion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: 6px;
+}
+
+
+.material-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.material-nombre {
+  font-family: $font-family;
+  font-size: 13px;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.material-codigo {
+  font-family: $font-family;
+  font-size: 11px;
+  color: $color-text-secondary;
+}
+
+// Aviso
+.devolucion-aviso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #E3F2FD;
+  border: 1px solid $color-primary-blue;
+  border-radius: 6px;
+}
+
+.aviso-icono {
+  font-size: 18px;
+}
+
+.aviso-texto {
+  font-family: $font-family;
+  font-size: 13px;
+  color: $color-primary-blue;
+}
+
+// Footer botones
+.modal-footer-devolucion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid $color-border;
+}
+
+.btn-cancelar-devolucion {
+  padding: 12px 24px;
+  background: $color-white;
+  border: 2px solid $color-border;
+  border-radius: 6px;
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-confirmar-devolucion {
+  padding: 12px 24px;
+  background: $color-success-green;
+  border: none;
+  border-radius: 6px;
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+ &:hover:not(:disabled) {
+  background: darken($color-success-green, 10%);
+  box-shadow: 0 4px 12px rgba($color-success-green, 0.3);
+}
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 // ========================================
 // RESPONSIVE
 // ========================================

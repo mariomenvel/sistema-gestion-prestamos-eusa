@@ -43,6 +43,6 @@ export class PrestamosService {
    * Endpoint: POST /prestamos/devolver 
    */
   registrarDevolucion(id: number): Observable<any> {
-    return this.apiService.put(`/prestamos/${id}/devolver`); // Ajusta la ruta si es distinta en tu back
+  return this.apiService.put(`/prestamos/${id}/devolver`, {});
   }
 }

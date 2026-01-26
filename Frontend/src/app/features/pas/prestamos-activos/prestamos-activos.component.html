@@ -9,7 +9,7 @@
 
   <!-- Tabla de préstamos -->
   <div class="table-container">
-    
+
     <!-- Header de la tabla -->
     <div class="table-header">
       <div class="th th-alumno">Alumno</div>
@@ -22,7 +22,7 @@
 
     <!-- Body de la tabla -->
     <div class="table-body">
-      
+
       <!-- Loading -->
       <div class="empty-state" *ngIf="isLoading">
         <p>Cargando préstamos...</p>
@@ -39,11 +39,7 @@
       </div>
 
       <!-- Filas de préstamos -->
-      <div 
-        class="table-row" 
-        *ngFor="let prestamo of prestamos"
-        [class.vencido]="esVencido(prestamo)"
-      >
+      <div class="table-row" *ngFor="let prestamo of prestamos" [class.vencido]="esVencido(prestamo)">
         <!-- Columna: Alumno -->
         <div class="td td-alumno">
           {{ getNombreUsuario(prestamo) }}
@@ -59,14 +55,11 @@
         <!-- Columna: Material -->
         <div class="td td-material">
           <!-- Si tiene múltiples materiales, mostrar como enlace clickeable -->
-          <span 
-            *ngIf="tieneMultiplesMateriales(prestamo)"
-            class="material-link"
-            (click)="verDetallesMateriales(prestamo, $event)"
-          >
+          <span *ngIf="tieneMultiplesMateriales(prestamo)" class="material-link"
+            (click)="verDetallesMateriales(prestamo, $event)">
             {{ getNombreMaterial(prestamo) }}
           </span>
-          
+
           <!-- Si tiene un solo material, mostrar texto normal -->
           <span *ngIf="!tieneMultiplesMateriales(prestamo)">
             {{ getNombreMaterial(prestamo) }}
@@ -81,10 +74,7 @@
         <!-- Columna: Fecha Devolución -->
         <div class="td td-fecha-devolucion">
           <span class="fecha-wrapper">
-            <span 
-              class="icono-calendario"
-              [class.vencido]="esVencido(prestamo)"
-            >
+            <span class="icono-calendario" [class.vencido]="esVencido(prestamo)">
               📅
             </span>
             {{ formatearFecha(prestamo.fecha_devolucion_prevista) }}
@@ -93,10 +83,7 @@
 
         <!-- Columna: Acción -->
         <div class="td td-accion">
-          <button 
-            class="btn-devolucion"
-            (click)="registrarDevolucion(prestamo)"
-          >
+          <button class="btn-devolucion" (click)="abrirModalDevolucion(prestamo)">
             Registrar Devolución
           </button>
         </div>
@@ -109,10 +96,10 @@
 
 </div>
 
-<!<!-- MODAL: Detalle de Materiales -->
+<!-- MODAL: Detalle de Materiales -->
 <div class="modal-overlay" *ngIf="mostrarModalMateriales" (click)="cerrarModalMateriales()">
   <div class="modal-card" (click)="$event.stopPropagation()">
-    
+
     <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalMateriales()">✕</button>
 
@@ -148,3 +135,102 @@
 
   </div>
 </div>
+
+<!-- MODAL: Confirmar Devolución -->
+<div class="modal-overlay" *ngIf="mostrarModalDevolucion" (click)="cerrarModalDevolucion()">
+  <div class="modal-card modal-devolucion" (click)="$event.stopPropagation()">
+    
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalDevolucion()">✕</button>
+
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Registrar Devolución</h2>
+    </div>
+
+    <!-- Contenido -->
+    <div class="devolucion-contenido" *ngIf="prestamoDevolucion">
+
+      <!-- Info del alumno -->
+      <div class="devolucion-seccion">
+        <div class="seccion-label">Alumno</div>
+        <div class="seccion-valor">{{ getNombreUsuario(prestamoDevolucion) }}</div>
+      </div>
+
+      <!-- Tipo de préstamo -->
+      <div class="devolucion-seccion">
+        <div class="seccion-label">Tipo de Préstamo</div>
+        <div class="seccion-valor">
+          <span class="badge-tipo-modal">{{ getTipoTexto(prestamoDevolucion.tipo) }}</span>
+        </div>
+      </div>
+
+      <!-- Fecha de préstamo -->
+      <div class="devolucion-seccion">
+        <div class="seccion-label">Fecha de Préstamo</div>
+        <div class="seccion-valor">{{ formatearFecha(prestamoDevolucion.fecha_inicio) }}</div>
+      </div>
+
+      <!-- Fecha devolución prevista -->
+      <div class="devolucion-seccion">
+        <div class="seccion-label">Fecha Devolución Prevista</div>
+        <div class="seccion-valor" [class.texto-vencido]="esVencido(prestamoDevolucion)">
+          {{ formatearFecha(prestamoDevolucion.fecha_devolucion_prevista) }}
+          <span class="badge-vencido" *ngIf="esVencido(prestamoDevolucion)">VENCIDO</span>
+        </div>
+      </div>
+
+      <!-- Materiales a devolver -->
+      <div class="devolucion-materiales">
+        <div class="materiales-header">
+          <span class="materiales-titulo">Materiales a Devolver</span>
+          <span class="materiales-count">{{ getMaterialesDevolucion().length }}</span>
+        </div>
+        
+        <div class="materiales-lista-devolucion">
+          <div class="material-devolucion-item" *ngFor="let item of getMaterialesDevolucion()">
+            <div class="material-datos">
+              <span class="material-nombre">{{ getNombreItem(item) }}</span>
+              <span class="material-codigo">{{ getCodigoItem(item) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje de confirmación -->
+      <div class="devolucion-aviso">
+        <span class="aviso-icono">ℹ️</span>
+        <span class="aviso-texto">Al confirmar, los materiales volverán a estar disponibles para préstamo.</span>
+      </div>
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="modal-footer-devolucion">
+      <button 
+        class="btn-cancelar-devolucion" 
+        (click)="cerrarModalDevolucion()"
+        [disabled]="procesandoDevolucion"
+      >
+        Cancelar
+      </button>
+      <button 
+        class="btn-confirmar-devolucion" 
+        (click)="confirmarDevolucion()"
+        [disabled]="procesandoDevolucion"
+      >
+        {{ procesandoDevolucion ? 'Procesando...' : 'Confirmar Devolución' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Notificación -->
+<app-modal
+  [mostrar]="mostrarModalNotificacion"
+  [tipo]="tipoModalNotificacion"
+  [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion"
+  [textoBtnPrincipal]="'Aceptar'"
+  (cerrar)="cerrarModalNotificacion()"
+></app-modal>
