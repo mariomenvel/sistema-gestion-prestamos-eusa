@@ -1,5 +1,5 @@
 var models = require('../models');
-
+var Sequelize = require('sequelize');
 
 /**
  * GET /libros
@@ -222,6 +222,54 @@ function buscarPorCodigoBarras(req, res) {
       res.status(500).json({ mensaje: "Error al buscar libro" });
     });
 }
+/**
+ * GET /libros/disponibles?q=texto
+ * Buscar libros con ejemplares disponibles
+ */
+function buscarLibrosDisponibles(req, res) {
+  var query = req.query.q || '';
+  
+  var whereClause = {};
+  
+  if (query) {
+    whereClause = {
+      [Sequelize.Op.or]: [
+        { titulo: { [Sequelize.Op.like]: '%' + query + '%' } },
+        { autor: { [Sequelize.Op.like]: '%' + query + '%' } }
+      ]
+    };
+  }
+  
+  models.Libro.findAll({
+    where: whereClause,
+    include: [{
+      model: models.Ejemplar,
+      as: 'ejemplares',
+      where: { estado: 'disponible' },
+      required: false
+    }],
+    limit: 20
+  })
+  .then(function(libros) {
+    // Filtrar solo los que tienen ejemplares disponibles
+    var librosConDisponibles = libros.filter(function(libro) {
+      return libro.ejemplares && libro.ejemplares.length > 0;
+    }).map(function(libro) {
+      return {
+        id: libro.id,
+        titulo: libro.titulo,
+        autor: libro.autor,
+        disponibles: libro.ejemplares.length
+      };
+    });
+    
+    res.json(librosConDisponibles);
+  })
+  .catch(function(error) {
+    console.error('Error buscando libros disponibles:', error);
+    res.status(500).json({ mensaje: 'Error al buscar libros' });
+  });
+}
 
 module.exports = {
   obtenerLibros: obtenerLibros,
@@ -229,5 +277,6 @@ module.exports = {
   crearLibro: crearLibro,
   actualizarLibro: actualizarLibro,
   eliminarLibro: eliminarLibro,
-  buscarPorCodigoBarras: buscarPorCodigoBarras
+  buscarPorCodigoBarras: buscarPorCodigoBarras,
+  buscarLibrosDisponibles: buscarLibrosDisponibles 
 };

@@ -11,6 +11,10 @@ router.get('/', auth, librosController.obtenerLibros);
 // Buscar libro por código de barras (PAS)
 router.get('/buscar', auth, librosController.buscarPorCodigoBarras);
 
+
+// Buscar libros con ejemplares disponibles (PAS)
+router.get('/disponibles', auth, roles.soloPAS, librosController.buscarLibrosDisponibles);
+
 // Gestión (solo PAS)
 router.get('/:id', auth, roles.soloPAS, librosController.obtenerLibroPorId);
 router.post(

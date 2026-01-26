@@ -1,6 +1,7 @@
 var models = require('../models');
 var fs = require('fs');
 var path = require('path');
+var Sequelize = require('sequelize');
 
 function obtenerEquipos(req, res) {
   models.Equipo.findAll({
@@ -227,6 +228,62 @@ function buscarPorCodigoBarras(req, res) {
       res.status(500).json({ mensaje: "Error al buscar equipo" });
     });
 }
+/**
+ * GET /equipos/disponibles?q=texto
+ * Buscar equipos con unidades disponibles
+ */
+function buscarEquiposDisponibles(req, res) {
+  var query = req.query.q || '';
+
+  var whereClause = {};
+
+  if (query) {
+    whereClause = {
+      [Sequelize.Op.or]: [
+        { marca: { [Sequelize.Op.like]: '%' + query + '%' } },
+        { modelo: { [Sequelize.Op.like]: '%' + query + '%' } }
+      ]
+    };
+  }
+
+  models.Equipo.findAll({
+    where: whereClause,
+    include: [{
+      model: models.Unidad,
+      as: 'unidades',
+      where: {
+        esta_prestado: false,
+        [Sequelize.Op.or]: [
+          { estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] } },
+          { estado_fisico: '' },
+          { estado_fisico: null }
+        ]
+      },
+      required: false
+    }],
+    limit: 20
+  })
+    .then(function (equipos) {
+      // Filtrar solo los que tienen unidades disponibles
+      var equiposConDisponibles = equipos.filter(function (equipo) {
+        return equipo.unidades && equipo.unidades.length > 0;
+      }).map(function (equipo) {
+        return {
+          id: equipo.id,
+          marca: equipo.marca,
+          modelo: equipo.modelo,
+          nombre: equipo.marca + ' ' + equipo.modelo,
+          disponibles: equipo.unidades.length
+        };
+      });
+
+      res.json(equiposConDisponibles);
+    })
+    .catch(function (error) {
+      console.error('Error buscando equipos disponibles:', error);
+      res.status(500).json({ mensaje: 'Error al buscar equipos' });
+    });
+}
 
 module.exports = {
   obtenerEquipos: obtenerEquipos,
@@ -235,5 +292,6 @@ module.exports = {
   actualizarEquipo: actualizarEquipo,
   eliminarEquipo: eliminarEquipo,
   subirImagenEquipo: subirImagenEquipo,
-  buscarPorCodigoBarras: buscarPorCodigoBarras
+  buscarPorCodigoBarras: buscarPorCodigoBarras,
+  buscarEquiposDisponibles: buscarEquiposDisponibles
 };
