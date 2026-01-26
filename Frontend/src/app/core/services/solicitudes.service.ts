@@ -6,11 +6,33 @@ import { Subject } from 'rxjs';
 import { ApiService } from './api.service';
 import { Solicitud } from '../models/solicitud.model';
 
+// Interfaces para materiales disponibles
+export interface LibroDisponible {
+  id: number;
+  titulo: string;
+  autor: string;
+  disponibles: number;
+}
+
+export interface EquipoDisponible {
+  id: number;
+  marca: string;
+  modelo: string;
+  nombre: string;
+  disponibles: number;
+}
+
+// Interface para items adicionales
+export interface ItemAdicional {
+  libro_id?: number;
+  equipo_id?: number;
+  nombre: string; // Para mostrar en el modal
+  tipo: 'libro' | 'equipo';
+}
+
 @Injectable({
   providedIn: 'root'
 })
-
-
 export class SolicitudesService {
 
   // Subject para notificar cuando se crea una solicitud
@@ -22,18 +44,17 @@ export class SolicitudesService {
    * Crea una nueva solicitud de préstamo.
    * Endpoint: POST /solicitudes
    */
-  // ✅ CORRECTO
-crearSolicitud(datos: {
-  tipo: 'prof_trabajo' | 'uso_propio',
-  ejemplar_id?: number,
-  unidad_id?: number,
-  normas_aceptadas: boolean,
-  observaciones?: string
-}): Observable<Solicitud> {
-  return this.apiService.post<Solicitud>('/solicitudes', datos).pipe(
-    tap(() => this.solicitudCreada$.next())
-  );
-}
+  crearSolicitud(datos: {
+    tipo: 'prof_trabajo' | 'uso_propio',
+    ejemplar_id?: number,
+    unidad_id?: number,
+    normas_aceptadas: boolean,
+    observaciones?: string
+  }): Observable<Solicitud> {
+    return this.apiService.post<Solicitud>('/solicitudes', datos).pipe(
+      tap(() => this.solicitudCreada$.next())
+    );
+  }
 
   /**
    * Obtiene las solicitudes del usuario logueado.
@@ -44,6 +65,7 @@ crearSolicitud(datos: {
   }
 
   // --- Funciones exclusivas para PAS ---
+
   /**
    * Obtiene todas las solicitudes pendientes.
    * Endpoint: GET /solicitudes/pendientes
@@ -61,20 +83,43 @@ crearSolicitud(datos: {
   }
 
   /**
-   * Aprueba una solicitud.
-   * Endpoint: POST /solicitudes/:id/aprobar
+   * Aprueba una solicitud con items adicionales opcionales.
+   * Endpoint: PUT /solicitudes/:id/aprobar
    */
- aprobarSolicitud(datos: { solicitud_id: number; fecha_devolucion: string | null }): Observable<any> {
-  return this.apiService.put(`/solicitudes/${datos.solicitud_id}/aprobar`, {
-    fecha_devolucion: datos.fecha_devolucion
-  });
-}
+  aprobarSolicitud(datos: { 
+    solicitud_id: number; 
+    fecha_devolucion: string | null;
+    items_adicionales?: { libro_id?: number; equipo_id?: number }[];
+  }): Observable<any> {
+    return this.apiService.put(`/solicitudes/${datos.solicitud_id}/aprobar`, {
+      fecha_devolucion: datos.fecha_devolucion,
+      items_adicionales: datos.items_adicionales || []
+    });
+  }
 
   /**
    * Rechaza una solicitud.
-   * Endpoint: POST /solicitudes/:id/rechazar
+   * Endpoint: PUT /solicitudes/:id/rechazar
    */
   rechazarSolicitud(id: number, razon_rechazo: string): Observable<any> {
     return this.apiService.put(`/solicitudes/${id}/rechazar`, { razon_rechazo });
+  }
+
+  // --- Búsqueda de materiales disponibles ---
+
+  /**
+   * Busca libros con ejemplares disponibles
+   * Endpoint: GET /libros/disponibles?q=texto
+   */
+  buscarLibrosDisponibles(query: string = ''): Observable<LibroDisponible[]> {
+    return this.apiService.get<LibroDisponible[]>(`/libros/disponibles?q=${encodeURIComponent(query)}`);
+  }
+
+  /**
+   * Busca equipos con unidades disponibles
+   * Endpoint: GET /equipos/disponibles?q=texto
+   */
+  buscarEquiposDisponibles(query: string = ''): Observable<EquipoDisponible[]> {
+    return this.apiService.get<EquipoDisponible[]>(`/equipos/disponibles?q=${encodeURIComponent(query)}`);
   }
 }
