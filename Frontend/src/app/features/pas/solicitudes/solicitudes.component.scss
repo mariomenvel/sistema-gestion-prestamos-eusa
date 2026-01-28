@@ -1234,3 +1234,71 @@ $font-family: 'Inter', sans-serif;
     cursor: not-allowed;
   }
 }
+// Campo de idioma
+.campo-idioma {
+  margin-bottom: 20px;
+}
+
+// Select de plantillas
+.campo-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid $color-border;
+  border-radius: 6px;
+  font-size: 14px;
+  background: $color-white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary-blue;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+    box-shadow: 0 0 0 3px rgba($color-primary-blue, 0.1);
+  }
+}
+
+// Loading de motivos
+.loading-motivos {
+  padding: 12px;
+  text-align: center;
+  color: $color-text-secondary;
+  font-size: 14px;
+  background: $color-bg-light;
+  border-radius: 6px;
+}
+
+// Preview del email 
+.preview-email {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.preview-contenido {
+  background: $color-bg-light;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.preview-asunto {
+  font-size: 14px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $color-border;
+  
+  strong {
+    color: $color-text-primary;
+  }
+}
+
+.preview-cuerpo {
+  font-size: 13px;
+  line-height: 1.6;
+  color: $color-text-secondary;
+  white-space: pre-wrap;
+}

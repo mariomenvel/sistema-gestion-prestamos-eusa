@@ -149,9 +149,9 @@ export class SolicitudesService {
    * Rechaza una solicitud.
    * Endpoint: PUT /solicitudes/:id/rechazar
    */
-  rechazarSolicitud(id: number, razon_rechazo: string): Observable<any> {
-    return this.apiService.put(`/solicitudes/${id}/rechazar`, { razon_rechazo });
-  }
+ rechazarSolicitud(solicitudId: number, datos: { motivo_id: number, idioma: string }): Observable<any> {
+  return this.apiService.put(`/solicitudes/${solicitudId}/rechazar`, datos);
+}
 
   // --- Búsqueda de materiales disponibles (por texto) ---
 
@@ -196,4 +196,9 @@ export class SolicitudesService {
 verificarDisponibilidad(solicitudId: number): Observable<DisponibilidadResponse> {
   return this.apiService.get<DisponibilidadResponse>(`/solicitudes/${solicitudId}/disponibilidad`);
 }
+
+obtenerMotivosRechazo(): Observable<any[]> {
+  return this.apiService.get<any[]>('/motivos');
+}
+
 }

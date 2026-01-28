@@ -181,7 +181,7 @@
     <!-- Materiales solicitados con disponibilidad -->
     <div class="seccion-materiales">
       <h3 class="seccion-titulo">Materiales Solicitados</h3>
-      
+
       <!-- Loading -->
       <div class="loading-disponibilidad" *ngIf="cargandoDisponibilidad">
         Verificando disponibilidad...
@@ -189,26 +189,19 @@
 
       <!-- Lista de items -->
       <div class="materiales-lista" *ngIf="!cargandoDisponibilidad">
-        <div 
-          class="material-item-disponibilidad" 
-          *ngFor="let item of itemsSolicitudConDisponibilidad"
-          [class.no-disponible]="!item.disponible"
-          [class.excluido]="!item.incluido"
-        >
+        <div class="material-item-disponibilidad" *ngFor="let item of itemsSolicitudConDisponibilidad"
+          [class.no-disponible]="!item.disponible" [class.excluido]="!item.incluido">
           <!-- Checkbox para incluir/excluir -->
           <div class="material-checkbox">
-            <input 
-              type="checkbox" 
-              [checked]="item.incluido"
-              [disabled]="!item.disponible"
-              (change)="toggleItemIncluido(item)"
-            />
+            <input type="checkbox" [checked]="item.incluido" [disabled]="!item.disponible"
+              (change)="toggleItemIncluido(item)" />
           </div>
 
           <!-- Info del material -->
           <div class="material-info-completa">
             <div class="material-cabecera">
-              <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'" [class.equipo]="item.tipo === 'equipo'">
+              <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'"
+                [class.equipo]="item.tipo === 'equipo'">
                 {{ item.tipo === 'libro' ? 'Libro' : 'Equipo' }}
               </span>
               <span class="material-nombre">{{ item.nombre }}</span>
@@ -216,36 +209,31 @@
 
             <!-- Estado de disponibilidad -->
             <div class="material-disponibilidad-info">
-              <span 
-                class="material-estado-badge"
-                [class.disponible]="item.disponible"
-                [class.no-disponible]="!item.disponible"
-              >
+              <span class="material-estado-badge" [class.disponible]="item.disponible"
+                [class.no-disponible]="!item.disponible">
                 {{ item.disponible ? '✓ Disponible' : '✗ No disponible' }}
               </span>
 
               <!-- Selector de ejemplar/unidad si hay varios disponibles -->
-              <div class="selector-ejemplar" *ngIf="item.disponible && item.tipo === 'libro' && item.ejemplares_disponibles.length > 1">
+              <div class="selector-ejemplar"
+                *ngIf="item.disponible && item.tipo === 'libro' && item.ejemplares_disponibles.length > 1">
                 <label>Ejemplar:</label>
-                <select (change)="seleccionarEjemplar(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
-                  <option 
-                    *ngFor="let ej of item.ejemplares_disponibles" 
-                    [value]="ej.id"
-                    [selected]="ej.id === item.ejemplar_seleccionado_id"
-                  >
+                <select
+                  (change)="seleccionarEjemplar(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
+                  <option *ngFor="let ej of item.ejemplares_disponibles" [value]="ej.id"
+                    [selected]="ej.id === item.ejemplar_seleccionado_id">
                     {{ ej.codigo_barra }}
                   </option>
                 </select>
               </div>
 
-              <div class="selector-unidad" *ngIf="item.disponible && item.tipo === 'equipo' && item.unidades_disponibles.length > 1">
+              <div class="selector-unidad"
+                *ngIf="item.disponible && item.tipo === 'equipo' && item.unidades_disponibles.length > 1">
                 <label>Unidad:</label>
-                <select (change)="seleccionarUnidad(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
-                  <option 
-                    *ngFor="let u of item.unidades_disponibles" 
-                    [value]="u.id"
-                    [selected]="u.id === item.unidad_seleccionada_id"
-                  >
+                <select
+                  (change)="seleccionarUnidad(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
+                  <option *ngFor="let u of item.unidades_disponibles" [value]="u.id"
+                    [selected]="u.id === item.unidad_seleccionada_id">
                     {{ u.codigo_barra }}
                   </option>
                 </select>
@@ -268,7 +256,8 @@
       <h3 class="seccion-titulo">Materiales Adicionales (añadidos por PAS)</h3>
       <div class="materiales-lista">
         <div class="material-item adicional" *ngFor="let item of itemsAdicionales; let i = index">
-          <span class="material-tipo-badge" [class.libro]="item.tipo === 'ejemplar'" [class.equipo]="item.tipo === 'unidad'">
+          <span class="material-tipo-badge" [class.libro]="item.tipo === 'ejemplar'"
+            [class.equipo]="item.tipo === 'unidad'">
             {{ item.tipo === 'ejemplar' ? 'Libro' : 'Equipo' }}
           </span>
           <div class="material-info-adicional">
@@ -282,10 +271,7 @@
 
     <!-- Botón para añadir materiales -->
     <div class="seccion-añadir">
-      <button 
-        class="btn-añadir-material" 
-        (click)="toggleBuscadorMateriales()"
-      >
+      <button class="btn-añadir-material" (click)="toggleBuscadorMateriales()">
         {{ mostrarBuscadorMateriales ? '− Cerrar escáner' : '+ Añadir material (escanear código)' }}
       </button>
     </div>
@@ -293,18 +279,9 @@
     <!-- Buscador por código de barras -->
     <div class="buscador-materiales" *ngIf="mostrarBuscadorMateriales">
       <div class="buscador-input-group">
-        <input 
-          type="text" 
-          class="buscador-input"
-          placeholder="Escanea o introduce el código de barras..."
-          [(ngModel)]="codigoBarrasBusqueda"
-          (keyup.enter)="buscarPorCodigoBarras()"
-        />
-        <button 
-          class="btn-buscar-material"
-          (click)="buscarPorCodigoBarras()"
-          [disabled]="buscandoMaterial"
-        >
+        <input type="text" class="buscador-input" placeholder="Escanea o introduce el código de barras..."
+          [(ngModel)]="codigoBarrasBusqueda" (keyup.enter)="buscarPorCodigoBarras()" />
+        <button class="btn-buscar-material" (click)="buscarPorCodigoBarras()" [disabled]="buscandoMaterial">
           {{ buscandoMaterial ? 'Buscando...' : 'Buscar' }}
         </button>
       </div>
@@ -315,28 +292,24 @@
 
       <div class="material-encontrado" *ngIf="materialEncontrado">
         <div class="material-encontrado-info">
-          <span class="material-tipo-badge" [class.libro]="materialEncontrado.tipo === 'ejemplar'" [class.equipo]="materialEncontrado.tipo === 'unidad'">
+          <span class="material-tipo-badge" [class.libro]="materialEncontrado.tipo === 'ejemplar'"
+            [class.equipo]="materialEncontrado.tipo === 'unidad'">
             {{ materialEncontrado.tipo === 'ejemplar' ? 'Libro' : 'Equipo' }}
           </span>
           <div class="material-encontrado-detalle">
             <span class="material-nombre">
-              {{ materialEncontrado.tipo === 'ejemplar' ? materialEncontrado.libro?.titulo : materialEncontrado.equipo?.nombre }}
+              {{ materialEncontrado.tipo === 'ejemplar' ? materialEncontrado.libro?.titulo :
+              materialEncontrado.equipo?.nombre }}
             </span>
             <span class="material-codigo">Código: {{ materialEncontrado.codigo_barra }}</span>
           </div>
-          <span 
-            class="material-estado"
-            [class.disponible]="materialEncontrado.disponible"
-            [class.no-disponible]="!materialEncontrado.disponible"
-          >
+          <span class="material-estado" [class.disponible]="materialEncontrado.disponible"
+            [class.no-disponible]="!materialEncontrado.disponible">
             {{ materialEncontrado.disponible ? '✓ Disponible' : '✗ No disponible' }}
           </span>
         </div>
-        <button 
-          class="btn-agregar-material"
-          (click)="agregarMaterialEncontrado()"
-          [disabled]="!materialEncontrado.disponible"
-        >
+        <button class="btn-agregar-material" (click)="agregarMaterialEncontrado()"
+          [disabled]="!materialEncontrado.disponible">
           Añadir
         </button>
       </div>
@@ -350,6 +323,34 @@
       <input type="date" class="campo-input" [(ngModel)]="fechaDevolucion" />
       <p class="campo-ayuda">Establece la fecha en la que el alumno debe devolver el material</p>
     </div>
+
+    <!-- Selector de idioma para email -->
+<div class="form-group">
+  <label class="form-label">
+    Idioma del email
+  </label>
+  <div class="idioma-selector-compact">
+    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'es'">
+      <input 
+        type="radio" 
+        name="idiomaAprobacion" 
+        value="es" 
+        [(ngModel)]="idiomaEmailAprobacion"
+      />
+      <span>ES</span>
+    </label>
+    
+    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'en'">
+      <input 
+        type="radio" 
+        name="idiomaAprobacion" 
+        value="en" 
+        [(ngModel)]="idiomaEmailAprobacion"
+      />
+      <span>EN</span>
+    </label>
+  </div>
+</div>
 
     <!-- Botones -->
     <div class="modal-actions">
@@ -403,14 +404,68 @@
 
     </div>
 
-    <!-- Campo motivo de rechazo -->
+    <!-- NUEVO: Selector de idioma -->
+    <div class="campo-idioma">
+      <label class="campo-label">Idioma del email</label>
+      <div class="idioma-selector-compact">
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'es'">
+          <input 
+            type="radio" 
+            name="idiomaRechazo" 
+            value="es" 
+            [(ngModel)]="idiomaEmailRechazo"
+          />
+          <span>ES</span>
+        </label>
+        
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'en'">
+          <input 
+            type="radio" 
+            name="idiomaRechazo" 
+            value="en" 
+            [(ngModel)]="idiomaEmailRechazo"
+          />
+          <span>EN</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- NUEVO: Selector de plantilla -->
     <div class="campo-motivo">
       <label class="campo-label">
-        Motivo de rechazo <span class="required">*</span>
+        Plantilla de rechazo <span class="required">*</span>
       </label>
-      <textarea class="campo-textarea" rows="3"
-        placeholder="Ej: Material no disponible, solicitud duplicada, datos incorrectos..."
-        [(ngModel)]="motivoRechazo"></textarea>
+      
+      <div class="loading-motivos" *ngIf="cargandoMotivos">
+        Cargando plantillas...
+      </div>
+      
+      <select 
+        class="campo-select"
+        [(ngModel)]="motivoSeleccionado"
+        *ngIf="!cargandoMotivos"
+      >
+        <option [ngValue]="null">Selecciona un motivo</option>
+        <option 
+          *ngFor="let motivo of motivosRechazo" 
+          [ngValue]="motivo"
+        >
+          {{ idiomaEmailRechazo === 'en' ? motivo.titulo_en : motivo.titulo_es }}
+        </option>
+      </select>
+    </div>
+
+    <!-- NUEVO: Preview del email -->
+    <div class="preview-email" *ngIf="motivoSeleccionado">
+      <label class="campo-label">Vista previa del email</label>
+      <div class="preview-contenido">
+        <div class="preview-asunto">
+          <strong>Asunto:</strong> {{ obtenerTituloEmailRechazo() }}
+        </div>
+        <div class="preview-cuerpo">
+          {{ obtenerPreviewEmailRechazo() }}
+        </div>
+      </div>
     </div>
 
     <!-- Botones -->
@@ -418,7 +473,11 @@
       <button class="btn-cancelar" (click)="cerrarModalRechazar()">
         Cancelar
       </button>
-      <button class="btn-confirmar danger" (click)="confirmarRechazo()">
+      <button 
+        class="btn-confirmar danger" 
+        (click)="confirmarRechazo()"
+        [disabled]="!motivoSeleccionado"
+      >
         Confirmar Rechazo
       </button>
     </div>
