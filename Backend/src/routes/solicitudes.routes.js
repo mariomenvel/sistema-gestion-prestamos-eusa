@@ -13,6 +13,10 @@ router.get('/mias', auth, roles.alumnoOProfesor, solicitudesController.obtenerMi
 // Crear solicitud: solo alumno o profesor
 router.post('/', auth, roles.alumnoOProfesor, solicitudesController.crearSolicitud);
 
+
+// Verificar disponibilidad de items (PAS)
+router.get('/:id/disponibilidad', auth, roles.soloPAS, solicitudesController.verificarDisponibilidad);
+
 // Aprobar solicitud (solo PAS)
 router.put('/:id/aprobar', auth, roles.soloPAS, solicitudesController.aprobarSolicitud);
 

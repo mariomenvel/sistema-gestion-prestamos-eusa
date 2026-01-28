@@ -168,7 +168,7 @@ function aprobarSolicitud(req, res) {
   
   // Recibir fecha_devolucion del body
   var fechaDevolucionBody = req.body.fecha_devolucion;
-  // Items adicionales que el PAS quiera añadir
+  // Items adicionales que el PAS quiera añadir (ahora con ejemplar_id o unidad_id específicos)
   var itemsAdicionales = req.body.items_adicionales || [];
 
   db.sequelize.transaction(function (t) {
@@ -208,7 +208,7 @@ function aprobarSolicitud(req, res) {
           fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
         }
 
-        // Buscar unidades/ejemplares disponibles para cada item
+        // Buscar unidades/ejemplares disponibles para cada item de la solicitud original
         var promesasBuscarItems = solicitud.items.map(function (item) {
           if (item.libro_id) {
             return models.Ejemplar.findOne({
@@ -246,7 +246,7 @@ function aprobarSolicitud(req, res) {
           return Promise.resolve(null);
         });
 
-        // Resolver todas las búsquedas
+        // Resolver todas las búsquedas de items originales
         return Promise.all(promesasBuscarItems).then(function (itemsEncontrados) {
           var unidadesIds = [];
           var ejemplaresIds = [];
@@ -259,8 +259,29 @@ function aprobarSolicitud(req, res) {
             }
           });
 
-          // Procesar items adicionales del PAS
+          // Procesar items adicionales del PAS (con ejemplar_id o unidad_id específicos)
           var promesasAdicionales = itemsAdicionales.map(function (item) {
+            // Si viene ejemplar_id específico (escaneado por código de barras)
+            if (item.ejemplar_id) {
+              return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
+                .then(function (ejemplar) {
+                  if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
+                  if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
+                  return { tipo: 'ejemplar', id: ejemplar.id };
+                });
+            }
+            
+            // Si viene unidad_id específica (escaneada por código de barras)
+            if (item.unidad_id) {
+              return models.Unidad.findByPk(item.unidad_id, { transaction: t })
+                .then(function (unidad) {
+                  if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
+                  if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
+                  return { tipo: 'unidad', id: unidad.id };
+                });
+            }
+            
+            // Fallback: Si viene libro_id (buscar cualquier ejemplar disponible)
             if (item.libro_id) {
               return models.Ejemplar.findOne({
                 where: {
@@ -274,6 +295,7 @@ function aprobarSolicitud(req, res) {
               });
             }
             
+            // Fallback: Si viene equipo_id (buscar cualquier unidad disponible)
             if (item.equipo_id) {
               return models.Unidad.findOne({
                 where: {
@@ -292,6 +314,7 @@ function aprobarSolicitud(req, res) {
           });
 
           return Promise.all(promesasAdicionales).then(function (adicionalesEncontrados) {
+            // Añadir los adicionales a las listas
             adicionalesEncontrados.forEach(function (item) {
               if (item && item.tipo === 'unidad') {
                 unidadesIds.push(item.id);
@@ -323,7 +346,7 @@ function aprobarSolicitud(req, res) {
         var ahora = data.ahora;
         var pasId = data.pasId;
 
-        // 1. Crear CABECERA Préstamo con fecha correcta
+        // 1. Crear CABECERA Préstamo
         return models.Prestamo.create({
           usuario_id: solicitud.usuario_id,
           solicitud_id: solicitud.id,
@@ -395,15 +418,24 @@ function aprobarSolicitud(req, res) {
       res.json({ mensaje: 'Préstamo generado correctamente' });
     })
     .catch(function (error) {
+      // Errores específicos
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'La solicitud no está pendiente' });
       if (error.message === 'TIPO_A_SIN_FECHA') return res.status(400).json({ mensaje: 'Para Tipo A es obligatorio enviar fecha_devolucion' });
       if (error.message === 'FECHA_INVALIDA') return res.status(400).json({ mensaje: 'La fecha de devolución no es válida' });
       if (error.message === 'FECHA_PASADA') return res.status(400).json({ mensaje: 'La fecha de devolución no puede ser en el pasado' });
       if (error.message === 'SIN_ITEMS_DISPONIBLES') return res.status(400).json({ mensaje: 'No hay materiales disponibles para esta solicitud' });
+      
+      // Errores de ejemplares
       if (error.message.startsWith('EJEMPLAR_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay ejemplares disponibles del libro solicitado' });
+      if (error.message.startsWith('EJEMPLAR_NO_EXISTE')) return res.status(400).json({ mensaje: 'El ejemplar especificado no existe' });
+      if (error.message.startsWith('EJEMPLAR_YA_PRESTADO')) return res.status(400).json({ mensaje: 'El ejemplar ya está prestado a otro usuario' });
+      
+      // Errores de unidades
       if (error.message.startsWith('UNIDAD_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay unidades disponibles del equipo solicitado' });
-      if (error.message === 'UNIDAD_YA_PRESTADA') return res.status(400).json({ mensaje: 'Alguna unidad ya está prestada' });
+      if (error.message.startsWith('UNIDAD_NO_EXISTE')) return res.status(400).json({ mensaje: 'La unidad especificada no existe' });
+      if (error.message.startsWith('UNIDAD_YA_PRESTADA')) return res.status(400).json({ mensaje: 'La unidad ya está prestada a otro usuario' });
+      if (error.message === 'UNIDAD_NO_APTA') return res.status(400).json({ mensaje: 'La unidad no está en condiciones de ser prestada' });
 
       console.error('Error al aprobar solicitud:', error);
       res.status(500).json({ mensaje: 'Error al generar préstamo' });
@@ -570,6 +602,99 @@ function obtenerTodasLasSolicitudes(req, res) {
     });
 }
 
+/**
+ * GET /solicitudes/:id/disponibilidad
+ * Verifica la disponibilidad de cada item de una solicitud
+ */
+function verificarDisponibilidad(req, res) {
+  var solicitudId = req.params.id;
+
+  models.Solicitud.findByPk(solicitudId, {
+    include: [
+      {
+        model: models.SolicitudItem,
+        as: 'items',
+        include: [
+          { 
+            model: models.Libro,
+            include: [{ model: models.Ejemplar, as: 'ejemplares' }]
+          },
+          { 
+            model: models.Equipo,
+            include: [{ model: models.Unidad, as: 'unidades' }]
+          }
+        ]
+      }
+    ]
+  })
+  .then(function(solicitud) {
+    if (!solicitud) {
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+    }
+
+    var itemsConDisponibilidad = solicitud.items.map(function(item) {
+      var resultado = {
+        id: item.id,
+        libro_id: item.libro_id,
+        equipo_id: item.equipo_id,
+        cantidad: item.cantidad,
+        tipo: item.libro_id ? 'libro' : 'equipo',
+        nombre: '',
+        disponible: false,
+        ejemplares_disponibles: [],
+        unidades_disponibles: []
+      };
+
+      if (item.Libro) {
+        resultado.nombre = item.Libro.titulo || 'Libro sin título';
+        
+        // Filtrar ejemplares disponibles
+        var ejemplaresDisp = (item.Libro.ejemplares || []).filter(function(ej) {
+          return ej.estado === 'disponible';
+        });
+        
+        resultado.disponible = ejemplaresDisp.length > 0;
+        resultado.ejemplares_disponibles = ejemplaresDisp.map(function(ej) {
+          return {
+            id: ej.id,
+            codigo_barra: ej.codigo_barra,
+            estado: ej.estado
+          };
+        });
+      }
+
+      if (item.Equipo) {
+        resultado.nombre = (item.Equipo.marca + ' ' + item.Equipo.modelo).trim() || 'Equipo sin datos';
+        
+        // Filtrar unidades disponibles
+        var unidadesDisp = (item.Equipo.unidades || []).filter(function(u) {
+          return !u.esta_prestado && 
+            (u.estado_fisico === 'funciona' || u.estado_fisico === 'obsoleto' || !u.estado_fisico);
+        });
+        
+        resultado.disponible = unidadesDisp.length > 0;
+        resultado.unidades_disponibles = unidadesDisp.map(function(u) {
+          return {
+            id: u.id,
+            codigo_barra: u.codigo_barra,
+            estado_fisico: u.estado_fisico
+          };
+        });
+      }
+
+      return resultado;
+    });
+
+    res.json({
+      solicitud_id: solicitud.id,
+      items: itemsConDisponibilidad
+    });
+  })
+  .catch(function(error) {
+    console.error('Error verificando disponibilidad:', error);
+    res.status(500).json({ mensaje: 'Error al verificar disponibilidad' });
+  });
+}
 
 module.exports = {
   crearSolicitud: crearSolicitud,
@@ -578,7 +703,9 @@ module.exports = {
   aprobarSolicitud: aprobarSolicitud,
   rechazarSolicitud: rechazarSolicitud,
   cancelarSolicitud: cancelarSolicitud,
-  obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes
+  obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes,
+  verificarDisponibilidad: verificarDisponibilidad
+
 };
 
 function validarLimiteTrimestral(usuarioId) {
