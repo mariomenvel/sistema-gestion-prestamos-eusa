@@ -163,13 +163,14 @@ function obtenerSolicitudesPendientes(req, res) {
 }
 
 function aprobarSolicitud(req, res) {
+  console.log('📥 Body recibido:', JSON.stringify(req.body, null, 2));
+  
   var solicitudId = req.params.id;
   var pasId = req.user.id;
   
-  // Recibir fecha_devolucion del body
   var fechaDevolucionBody = req.body.fecha_devolucion;
-  // Items adicionales que el PAS quiera añadir (ahora con ejemplar_id o unidad_id específicos)
-  var itemsAdicionales = req.body.items_adicionales || [];
+  // Todos los items a prestar (originales seleccionados + adicionales)
+  var itemsAPrestar = req.body.items_adicionales || [];
 
   db.sequelize.transaction(function (t) {
     return models.Solicitud.findByPk(solicitudId, { 
@@ -208,46 +209,37 @@ function aprobarSolicitud(req, res) {
           fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
         }
 
-        // Buscar unidades/ejemplares disponibles para cada item de la solicitud original
-        var promesasBuscarItems = solicitud.items.map(function (item) {
-          if (item.libro_id) {
-            return models.Ejemplar.findOne({
-              where: {
-                libro_id: item.libro_id,
-                estado: 'disponible'
-              },
-              transaction: t
-            }).then(function (ejemplar) {
-              if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
-              return {
-                tipo: 'ejemplar',
-                id: ejemplar.id
-              };
-            });
+        // Validar que hay al menos un item a prestar
+        if (!itemsAPrestar || itemsAPrestar.length === 0) {
+          throw new Error('SIN_ITEMS_SELECCIONADOS');
+        }
+
+        // Procesar todos los items enviados desde el frontend
+        var promesasItems = itemsAPrestar.map(function (item) {
+          // Si viene ejemplar_id específico
+          if (item.ejemplar_id) {
+            return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
+              .then(function (ejemplar) {
+                if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
+                if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
+                return { tipo: 'ejemplar', id: ejemplar.id };
+              });
           }
           
-          if (item.equipo_id) {
-            return models.Unidad.findOne({
-              where: {
-                equipo_id: item.equipo_id,
-                esta_prestado: false,
-                estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
-              },
-              transaction: t
-            }).then(function (unidad) {
-              if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
-              return {
-                tipo: 'unidad',
-                id: unidad.id
-              };
-            });
+          // Si viene unidad_id específica
+          if (item.unidad_id) {
+            return models.Unidad.findByPk(item.unidad_id, { transaction: t })
+              .then(function (unidad) {
+                if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
+                if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
+                return { tipo: 'unidad', id: unidad.id };
+              });
           }
           
           return Promise.resolve(null);
         });
 
-        // Resolver todas las búsquedas de items originales
-        return Promise.all(promesasBuscarItems).then(function (itemsEncontrados) {
+        return Promise.all(promesasItems).then(function (itemsEncontrados) {
           var unidadesIds = [];
           var ejemplaresIds = [];
           
@@ -259,83 +251,18 @@ function aprobarSolicitud(req, res) {
             }
           });
 
-          // Procesar items adicionales del PAS (con ejemplar_id o unidad_id específicos)
-          var promesasAdicionales = itemsAdicionales.map(function (item) {
-            // Si viene ejemplar_id específico (escaneado por código de barras)
-            if (item.ejemplar_id) {
-              return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
-                .then(function (ejemplar) {
-                  if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
-                  if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
-                  return { tipo: 'ejemplar', id: ejemplar.id };
-                });
-            }
-            
-            // Si viene unidad_id específica (escaneada por código de barras)
-            if (item.unidad_id) {
-              return models.Unidad.findByPk(item.unidad_id, { transaction: t })
-                .then(function (unidad) {
-                  if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
-                  if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
-                  return { tipo: 'unidad', id: unidad.id };
-                });
-            }
-            
-            // Fallback: Si viene libro_id (buscar cualquier ejemplar disponible)
-            if (item.libro_id) {
-              return models.Ejemplar.findOne({
-                where: {
-                  libro_id: item.libro_id,
-                  estado: 'disponible'
-                },
-                transaction: t
-              }).then(function (ejemplar) {
-                if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
-                return { tipo: 'ejemplar', id: ejemplar.id };
-              });
-            }
-            
-            // Fallback: Si viene equipo_id (buscar cualquier unidad disponible)
-            if (item.equipo_id) {
-              return models.Unidad.findOne({
-                where: {
-                  equipo_id: item.equipo_id,
-                  esta_prestado: false,
-                  estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
-                },
-                transaction: t
-              }).then(function (unidad) {
-                if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
-                return { tipo: 'unidad', id: unidad.id };
-              });
-            }
-            
-            return Promise.resolve(null);
-          });
-
-          return Promise.all(promesasAdicionales).then(function (adicionalesEncontrados) {
-            // Añadir los adicionales a las listas
-            adicionalesEncontrados.forEach(function (item) {
-              if (item && item.tipo === 'unidad') {
-                unidadesIds.push(item.id);
-              } else if (item && item.tipo === 'ejemplar') {
-                ejemplaresIds.push(item.id);
-              }
-            });
-
-            if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
-              throw new Error('SIN_ITEMS_DISPONIBLES');
-            }
-            
-            return { 
-              solicitud: solicitud, 
-              unidadesIds: unidadesIds, 
-              ejemplaresIds: ejemplaresIds,
-              fechaAUsar: fechaAUsar,
-              ahora: ahora,
-              pasId: pasId
-            };
-          });
+          if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+            throw new Error('SIN_ITEMS_DISPONIBLES');
+          }
+          
+          return { 
+            solicitud: solicitud, 
+            unidadesIds: unidadesIds, 
+            ejemplaresIds: ejemplaresIds,
+            fechaAUsar: fechaAUsar,
+            ahora: ahora,
+            pasId: pasId
+          };
         });
       })
       .then(function (data) {
@@ -424,6 +351,7 @@ function aprobarSolicitud(req, res) {
       if (error.message === 'TIPO_A_SIN_FECHA') return res.status(400).json({ mensaje: 'Para Tipo A es obligatorio enviar fecha_devolucion' });
       if (error.message === 'FECHA_INVALIDA') return res.status(400).json({ mensaje: 'La fecha de devolución no es válida' });
       if (error.message === 'FECHA_PASADA') return res.status(400).json({ mensaje: 'La fecha de devolución no puede ser en el pasado' });
+      if (error.message === 'SIN_ITEMS_SELECCIONADOS') return res.status(400).json({ mensaje: 'Debes seleccionar al menos un material para aprobar' });
       if (error.message === 'SIN_ITEMS_DISPONIBLES') return res.status(400).json({ mensaje: 'No hay materiales disponibles para esta solicitud' });
       
       // Errores de ejemplares

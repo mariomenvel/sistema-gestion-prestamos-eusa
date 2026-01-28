@@ -185,41 +185,115 @@
 
     <!-- Información de la solicitud -->
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
-      
       <div class="info-row">
         <div class="info-item">
           <span class="info-label">Alumno:</span>
           <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
         </div>
-        
         <div class="info-item">
           <span class="info-label">Tipo:</span>
           <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
         </div>
       </div>
-
     </div>
 
-    <!-- Materiales solicitados -->
+    <!-- Materiales solicitados con disponibilidad -->
     <div class="seccion-materiales">
       <h3 class="seccion-titulo">Materiales Solicitados</h3>
-      <div class="materiales-lista">
-        <div class="material-item" *ngFor="let item of getItemsSolicitud(solicitudSeleccionada!)">
-          <span class="material-tipo-badge">{{ getTipoItem(item) }}</span>
-          <span class="material-nombre">{{ getNombreItem(item) }}</span>
+      
+      <!-- Loading -->
+      <div class="loading-disponibilidad" *ngIf="cargandoDisponibilidad">
+        Verificando disponibilidad...
+      </div>
+
+      <!-- Lista de items -->
+      <div class="materiales-lista" *ngIf="!cargandoDisponibilidad">
+        <div 
+          class="material-item-disponibilidad" 
+          *ngFor="let item of itemsSolicitudConDisponibilidad"
+          [class.no-disponible]="!item.disponible"
+          [class.excluido]="!item.incluido"
+        >
+          <!-- Checkbox para incluir/excluir -->
+          <div class="material-checkbox">
+            <input 
+              type="checkbox" 
+              [checked]="item.incluido"
+              [disabled]="!item.disponible"
+              (change)="toggleItemIncluido(item)"
+            />
+          </div>
+
+          <!-- Info del material -->
+          <div class="material-info-completa">
+            <div class="material-cabecera">
+              <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'" [class.equipo]="item.tipo === 'equipo'">
+                {{ item.tipo === 'libro' ? 'Libro' : 'Equipo' }}
+              </span>
+              <span class="material-nombre">{{ item.nombre }}</span>
+            </div>
+
+            <!-- Estado de disponibilidad -->
+            <div class="material-disponibilidad-info">
+              <span 
+                class="material-estado-badge"
+                [class.disponible]="item.disponible"
+                [class.no-disponible]="!item.disponible"
+              >
+                {{ item.disponible ? '✓ Disponible' : '✗ No disponible' }}
+              </span>
+
+              <!-- Selector de ejemplar/unidad si hay varios disponibles -->
+              <div class="selector-ejemplar" *ngIf="item.disponible && item.tipo === 'libro' && item.ejemplares_disponibles.length > 1">
+                <label>Ejemplar:</label>
+                <select (change)="seleccionarEjemplar(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
+                  <option 
+                    *ngFor="let ej of item.ejemplares_disponibles" 
+                    [value]="ej.id"
+                    [selected]="ej.id === item.ejemplar_seleccionado_id"
+                  >
+                    {{ ej.codigo_barra }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="selector-unidad" *ngIf="item.disponible && item.tipo === 'equipo' && item.unidades_disponibles.length > 1">
+                <label>Unidad:</label>
+                <select (change)="seleccionarUnidad(item, $any($event.target).value, $any($event.target).selectedOptions[0].text)">
+                  <option 
+                    *ngFor="let u of item.unidades_disponibles" 
+                    [value]="u.id"
+                    [selected]="u.id === item.unidad_seleccionada_id"
+                  >
+                    {{ u.codigo_barra }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Mostrar código si solo hay uno -->
+              <span class="codigo-seleccionado" *ngIf="item.disponible && item.codigo_barra_seleccionado && 
+                ((item.tipo === 'libro' && item.ejemplares_disponibles.length === 1) || 
+                 (item.tipo === 'equipo' && item.unidades_disponibles.length === 1))">
+                Código: {{ item.codigo_barra_seleccionado }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Materiales adicionales -->
+    <!-- Materiales adicionales (escaneados por PAS) -->
     <div class="seccion-materiales-adicionales" *ngIf="itemsAdicionales.length > 0">
       <h3 class="seccion-titulo">Materiales Adicionales (añadidos por PAS)</h3>
       <div class="materiales-lista">
         <div class="material-item adicional" *ngFor="let item of itemsAdicionales; let i = index">
-          <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'" [class.equipo]="item.tipo === 'equipo'">
-            {{ item.tipo === 'libro' ? 'Libro' : 'Equipo' }}
+          <span class="material-tipo-badge" [class.libro]="item.tipo === 'ejemplar'" [class.equipo]="item.tipo === 'unidad'">
+            {{ item.tipo === 'ejemplar' ? 'Libro' : 'Equipo' }}
           </span>
-          <span class="material-nombre">{{ item.nombre }}</span>
+          <div class="material-info-adicional">
+            <span class="material-nombre">{{ item.nombre }}</span>
+            <span class="material-codigo-small">{{ item.codigo_barra }}</span>
+          </div>
           <button class="btn-eliminar-item" (click)="eliminarItemAdicional(i)">✕</button>
         </div>
       </div>
@@ -231,84 +305,60 @@
         class="btn-añadir-material" 
         (click)="toggleBuscadorMateriales()"
       >
-        {{ mostrarBuscadorMateriales ? '− Cerrar buscador' : '+ Añadir material adicional' }}
+        {{ mostrarBuscadorMateriales ? '− Cerrar escáner' : '+ Añadir material (escanear código)' }}
       </button>
     </div>
 
-    <!-- Buscador de materiales -->
+    <!-- Buscador por código de barras -->
     <div class="buscador-materiales" *ngIf="mostrarBuscadorMateriales">
-      
-      <!-- Tabs libro/equipo -->
-      <div class="buscador-tabs">
-        <button 
-          class="buscador-tab" 
-          [class.active]="tipoBusqueda === 'libro'"
-          (click)="cambiarTipoBusqueda('libro')"
-        >
-          📚 Libros
-        </button>
-        <button 
-          class="buscador-tab" 
-          [class.active]="tipoBusqueda === 'equipo'"
-          (click)="cambiarTipoBusqueda('equipo')"
-        >
-          📷 Equipos
-        </button>
-      </div>
-
-      <!-- Input de búsqueda -->
       <div class="buscador-input-group">
         <input 
           type="text" 
           class="buscador-input"
-          [placeholder]="tipoBusqueda === 'libro' ? 'Buscar por título o autor...' : 'Buscar por marca o modelo...'"
-          [(ngModel)]="textoBusquedaMaterial"
-          (keyup.enter)="buscarMateriales()"
+          placeholder="Escanea o introduce el código de barras..."
+          [(ngModel)]="codigoBarrasBusqueda"
+          (keyup.enter)="buscarPorCodigoBarras()"
         />
         <button 
           class="btn-buscar-material"
-          (click)="buscarMateriales()"
-          [disabled]="buscandoMateriales"
+          (click)="buscarPorCodigoBarras()"
+          [disabled]="buscandoMaterial"
         >
-          {{ buscandoMateriales ? 'Buscando...' : 'Buscar' }}
+          {{ buscandoMaterial ? 'Buscando...' : 'Buscar' }}
         </button>
       </div>
 
-      <!-- Resultados de libros -->
-      <div class="buscador-resultados" *ngIf="tipoBusqueda === 'libro' && librosDisponibles.length > 0">
-        <div 
-          class="resultado-item" 
-          *ngFor="let libro of librosDisponibles"
-          (click)="agregarLibro(libro)"
-        >
-          <div class="resultado-info">
-            <span class="resultado-nombre">{{ libro.titulo }}</span>
-            <span class="resultado-detalle">{{ libro.autor }}</span>
+      <div class="buscador-error" *ngIf="errorBusqueda">
+        {{ errorBusqueda }}
+      </div>
+
+      <div class="material-encontrado" *ngIf="materialEncontrado">
+        <div class="material-encontrado-info">
+          <span class="material-tipo-badge" [class.libro]="materialEncontrado.tipo === 'ejemplar'" [class.equipo]="materialEncontrado.tipo === 'unidad'">
+            {{ materialEncontrado.tipo === 'ejemplar' ? 'Libro' : 'Equipo' }}
+          </span>
+          <div class="material-encontrado-detalle">
+            <span class="material-nombre">
+              {{ materialEncontrado.tipo === 'ejemplar' ? materialEncontrado.libro?.titulo : materialEncontrado.equipo?.nombre }}
+            </span>
+            <span class="material-codigo">Código: {{ materialEncontrado.codigo_barra }}</span>
           </div>
-          <span class="resultado-disponibles">{{ libro.disponibles }} disp.</span>
+          <span 
+            class="material-estado"
+            [class.disponible]="materialEncontrado.disponible"
+            [class.no-disponible]="!materialEncontrado.disponible"
+          >
+            {{ materialEncontrado.disponible ? '✓ Disponible' : '✗ No disponible' }}
+          </span>
         </div>
-      </div>
-
-      <!-- Resultados de equipos -->
-      <div class="buscador-resultados" *ngIf="tipoBusqueda === 'equipo' && equiposDisponibles.length > 0">
-        <div 
-          class="resultado-item" 
-          *ngFor="let equipo of equiposDisponibles"
-          (click)="agregarEquipo(equipo)"
+        <button 
+          class="btn-agregar-material"
+          (click)="agregarMaterialEncontrado()"
+          [disabled]="!materialEncontrado.disponible"
         >
-          <div class="resultado-info">
-            <span class="resultado-nombre">{{ equipo.nombre }}</span>
-            <span class="resultado-detalle">{{ equipo.marca }}</span>
-          </div>
-          <span class="resultado-disponibles">{{ equipo.disponibles }} disp.</span>
-        </div>
+          Añadir
+        </button>
       </div>
-
-      <!-- Sin resultados -->
-      <div class="buscador-vacio" *ngIf="(tipoBusqueda === 'libro' && librosDisponibles.length === 0 && textoBusquedaMaterial) || (tipoBusqueda === 'equipo' && equiposDisponibles.length === 0 && textoBusquedaMaterial)">
-        No se encontraron {{ tipoBusqueda === 'libro' ? 'libros' : 'equipos' }} disponibles
-      </div>
-
     </div>
 
     <!-- Campo fecha de devolución (solo para Tipo A) -->
