@@ -14,6 +14,9 @@ router.get("/buscar", auth, equiposController.buscarPorCodigoBarras);
 // Buscar equipos con unidades disponibles (PAS) ← AÑADIR AQUÍ
 router.get("/disponibles", auth, roles.soloPAS, equiposController.buscarEquiposDisponibles);
 
+// Buscar unidad por código de barras
+router.get('/unidad/:codigo', auth, roles.soloPAS, equiposController.buscarUnidadPorCodigo);
+
 // Gestión (solo PAS)
 router.get("/:id", auth, roles.soloPAS, equiposController.obtenerEquipoPorId);
 
