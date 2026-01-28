@@ -306,6 +306,39 @@ export class MaterialesComponent implements OnInit {
     return estadoEncontrado ? estadoEncontrado.texto : estado;
   }
 
+  // ===== HELPERS DE STATUS (NUEVOS) =====
+
+  getPrestadoTexto(estaPrestado: boolean): string {
+    return estaPrestado ? 'Prestado' : 'No prestado';
+  }
+
+  getPrestadoBadgeClass(estaPrestado: boolean): string {
+    return estaPrestado ? 'badge-prestado' : 'badge-en-almacen';
+  }
+
+  getFisicoTexto(estado: string): string {
+    switch (estado) {
+      case 'funciona': return 'Funcional';
+      case 'no_funciona': return 'No funciona';
+      case 'en_reparacion': return 'En reparación';
+      case 'obsoleto': return 'Obsoleto';
+      case 'falla': return 'Con fallos';
+      case 'perdido_sustraido': return 'Perdido';
+      default: return estado || 'Desconocido';
+    }
+  }
+
+  getFisicoBadgeClass(estado: string): string {
+    switch (estado) {
+      case 'funciona': return 'badge-funcional';
+      case 'en_reparacion': return 'badge-reparacion';
+      case 'no_funciona':
+      case 'falla':
+      case 'perdido_sustraido': return 'badge-no-disponible';
+      default: return 'badge-bloqueado';
+    }
+  }
+
   /**
    * Obtiene la clase CSS del badge según el estado
    */
@@ -459,7 +492,7 @@ export class MaterialesComponent implements OnInit {
     this.materialesService.actualizarUnidad(unidad.id, {
       numero_serie: unidad.numero_serie,
       codigo_barra: unidad.codigo_barra,
-      estado_fisico: unidad.estado as any // Mapear el campo 'estado' del frontend al 'estado_fisico' del backend
+      estado_fisico: unidad.estado_fisico as any
     }).subscribe({
       next: (unidadActualizada) => {
         console.log('✅ Unidad guardada:', unidadActualizada);
