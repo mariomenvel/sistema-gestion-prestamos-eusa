@@ -13,16 +13,21 @@ import { Solicitud } from '../../../core/models/solicitud.model';
 export class SolicitudesComponent implements OnInit {
 
   // ===== DATOS =====
-  
+
   solicitudes: Solicitud[] = [];
   solicitudesFiltradas: Solicitud[] = [];
 
   // ===== FILTROS =====
-  
+
   filtroEstadoActivo: 'todas' | 'pendiente' | 'aprobada' | 'rechazada' = 'todas';
   filtroTipo: string = '';
   filtroFecha: string = '';
   textoBusqueda: string = '';
+
+  // ===== ORDENACIÓN =====
+
+  sortColumn: string = 'fecha'; // 'fecha' o 'alumno'
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   // ===== ESTADO =====
 
@@ -53,7 +58,7 @@ export class SolicitudesComponent implements OnInit {
   mostrarBuscadorMateriales: boolean = false;
   tipoBusqueda: 'libro' | 'equipo' = 'libro';
   textoBusquedaMaterial: string = '';
-  
+
   // Resultados de búsqueda
   librosDisponibles: LibroDisponible[] = [];
   equiposDisponibles: EquipoDisponible[] = [];
@@ -63,13 +68,13 @@ export class SolicitudesComponent implements OnInit {
   itemsAdicionales: ItemAdicional[] = [];
 
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private solicitudesService: SolicitudesService
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     this.cargarSolicitudes();
   }
@@ -88,7 +93,7 @@ export class SolicitudesComponent implements OnInit {
   }
 
   // ===== MÉTODOS DE FILTROS =====
-  
+
   cambiarFiltroEstado(estado: 'todas' | 'pendiente' | 'aprobada' | 'rechazada'): void {
     this.filtroEstadoActivo = estado;
     this.aplicarFiltros();
@@ -103,6 +108,19 @@ export class SolicitudesComponent implements OnInit {
     this.filtroTipo = '';
     this.filtroFecha = '';
     this.textoBusqueda = '';
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Cambia la columna de ordenación o la dirección
+   */
+  ordenar(columna: string): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = columna === 'fecha' ? 'desc' : 'asc';
+    }
     this.aplicarFiltros();
   }
 
@@ -151,7 +169,7 @@ export class SolicitudesComponent implements OnInit {
     this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
       next: () => {
         console.log('✅ Solicitud aprobada');
-        const mensajeExtra = this.itemsAdicionales.length > 0 
+        const mensajeExtra = this.itemsAdicionales.length > 0
           ? ` Se añadieron ${this.itemsAdicionales.length} material(es) adicional(es).`
           : '';
         this.mostrarNotificacion(
@@ -328,8 +346,8 @@ export class SolicitudesComponent implements OnInit {
   getNombreUsuario(solicitud: Solicitud): string {
     const usuario = (solicitud as any).Usuario || solicitud.usuario;
     if (usuario) {
-      const nombreCompleto = usuario.apellidos 
-        ? `${usuario.nombre} ${usuario.apellidos}` 
+      const nombreCompleto = usuario.apellidos
+        ? `${usuario.nombre} ${usuario.apellidos}`
         : usuario.nombre;
       return nombreCompleto || usuario.email;
     }
@@ -386,7 +404,7 @@ export class SolicitudesComponent implements OnInit {
   }
 
   getEstadoClass(estado: string): string {
-    switch(estado) {
+    switch (estado) {
       case 'pendiente': return 'badge-pendiente';
       case 'aprobada': return 'badge-aprobada';
       case 'rechazada': return 'badge-rechazada';
@@ -395,7 +413,7 @@ export class SolicitudesComponent implements OnInit {
   }
 
   getEstadoTexto(estado: string): string {
-    switch(estado) {
+    switch (estado) {
       case 'pendiente': return 'Pendiente';
       case 'aprobada': return 'Aprobada';
       case 'rechazada': return 'Rechazada';
@@ -418,7 +436,7 @@ export class SolicitudesComponent implements OnInit {
   }
 
   // ===== MÉTODOS PRIVADOS =====
-  
+
   private cargarSolicitudes(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -438,7 +456,7 @@ export class SolicitudesComponent implements OnInit {
     });
   }
 
-  private aplicarFiltros(): void {
+  aplicarFiltros(): void {
     let resultado = [...this.solicitudes];
 
     if (this.filtroEstadoActivo !== 'todas') {
@@ -454,23 +472,23 @@ export class SolicitudesComponent implements OnInit {
       resultado = resultado.filter(s => {
         const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
         const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
-        return nombreUsuario.includes(textoNormalizado) || 
-               nombreMaterial.includes(textoNormalizado);
+        return nombreUsuario.includes(textoNormalizado) ||
+          nombreMaterial.includes(textoNormalizado);
       });
     }
 
     if (this.filtroFecha) {
       const fechaLimite = new Date();
-      fechaLimite.setHours(0,0,0,0);
+      fechaLimite.setHours(0, 0, 0, 0);
 
-      switch(this.filtroFecha){
+      switch (this.filtroFecha) {
         case 'hoy':
           break;
         case 'semana':
-          fechaLimite.setDate(fechaLimite.getDate()-7);
+          fechaLimite.setDate(fechaLimite.getDate() - 7);
           break;
         case 'mes':
-          fechaLimite.setMonth(fechaLimite.getMonth()-1);
+          fechaLimite.setMonth(fechaLimite.getMonth() - 1);
           break;
       }
       resultado = resultado.filter(s => {
@@ -478,8 +496,38 @@ export class SolicitudesComponent implements OnInit {
         return fechaSolicitud >= fechaLimite;
       });
     }
-    
-    this.solicitudesFiltradas = resultado;
+
+    // 4. Aplicar ordenación
+    this.aplicarOrdenacion(resultado);
+  }
+
+  /**
+   * Lógica interna de ordenación
+   */
+  private aplicarOrdenacion(datos: Solicitud[]): void {
+    datos.sort((a, b) => {
+      let valorA: any;
+      let valorB: any;
+
+      switch (this.sortColumn) {
+        case 'fecha':
+          valorA = new Date(a.creada_en).getTime();
+          valorB = new Date(b.creada_en).getTime();
+          break;
+        case 'alumno':
+          valorA = this.getNombreUsuario(a).toLowerCase();
+          valorB = this.getNombreUsuario(b).toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (valorA < valorB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valorA > valorB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    this.solicitudesFiltradas = datos;
   }
 
   private normalizarTexto(texto: string): string {

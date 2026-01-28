@@ -6,62 +6,41 @@
 
   <!-- Tabs de filtro por estado -->
   <div class="tabs-container">
-    <button 
-      class="tab"
-      [class.active]="filtroEstadoActivo === 'todas'"
-      (click)="cambiarFiltroEstado('todas')"
-    >
+    <button class="tab" [class.active]="filtroEstadoActivo === 'todas'" (click)="cambiarFiltroEstado('todas')">
       Todas
     </button>
-    
-    <button 
-      class="tab"
-      [class.active]="filtroEstadoActivo === 'pendiente'"
-      (click)="cambiarFiltroEstado('pendiente')"
-    >
+
+    <button class="tab" [class.active]="filtroEstadoActivo === 'pendiente'" (click)="cambiarFiltroEstado('pendiente')">
       Pendientes
     </button>
-    
-    <button 
-      class="tab"
-      [class.active]="filtroEstadoActivo === 'aprobada'"
-      (click)="cambiarFiltroEstado('aprobada')"
-    >
+
+    <button class="tab" [class.active]="filtroEstadoActivo === 'aprobada'" (click)="cambiarFiltroEstado('aprobada')">
       Aprobadas
     </button>
-    
-    <button 
-      class="tab"
-      [class.active]="filtroEstadoActivo === 'rechazada'"
-      (click)="cambiarFiltroEstado('rechazada')"
-    >
+
+    <button class="tab" [class.active]="filtroEstadoActivo === 'rechazada'" (click)="cambiarFiltroEstado('rechazada')">
       Rechazadas
     </button>
   </div>
 
   <!-- Barra de búsqueda y filtros -->
   <div class="filters-bar">
-    
+
     <!-- Barra de búsqueda -->
     <div class="search-box">
-      <input 
-        type="text" 
-        class="search-input"
-        placeholder="Buscar por alumno, material..."
-        [(ngModel)]="textoBusqueda"
-        (input)="buscar()"
-      >
+      <input type="text" class="search-input" placeholder="Buscar por alumno, material o teléfono..."
+        [(ngModel)]="textoBusqueda" (input)="aplicarFiltros()">
     </div>
 
     <!-- Filtro Tipo de Solicitud -->
-    <select class="filter-select" [(ngModel)]="filtroTipo" (change)="buscar()">
+    <select class="filter-select" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
       <option value="">Tipo de Solicitud</option>
       <option value="prof_trabajo">Tipo A</option>
       <option value="uso_propio">Tipo B</option>
     </select>
 
     <!-- Filtro Fecha -->
-    <select class="filter-select" [(ngModel)]="filtroFecha" (change)="buscar()">
+    <select class="filter-select" [(ngModel)]="filtroFecha" (change)="aplicarFiltros()">
       <option value="">Filtro por Fecha</option>
       <option value="hoy">Hoy</option>
       <option value="semana">Esta semana</option>
@@ -69,28 +48,42 @@
     </select>
 
     <!-- Botón Limpiar Filtros -->
-    <button class="btn-limpiar" (click)="limpiarFiltros()">
-      Limpiar Filtros
+    <button class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar todos los filtros">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+      </svg>
     </button>
 
   </div>
 
   <!-- Tabla de solicitudes -->
   <div class="table-container">
-    
+
     <!-- Header de la tabla -->
     <div class="table-header">
-      <div class="th th-alumno">Alumno</div>
+      <div class="th th-alumno sortable" (click)="ordenar('alumno')">
+        Alumno
+        <span class="sort-icon" [class.active]="sortColumn === 'alumno'">
+          {{ sortColumn === 'alumno' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
       <div class="th th-materiales">Materiales</div>
       <div class="th th-tipo">Tipo</div>
-      <div class="th th-fecha">Fecha Solicitud</div>
+      <div class="th th-fecha sortable" (click)="ordenar('fecha')">
+        Fecha Solicitud
+        <span class="sort-icon" [class.active]="sortColumn === 'fecha'">
+          {{ sortColumn === 'fecha' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
       <div class="th th-estado">Estado</div>
       <div class="th th-acciones">Acciones</div>
     </div>
 
     <!-- Body de la tabla -->
     <div class="table-body">
-      
+
       <!-- Loading -->
       <div class="empty-state" *ngIf="isLoading">
         Cargando solicitudes...
@@ -107,11 +100,8 @@
       </div>
 
       <!-- Filas de solicitudes -->
-      <div 
-        class="table-row"
-        *ngFor="let solicitud of solicitudesFiltradas"
-      >
-        
+      <div class="table-row" *ngFor="let solicitud of solicitudesFiltradas">
+
         <!-- Columna: Alumno -->
         <div class="td td-alumno">
           {{ getNombreUsuario(solicitud) }}
@@ -134,10 +124,7 @@
 
         <!-- Columna: Estado -->
         <div class="td td-estado">
-          <span 
-            class="badge"
-            [ngClass]="getEstadoClass(solicitud.estado)"
-          >
+          <span class="badge" [ngClass]="getEstadoClass(solicitud.estado)">
             {{ getEstadoTexto(solicitud.estado) }}
           </span>
         </div>
@@ -145,21 +132,15 @@
         <!-- Columna: Acciones -->
         <div class="td td-acciones">
           <ng-container *ngIf="solicitud.estado === 'pendiente'">
-            <button 
-              class="btn-aprobar"
-              (click)="abrirModalAprobar(solicitud)"
-            >
+            <button class="btn-aprobar" (click)="abrirModalAprobar(solicitud)">
               Aprobar
             </button>
-            
-            <button 
-              class="btn-rechazar"
-              (click)="abrirModalRechazar(solicitud)"
-            >
+
+            <button class="btn-rechazar" (click)="abrirModalRechazar(solicitud)">
               Rechazar
             </button>
           </ng-container>
-          
+
           <span *ngIf="solicitud.estado !== 'pendiente'" class="sin-acciones">
             —
           </span>
@@ -176,7 +157,7 @@
 <!-- MODAL APROBAR SOLICITUD -->
 <div class="modal-overlay" *ngIf="mostrarModalAprobar" (click)="cerrarModalAprobar()">
   <div class="modal-card modal-aprobar-grande" (click)="$event.stopPropagation()">
-    
+
     <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalAprobar()">✕</button>
 
@@ -185,13 +166,13 @@
 
     <!-- Información de la solicitud -->
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
-      
+
       <div class="info-row">
         <div class="info-item">
           <span class="info-label">Alumno:</span>
           <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
         </div>
-        
+
         <div class="info-item">
           <span class="info-label">Tipo:</span>
           <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
@@ -216,7 +197,8 @@
       <h3 class="seccion-titulo">Materiales Adicionales (añadidos por PAS)</h3>
       <div class="materiales-lista">
         <div class="material-item adicional" *ngFor="let item of itemsAdicionales; let i = index">
-          <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'" [class.equipo]="item.tipo === 'equipo'">
+          <span class="material-tipo-badge" [class.libro]="item.tipo === 'libro'"
+            [class.equipo]="item.tipo === 'equipo'">
             {{ item.tipo === 'libro' ? 'Libro' : 'Equipo' }}
           </span>
           <span class="material-nombre">{{ item.nombre }}</span>
@@ -227,60 +209,37 @@
 
     <!-- Botón para añadir materiales -->
     <div class="seccion-añadir">
-      <button 
-        class="btn-añadir-material" 
-        (click)="toggleBuscadorMateriales()"
-      >
+      <button class="btn-añadir-material" (click)="toggleBuscadorMateriales()">
         {{ mostrarBuscadorMateriales ? '− Cerrar buscador' : '+ Añadir material adicional' }}
       </button>
     </div>
 
     <!-- Buscador de materiales -->
     <div class="buscador-materiales" *ngIf="mostrarBuscadorMateriales">
-      
+
       <!-- Tabs libro/equipo -->
       <div class="buscador-tabs">
-        <button 
-          class="buscador-tab" 
-          [class.active]="tipoBusqueda === 'libro'"
-          (click)="cambiarTipoBusqueda('libro')"
-        >
+        <button class="buscador-tab" [class.active]="tipoBusqueda === 'libro'" (click)="cambiarTipoBusqueda('libro')">
           📚 Libros
         </button>
-        <button 
-          class="buscador-tab" 
-          [class.active]="tipoBusqueda === 'equipo'"
-          (click)="cambiarTipoBusqueda('equipo')"
-        >
+        <button class="buscador-tab" [class.active]="tipoBusqueda === 'equipo'" (click)="cambiarTipoBusqueda('equipo')">
           📷 Equipos
         </button>
       </div>
 
       <!-- Input de búsqueda -->
       <div class="buscador-input-group">
-        <input 
-          type="text" 
-          class="buscador-input"
+        <input type="text" class="buscador-input"
           [placeholder]="tipoBusqueda === 'libro' ? 'Buscar por título o autor...' : 'Buscar por marca o modelo...'"
-          [(ngModel)]="textoBusquedaMaterial"
-          (keyup.enter)="buscarMateriales()"
-        />
-        <button 
-          class="btn-buscar-material"
-          (click)="buscarMateriales()"
-          [disabled]="buscandoMateriales"
-        >
+          [(ngModel)]="textoBusquedaMaterial" (keyup.enter)="buscarMateriales()" />
+        <button class="btn-buscar-material" (click)="buscarMateriales()" [disabled]="buscandoMateriales">
           {{ buscandoMateriales ? 'Buscando...' : 'Buscar' }}
         </button>
       </div>
 
       <!-- Resultados de libros -->
       <div class="buscador-resultados" *ngIf="tipoBusqueda === 'libro' && librosDisponibles.length > 0">
-        <div 
-          class="resultado-item" 
-          *ngFor="let libro of librosDisponibles"
-          (click)="agregarLibro(libro)"
-        >
+        <div class="resultado-item" *ngFor="let libro of librosDisponibles" (click)="agregarLibro(libro)">
           <div class="resultado-info">
             <span class="resultado-nombre">{{ libro.titulo }}</span>
             <span class="resultado-detalle">{{ libro.autor }}</span>
@@ -291,11 +250,7 @@
 
       <!-- Resultados de equipos -->
       <div class="buscador-resultados" *ngIf="tipoBusqueda === 'equipo' && equiposDisponibles.length > 0">
-        <div 
-          class="resultado-item" 
-          *ngFor="let equipo of equiposDisponibles"
-          (click)="agregarEquipo(equipo)"
-        >
+        <div class="resultado-item" *ngFor="let equipo of equiposDisponibles" (click)="agregarEquipo(equipo)">
           <div class="resultado-info">
             <span class="resultado-nombre">{{ equipo.nombre }}</span>
             <span class="resultado-detalle">{{ equipo.marca }}</span>
@@ -305,7 +260,8 @@
       </div>
 
       <!-- Sin resultados -->
-      <div class="buscador-vacio" *ngIf="(tipoBusqueda === 'libro' && librosDisponibles.length === 0 && textoBusquedaMaterial) || (tipoBusqueda === 'equipo' && equiposDisponibles.length === 0 && textoBusquedaMaterial)">
+      <div class="buscador-vacio"
+        *ngIf="(tipoBusqueda === 'libro' && librosDisponibles.length === 0 && textoBusquedaMaterial) || (tipoBusqueda === 'equipo' && equiposDisponibles.length === 0 && textoBusquedaMaterial)">
         No se encontraron {{ tipoBusqueda === 'libro' ? 'libros' : 'equipos' }} disponibles
       </div>
 
@@ -316,11 +272,7 @@
       <label class="campo-label">
         Fecha de devolución <span class="required">*</span>
       </label>
-      <input 
-        type="date" 
-        class="campo-input"
-        [(ngModel)]="fechaDevolucion"
-      />
+      <input type="date" class="campo-input" [(ngModel)]="fechaDevolucion" />
       <p class="campo-ayuda">Establece la fecha en la que el alumno debe devolver el material</p>
     </div>
 
@@ -340,7 +292,7 @@
 <!-- MODAL RECHAZAR SOLICITUD -->
 <div class="modal-overlay" *ngIf="mostrarModalRechazar" (click)="cerrarModalRechazar()">
   <div class="modal-card" (click)="$event.stopPropagation()">
-    
+
     <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalRechazar()">✕</button>
 
@@ -349,13 +301,13 @@
 
     <!-- Información de la solicitud -->
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
-      
+
       <div class="info-row">
         <div class="info-item">
           <span class="info-label">Alumno:</span>
           <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
         </div>
-        
+
         <div class="info-item">
           <span class="info-label">Tipo:</span>
           <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
@@ -367,7 +319,7 @@
           <span class="info-label">Material:</span>
           <span class="info-value">{{ getNombreMaterial(solicitudSeleccionada) }}</span>
         </div>
-        
+
         <div class="info-item">
           <span class="info-label">Fecha Solicitud:</span>
           <span class="info-value">{{ formatearFecha(solicitudSeleccionada.creada_en) }}</span>
@@ -381,12 +333,9 @@
       <label class="campo-label">
         Motivo de rechazo <span class="required">*</span>
       </label>
-      <textarea 
-        class="campo-textarea"
-        rows="3"
+      <textarea class="campo-textarea" rows="3"
         placeholder="Ej: Material no disponible, solicitud duplicada, datos incorrectos..."
-        [(ngModel)]="motivoRechazo"
-      ></textarea>
+        [(ngModel)]="motivoRechazo"></textarea>
     </div>
 
     <!-- Botones -->
@@ -403,11 +352,5 @@
 </div>
 
 <!-- MODAL DE NOTIFICACIONES -->
-<app-modal
-  [mostrar]="mostrarModalNotificacion"
-  [tipo]="tipoModalNotificacion"
-  [titulo]="tituloModalNotificacion"
-  [mensaje]="mensajeModalNotificacion"
-  [textoBtnPrincipal]="'Aceptar'"
-  (cerrar)="cerrarModalNotificacion()"
-></app-modal>
+<app-modal [mostrar]="mostrarModalNotificacion" [tipo]="tipoModalNotificacion" [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'" (cerrar)="cerrarModalNotificacion()"></app-modal>

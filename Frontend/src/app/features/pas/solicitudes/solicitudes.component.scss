@@ -48,7 +48,7 @@ $font-family: 'Inter', sans-serif;
   line-height: 39px;
   letter-spacing: -0.03em;
   color: $color-text-primary;
-  
+
   margin: 0 0 24px 0;
 }
 
@@ -59,11 +59,11 @@ $font-family: 'Inter', sans-serif;
 .tabs-container {
   display: flex;
   gap: 8px;
-  
+
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 8px;
-  
+
   padding: 4px;
   margin-bottom: 24px;
   width: fit-content;
@@ -72,25 +72,25 @@ $font-family: 'Inter', sans-serif;
 .tab {
   height: 36px;
   padding: 0 24px;
-  
+
   background: $color-bg-light;
   border: 2px solid $color-border;
   border-radius: 6px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
   line-height: 15px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: darken($color-bg-light, 5%);
   }
-  
+
   &.active {
     background: $color-primary-blue;
     border-color: $color-border;
@@ -107,7 +107,7 @@ $font-family: 'Inter', sans-serif;
 
 .filters-bar {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   align-items: center;
   margin-bottom: 24px;
 }
@@ -122,23 +122,23 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 44px;
   padding: 0 16px;
-  
+
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
   color: $color-text-primary;
-  
+
   box-sizing: border-box;
-  
+
   &::placeholder {
     color: $color-text-disabled;
   }
-  
+
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
@@ -149,20 +149,20 @@ $font-family: 'Inter', sans-serif;
 .filter-select {
   height: 44px;
   padding: 0 16px;
-  
+
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   cursor: pointer;
-  
+
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
@@ -171,26 +171,22 @@ $font-family: 'Inter', sans-serif;
 
 // Botón limpiar filtros
 .btn-limpiar {
+  width: 44px;
   height: 44px;
-  padding: 0 20px;
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: $color-white;
-  border: 2px solid $color-border;
+  border: 1px solid $color-border;
   border-radius: 4px;
-  
-  font-family: $font-family;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-  
+
   &:hover {
     background: $color-bg-light;
+    border-color: $color-primary-blue;
+    color: $color-primary-blue;
   }
 }
 
@@ -203,19 +199,19 @@ $font-family: 'Inter', sans-serif;
   border: 2px solid $color-border;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  
+
   overflow: hidden;
 }
 
 // Header de la tabla
 .table-header {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1.8fr 0.8fr 1.2fr 1fr 1.5fr; //7 columnas 
+  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1.5fr;
   gap: 16px;
-  
+
   background: $color-primary-blue;
   border-bottom: 2px solid $color-border;
-  
+
   padding: 16px 24px;
 }
 
@@ -226,7 +222,30 @@ $font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 17px;
   letter-spacing: -0.03em;
-  color:  $color-white; ;
+  color: $color-white;
+  display: flex;
+  align-items: center;
+
+  &.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba($color-white, 0.1);
+    }
+  }
+}
+
+.sort-icon {
+  margin-left: 8px;
+  font-size: 12px;
+  color: rgba($color-white, 0.5);
+  transition: color 0.2s ease;
+
+  &.active {
+    color: $color-white;
+  }
 }
 
 // Body de la tabla
@@ -237,19 +256,19 @@ $font-family: 'Inter', sans-serif;
 // Fila de la tabla
 .table-row {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1.8fr 0.8fr 1.2fr 1fr 1.5fr; // CAMBIO: 7 columnas (agregado Materiales)
+  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1.5fr;
   gap: 16px;
   align-items: center;
-  
+
   padding: 16px 24px;
   border-bottom: 1px solid rgba($color-border, 0.5);
-  
+
   transition: background 0.2s ease;
-  
+
   &:hover {
     background: rgba($color-info-blue-light, 0.3);
   }
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -262,7 +281,7 @@ $font-family: 'Inter', sans-serif;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-primary;
-  
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -276,18 +295,18 @@ $font-family: 'Inter', sans-serif;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  
+
   min-width: 100px;
   height: 28px;
   padding: 0 12px;
-  
+
   border-radius: 14px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
   line-height: 15px;
-  
+
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
@@ -323,26 +342,26 @@ $font-family: 'Inter', sans-serif;
 .btn-rechazar {
   width: 110px;
   height: 32px;
-  
+
   border: none;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
   line-height: 15px;
   color: $color-white;
-  
+
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
   }
-  
+
   &:active {
     transform: translateY(0);
   }
@@ -350,7 +369,7 @@ $font-family: 'Inter', sans-serif;
 
 .btn-aprobar {
   background: $color-success-green;
-  
+
   &:hover {
     background: darken($color-success-green, 8%);
   }
@@ -358,7 +377,7 @@ $font-family: 'Inter', sans-serif;
 
 .btn-rechazar {
   background: $color-error-red;
-  
+
   &:hover {
     background: darken($color-error-red, 8%);
   }
@@ -377,14 +396,14 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   min-height: 300px;
-  
+
   font-family: $font-family;
   font-size: 16px;
   color: $color-text-secondary;
   text-align: center;
-  
+
   &.error {
     color: $color-error-red;
   }
@@ -395,6 +414,7 @@ $font-family: 'Inter', sans-serif;
 // ========================================
 
 @media (max-width: 1200px) {
+
   .table-header,
   .table-row {
     grid-template-columns: 1fr 1.5fr 0.7fr 1fr 0.8fr 1.3fr;
@@ -406,15 +426,15 @@ $font-family: 'Inter', sans-serif;
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box {
     max-width: 100%;
   }
-  
+
   .table-container {
     overflow-x: auto;
   }
-  
+
   .table-header,
   .table-row {
     min-width: 900px;
@@ -431,13 +451,13 @@ $font-family: 'Inter', sans-serif;
   left: 0;
   width: 100%;
   height: 100%;
-  
+
   background: rgba(0, 0, 0, 0.5);
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   z-index: 1000;
 }
 
@@ -445,15 +465,15 @@ $font-family: 'Inter', sans-serif;
   position: relative;
   width: 500px;
   max-height: 90vh;
-  
+
   background: $color-white;
   border: 3px solid #999999;
   border-radius: 12px;
-  
+
   box-shadow: 0px 12px 48px rgba(0, 0, 0, 0.35);
-  
+
   padding: 40px 24px 24px 24px;
-  
+
   overflow-y: auto;
 }
 
@@ -462,23 +482,23 @@ $font-family: 'Inter', sans-serif;
   position: absolute;
   top: 12px;
   right: 12px;
-  
+
   width: 32px;
   height: 32px;
-  
+
   background: $color-info-blue-light;
   border: 1px solid $color-primary-blue;
   border-radius: 16px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 18px;
   line-height: 22px;
   color: $color-text-secondary;
-  
+
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background: darken($color-info-blue-light, 5%);
   }
@@ -491,7 +511,7 @@ $font-family: 'Inter', sans-serif;
   font-size: 24px;
   line-height: 29px;
   color: $color-primary-blue;
-  
+
   margin: 0 0 24px 0;
 }
 
@@ -507,9 +527,9 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  
+
   margin-bottom: 16px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -557,9 +577,9 @@ $font-family: 'Inter', sans-serif;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin-bottom: 8px;
-  
+
   .required {
     color: #DC3545;
     margin-left: 4px;
@@ -570,21 +590,21 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 44px;
   padding: 0 16px;
-  
+
   background: $color-bg-light;
   border: 1px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
   color: $color-text-primary;
-  
+
   &::placeholder {
     color: $color-text-disabled;
   }
-  
+
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
@@ -594,24 +614,24 @@ $font-family: 'Inter', sans-serif;
 .campo-textarea {
   width: 100%;
   padding: 12px 16px;
-  
+
   background: $color-bg-light;
   border: 1px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
   color: $color-text-primary;
-  
+
   resize: vertical;
   min-height: 80px;
-  
+
   &::placeholder {
     color: $color-text-disabled;
   }
-  
+
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
@@ -620,7 +640,7 @@ $font-family: 'Inter', sans-serif;
 
 .campo-ayuda {
   margin: 8px 0 0 0;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 12px;
@@ -636,7 +656,7 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  
+
   margin-top: 24px;
 }
 
@@ -644,13 +664,13 @@ $font-family: 'Inter', sans-serif;
 .btn-confirmar {
   height: 44px;
   padding: 0 24px;
-  
+
   font-family: $font-family;
   font-weight: 600;
   font-size: 16px;
   line-height: 19px;
   letter-spacing: -0.03em;
-  
+
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -658,11 +678,11 @@ $font-family: 'Inter', sans-serif;
 
 .btn-cancelar {
   min-width: 110px;
-  
+
   background: $color-white;
   border: 3px solid $color-border;
   color: $color-text-secondary;
-  
+
   &:hover {
     background: $color-bg-light;
   }
@@ -670,32 +690,32 @@ $font-family: 'Inter', sans-serif;
 
 .btn-confirmar {
   min-width: 136px;
-  
+
   border: none;
   color: $color-white;
-  
+
   &.success {
     background: #28A745;
     box-shadow: 0px 4px 16px rgba(40, 167, 69, 0.25);
-    
+
     &:hover {
       background: darken(#28A745, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(40, 167, 69, 0.35);
     }
   }
-  
+
   &.danger {
     background: #DC3545;
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.25);
-    
+
     &:hover {
       background: darken(#DC3545, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(220, 53, 69, 0.35);
     }
   }
-  
+
   &:active {
     transform: translateY(0);
   }
@@ -711,15 +731,15 @@ $font-family: 'Inter', sans-serif;
     max-width: 500px;
     padding: 32px 16px 16px 16px;
   }
-  
+
   .info-row {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .modal-actions {
     flex-direction: column;
-    
+
     .btn-cancelar,
     .btn-confirmar {
       width: 100%;
