@@ -169,14 +169,30 @@ export class MaterialesComponent implements OnInit {
   }
 
   /**
+   * Obtiene el número de unidades disponibles de un equipo
+   */
+  getUnidadesDisponiblesCount(equipo: Equipo): number {
+    if (!equipo.unidades) return 0;
+    return equipo.unidades.filter(u => u.esta_prestado === false && u.estado_fisico === 'funciona').length;
+  }
+
+  /**
+   * Obtiene el número de ejemplares disponibles de un libro
+   */
+  getEjemplaresDisponiblesCount(libro: Libro): number {
+    if (!libro.ejemplares) return 0;
+    return libro.ejemplares.filter(e => e.estado === 'disponible').length;
+  }
+
+  /**
    * Verifica si hay ejemplares/unidades disponibles
    */
   tieneDisponibles(material: Libro | Equipo): boolean {
     if ('ejemplares' in material && material.ejemplares) {
-      return material.ejemplares.some(e => e.estado === 'disponible');
+      return this.getEjemplaresDisponiblesCount(material as Libro) > 0;
     }
     if ('unidades' in material && material.unidades) {
-      return material.unidades.some(u => u.estado === 'disponible');
+      return this.getUnidadesDisponiblesCount(material as Equipo) > 0;
     }
     return false;
   }
@@ -262,10 +278,17 @@ export class MaterialesComponent implements OnInit {
    * Actualiza el estado de una unidad
    */
   actualizarEstadoUnidad(unidad: any, nuevoEstado: string): void {
-    this.materialesService.actualizarUnidad(unidad.id, { estado: nuevoEstado as any }).subscribe({
+    // Si el estado es 'disponible', asumimos que no está prestado y funciona
+    const payload: any = {
+      esta_prestado: nuevoEstado === 'disponible' ? false : (unidad as any).esta_prestado,
+      estado_fisico: nuevoEstado === 'en_reparacion' ? 'en_reparacion' : 'funciona'
+    };
+
+    this.materialesService.actualizarUnidad(unidad.id, payload).subscribe({
       next: (unidadActualizada) => {
         console.log('✅ Unidad actualizada:', unidadActualizada);
-        unidad.estado = nuevoEstado;
+        unidad.estado_fisico = payload.estado_fisico;
+        unidad.esta_prestado = payload.esta_prestado;
         alert('Estado actualizado correctamente');
       },
       error: (err) => {
@@ -281,6 +304,39 @@ export class MaterialesComponent implements OnInit {
   getTextoEstado(estado: string): string {
     const estadoEncontrado = this.estadosDisponibles.find(e => e.valor === estado);
     return estadoEncontrado ? estadoEncontrado.texto : estado;
+  }
+
+  // ===== HELPERS DE STATUS (NUEVOS) =====
+
+  getPrestadoTexto(estaPrestado: boolean): string {
+    return estaPrestado ? 'Prestado' : 'No prestado';
+  }
+
+  getPrestadoBadgeClass(estaPrestado: boolean): string {
+    return estaPrestado ? 'badge-prestado' : 'badge-en-almacen';
+  }
+
+  getFisicoTexto(estado: string): string {
+    switch (estado) {
+      case 'funciona': return 'Funcional';
+      case 'no_funciona': return 'No funciona';
+      case 'en_reparacion': return 'En reparación';
+      case 'obsoleto': return 'Obsoleto';
+      case 'falla': return 'Con fallos';
+      case 'perdido_sustraido': return 'Perdido';
+      default: return estado || 'Desconocido';
+    }
+  }
+
+  getFisicoBadgeClass(estado: string): string {
+    switch (estado) {
+      case 'funciona': return 'badge-funcional';
+      case 'en_reparacion': return 'badge-reparacion';
+      case 'no_funciona':
+      case 'falla':
+      case 'perdido_sustraido': return 'badge-no-disponible';
+      default: return 'badge-bloqueado';
+    }
   }
 
   /**
@@ -328,60 +384,60 @@ export class MaterialesComponent implements OnInit {
     this.archivoImagenTemporal = null;
   }
 
-  
-guardarEquipo(): void {
-  if (!this.equipoEnEdicion) return;
 
-  const datosActualizados: Partial<Equipo> = {
-    marca: this.equipoEnEdicion.marca,
-    modelo: this.equipoEnEdicion.modelo,
-    descripcion: this.equipoEnEdicion.descripcion,
-    categoria_codigo: this.equipoEnEdicion.categoria_codigo
-  };
+  guardarEquipo(): void {
+    if (!this.equipoEnEdicion) return;
 
-  console.log('💾 Guardando equipo:', datosActualizados);
+    const datosActualizados: Partial<Equipo> = {
+      marca: this.equipoEnEdicion.marca,
+      modelo: this.equipoEnEdicion.modelo,
+      descripcion: this.equipoEnEdicion.descripcion,
+      categoria_codigo: this.equipoEnEdicion.categoria_codigo
+    };
 
-  this.materialesService.actualizarEquipo(this.equipoEnEdicion.id, datosActualizados).subscribe({
-    next: (equipoActualizado: any) => {
-      console.log('✅ Equipo actualizado:', equipoActualizado);
+    console.log('💾 Guardando equipo:', datosActualizados);
 
-      // Si hay una imagen nueva, subirla
-      if (this.archivoImagenTemporal) {
-        this.subirImagenEquipo(equipoActualizado.id, this.archivoImagenTemporal); // ⭐ PASAR EL ARCHIVO
-      } else {
-        // Actualizar en la lista local
+    this.materialesService.actualizarEquipo(this.equipoEnEdicion.id, datosActualizados).subscribe({
+      next: (equipoActualizado: any) => {
+        console.log('✅ Equipo actualizado:', equipoActualizado);
+
+        // Si hay una imagen nueva, subirla
+        if (this.archivoImagenTemporal) {
+          this.subirImagenEquipo(equipoActualizado.id, this.archivoImagenTemporal); // ⭐ PASAR EL ARCHIVO
+        } else {
+          // Actualizar en la lista local
+          this.actualizarEquipoEnLista(equipoActualizado);
+          alert('Equipo actualizado correctamente');
+          this.cancelarEdicion();
+        }
+      },
+      error: (err: any) => {
+        console.error('❌ Error al actualizar equipo:', err);
+        alert('Error al actualizar el equipo');
+      }
+    });
+  }
+
+  /**
+  Subir imagen del equipo
+   */
+  private subirImagenEquipo(equipoId: number, archivo: File): void {
+    if (!archivo) return;
+
+    this.materialesService.subirImagenEquipo(equipoId, archivo).subscribe({
+      next: (equipoActualizado: any) => {
+        console.log('✅ Imagen subida:', equipoActualizado);
         this.actualizarEquipoEnLista(equipoActualizado);
-        alert('Equipo actualizado correctamente');
+        alert('Equipo e imagen actualizados correctamente');
+        this.cancelarEdicion();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al subir imagen:', err);
+        alert('Equipo actualizado, pero hubo un error al subir la imagen');
         this.cancelarEdicion();
       }
-    },
-    error: (err: any) => {
-      console.error('❌ Error al actualizar equipo:', err);
-      alert('Error al actualizar el equipo');
-    }
-  });
-}
-
-/**
-Subir imagen del equipo
- */
-private subirImagenEquipo(equipoId: number, archivo: File): void {
-  if (!archivo) return;
-
-  this.materialesService.subirImagenEquipo(equipoId, archivo).subscribe({
-    next: (equipoActualizado: any) => {
-      console.log('✅ Imagen subida:', equipoActualizado);
-      this.actualizarEquipoEnLista(equipoActualizado);
-      alert('Equipo e imagen actualizados correctamente');
-      this.cancelarEdicion();
-    },
-    error: (err: any) => {
-      console.error('❌ Error al subir imagen:', err);
-      alert('Equipo actualizado, pero hubo un error al subir la imagen');
-      this.cancelarEdicion();
-    }
-  });
-}
+    });
+  }
 
   /**
    * Actualizar equipo en la lista local
@@ -436,7 +492,7 @@ private subirImagenEquipo(equipoId: number, archivo: File): void {
     this.materialesService.actualizarUnidad(unidad.id, {
       numero_serie: unidad.numero_serie,
       codigo_barra: unidad.codigo_barra,
-      estado: unidad.estado
+      estado_fisico: unidad.estado_fisico as any
     }).subscribe({
       next: (unidadActualizada) => {
         console.log('✅ Unidad guardada:', unidadActualizada);

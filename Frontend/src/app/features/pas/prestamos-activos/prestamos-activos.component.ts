@@ -21,6 +21,14 @@ export class PrestamosActivosComponent implements OnInit {
   // ===== DATOS =====
 
   prestamos: Prestamo[] = [];
+  prestamosFiltrados: Prestamo[] = [];
+
+  // ===== FILTROS Y BÚSQUEDA =====
+  textoBusqueda: string = '';
+
+  // ===== ORDENACIÓN =====
+  sortColumn: string = 'fechaDevolucion'; // 'alumno' o 'fechaDevolucion'
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   // ===== MODAL MATERIALES =====
   mostrarModalMateriales: boolean = false;
@@ -28,15 +36,15 @@ export class PrestamosActivosComponent implements OnInit {
   prestamoSeleccionado: any = null;
 
   // ===== MODAL DEVOLUCIÓN =====
-mostrarModalDevolucion: boolean = false;
-prestamoDevolucion: any = null;
-procesandoDevolucion: boolean = false;
+  mostrarModalDevolucion: boolean = false;
+  prestamoDevolucion: any = null;
+  procesandoDevolucion: boolean = false;
 
-// ===== MODAL NOTIFICACIÓN =====
-mostrarModalNotificacion: boolean = false;
-tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
-tituloModalNotificacion: string = '';
-mensajeModalNotificacion: string = '';
+  // ===== MODAL NOTIFICACIÓN =====
+  mostrarModalNotificacion: boolean = false;
+  tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+  tituloModalNotificacion: string = '';
+  mensajeModalNotificacion: string = '';
 
   // ===== ESTADO =====
 
@@ -55,78 +63,146 @@ mensajeModalNotificacion: string = '';
     this.cargarPrestamos();
   }
 
+  // ===== MÉTODOS DE FILTRO Y ORDENACIÓN =====
+
+  aplicarFiltros(): void {
+    let resultado = [...this.prestamos];
+
+    // 1. Filtro por texto (Nombre Alumno, Email o Código Tarjeta)
+    if (this.textoBusqueda.trim()) {
+      const texto = this.normalizarTexto(this.textoBusqueda);
+      resultado = resultado.filter((p: any) => {
+        const nombre = this.normalizarTexto(this.getNombreUsuario(p));
+        const email = p.Usuario ? this.normalizarTexto(p.Usuario.email) : '';
+        const codigo = p.Usuario?.codigo_tarjeta ? this.normalizarTexto(p.Usuario.codigo_tarjeta) : '';
+        return nombre.includes(texto) || email.includes(texto) || codigo.includes(texto);
+      });
+    }
+
+    // 2. Aplicar ordenación
+    this.aplicarOrdenacion(resultado);
+  }
+
+  ordenar(columna: string): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = 'asc';
+    }
+    this.aplicarFiltros();
+  }
+
+  limpiarFiltros(): void {
+    this.textoBusqueda = '';
+    this.aplicarFiltros();
+  }
+
+  private aplicarOrdenacion(datos: Prestamo[]): void {
+    datos.sort((a, b) => {
+      let valorA: any;
+      let valorB: any;
+
+      switch (this.sortColumn) {
+        case 'alumno':
+          valorA = this.getNombreUsuario(a).toLowerCase();
+          valorB = this.getNombreUsuario(b).toLowerCase();
+          break;
+        case 'fechaDevolucion':
+          valorA = a.fecha_devolucion_prevista ? new Date(a.fecha_devolucion_prevista).getTime() : 0;
+          valorB = b.fecha_devolucion_prevista ? new Date(b.fecha_devolucion_prevista).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (valorA < valorB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valorA > valorB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    this.prestamosFiltrados = datos;
+  }
+
+  private normalizarTexto(texto: string): string {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
   // ===== MÉTODOS PÚBLICOS =====
 
   /**
  * Abre el modal de confirmación de devolución
  */
-abrirModalDevolucion(prestamo: any): void {
-  console.log('🔵 Abriendo modal devolución:', prestamo);
-  this.prestamoDevolucion = prestamo;
-  this.mostrarModalDevolucion = true;
-}
-
-/**
- * Cierra el modal de devolución
- */
-cerrarModalDevolucion(): void {
-  this.mostrarModalDevolucion = false;
-  this.prestamoDevolucion = null;
-}
-
-/**
- * Confirma y registra la devolución
- */
-confirmarDevolucion(): void {
-  if (!this.prestamoDevolucion) return;
-
-  this.procesandoDevolucion = true;
-
-  this.prestamosService.registrarDevolucion(this.prestamoDevolucion.id).subscribe({
-    next: () => {
-      console.log('✅ Devolución registrada');
-      this.procesandoDevolucion = false;
-      this.cerrarModalDevolucion();
-      
-      // Mostrar notificación de éxito
-      this.tipoModalNotificacion = 'exito';
-      this.tituloModalNotificacion = 'Devolución Registrada';
-      this.mensajeModalNotificacion = 'La devolución se ha registrado correctamente. Los materiales vuelven a estar disponibles.';
-      this.mostrarModalNotificacion = true;
-      
-      // Recargar lista
-      this.cargarPrestamos();
-    },
-    error: (err) => {
-      console.error('❌ Error al registrar devolución:', err);
-      this.procesandoDevolucion = false;
-      this.cerrarModalDevolucion();
-      
-      // Mostrar notificación de error
-      this.tipoModalNotificacion = 'error';
-      this.tituloModalNotificacion = 'Error en la Devolución';
-      this.mensajeModalNotificacion = err.error?.mensaje || 'No se pudo registrar la devolución. Inténtalo de nuevo.';
-      this.mostrarModalNotificacion = true;
-    }
-  });
-}
-
-/**
- * Cierra el modal de notificación
- */
-cerrarModalNotificacion(): void {
-  this.mostrarModalNotificacion = false;
-}
-
-/**
- * Obtiene la lista de materiales para mostrar en el modal
- */
-getMaterialesDevolucion(): any[] {
-  if (!this.prestamoDevolucion || !this.prestamoDevolucion.items) {
-    return [];
+  abrirModalDevolucion(prestamo: any): void {
+    console.log('🔵 Abriendo modal devolución:', prestamo);
+    this.prestamoDevolucion = prestamo;
+    this.mostrarModalDevolucion = true;
   }
-  return this.prestamoDevolucion.items;
-}
+
+  /**
+   * Cierra el modal de devolución
+   */
+  cerrarModalDevolucion(): void {
+    this.mostrarModalDevolucion = false;
+    this.prestamoDevolucion = null;
+  }
+
+  /**
+   * Confirma y registra la devolución
+   */
+  confirmarDevolucion(): void {
+    if (!this.prestamoDevolucion) return;
+
+    this.procesandoDevolucion = true;
+
+    this.prestamosService.registrarDevolucion(this.prestamoDevolucion.id).subscribe({
+      next: () => {
+        console.log('✅ Devolución registrada');
+        this.procesandoDevolucion = false;
+        this.cerrarModalDevolucion();
+
+        // Mostrar notificación de éxito
+        this.tipoModalNotificacion = 'exito';
+        this.tituloModalNotificacion = 'Devolución Registrada';
+        this.mensajeModalNotificacion = 'La devolución se ha registrado correctamente. Los materiales vuelven a estar disponibles.';
+        this.mostrarModalNotificacion = true;
+
+        // Recargar lista
+        this.cargarPrestamos();
+      },
+      error: (err) => {
+        console.error('❌ Error al registrar devolución:', err);
+        this.procesandoDevolucion = false;
+        this.cerrarModalDevolucion();
+
+        // Mostrar notificación de error
+        this.tipoModalNotificacion = 'error';
+        this.tituloModalNotificacion = 'Error en la Devolución';
+        this.mensajeModalNotificacion = err.error?.mensaje || 'No se pudo registrar la devolución. Inténtalo de nuevo.';
+        this.mostrarModalNotificacion = true;
+      }
+    });
+  }
+
+  /**
+   * Cierra el modal de notificación
+   */
+  cerrarModalNotificacion(): void {
+    this.mostrarModalNotificacion = false;
+  }
+
+  /**
+   * Obtiene la lista de materiales para mostrar en el modal
+   */
+  getMaterialesDevolucion(): any[] {
+    if (!this.prestamoDevolucion || !this.prestamoDevolucion.items) {
+      return [];
+    }
+    return this.prestamoDevolucion.items;
+  }
 
   /**
    * Obtiene el nombre del usuario
@@ -142,37 +218,37 @@ getMaterialesDevolucion(): any[] {
   /**
    * Obtiene el nombre del material
    */
- getNombreMaterial(prestamo: any): string {
-  if (!prestamo.items || prestamo.items.length === 0) {
-    return 'Sin materiales';
+  getNombreMaterial(prestamo: any): string {
+    if (!prestamo.items || prestamo.items.length === 0) {
+      return 'Sin materiales';
+    }
+
+    // Si hay múltiples items, mostrar cantidad como enlace
+    if (prestamo.items.length > 1) {
+      return `${prestamo.items.length} materiales`;
+    }
+
+    // Si hay un solo item, mostrar su nombre
+    const item = prestamo.items[0];
+
+    if (item.Ejemplar && item.Ejemplar.libro) {
+      return item.Ejemplar.libro.titulo;
+    }
+
+    if (item.Unidad && item.Unidad.equipo) {
+      const equipo = item.Unidad.equipo;
+      return `${equipo.marca} ${equipo.modelo}`;
+    }
+
+    return 'Material desconocido';
   }
 
-  // Si hay múltiples items, mostrar cantidad como enlace
-  if (prestamo.items.length > 1) {
-    return `${prestamo.items.length} materiales`;
+  /**
+   * Verifica si el préstamo tiene múltiples materiales
+   */
+  tieneMultiplesMateriales(prestamo: any): boolean {
+    return prestamo.items && prestamo.items.length > 1;
   }
-
-  // Si hay un solo item, mostrar su nombre
-  const item = prestamo.items[0];
-
-  if (item.Ejemplar && item.Ejemplar.libro) {
-    return item.Ejemplar.libro.titulo;
-  }
-
-  if (item.Unidad && item.Unidad.equipo) {
-    const equipo = item.Unidad.equipo;
-    return `${equipo.marca} ${equipo.modelo}`;
-  }
-
-  return 'Material desconocido';
-}
-
-/**
- * Verifica si el préstamo tiene múltiples materiales
- */
-tieneMultiplesMateriales(prestamo: any): boolean {
-  return prestamo.items && prestamo.items.length > 1;
-}
 
   /**
    * Formatea fecha DD/MM/YYYY
@@ -293,6 +369,7 @@ tieneMultiplesMateriales(prestamo: any): boolean {
       next: (prestamos) => {
         console.log('📚 Préstamos activos recibidos:', prestamos);
         this.prestamos = prestamos;
+        this.aplicarFiltros();
         this.isLoading = false;
       },
       error: (err) => {

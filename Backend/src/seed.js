@@ -37,26 +37,52 @@ async function seed() {
     ]);
     var gPer = grados[0]; var gPub = grados[1]; var gCav = grados[2]; var gDam = grados[4];
 
-    // Usuarios (1 Admin + 3 Profes + 6 Alumnos)
-    var pass = await bcrypt.hash('123456', 10);
-    var pas = await models.Usuario.create({ email: 'pas@eusa.es', password_hash: pass, nombre: 'Admin', apellidos: 'PAS', rol: 'pas' });
+    // 🎫 Función para generar códigos de tarjeta ÚNICOS y CRONOLÓGICOS en el seed
+    let seedTime = Date.now();
+    function generarCodigoTarjetaSeed() {
+      const now = new Date(seedTime);
+      seedTime += 1; // Incrementamos 1ms para garantizar unicidad en el bucle del seed
+
+      const year = now.getFullYear();
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const seconds = now.getSeconds().toString().padStart(2, '0');
+      const ms = now.getMilliseconds().toString().padStart(3, '0');
+
+      return `EUSA${year}${month}${day}${hours}${minutes}${seconds}${ms}`;
+    }
+
+    // Usuarios (1 Admin + 5 Profes + 6 Alumnos)
+    // Nota: La contraseña '123456' será hasheada automáticamente por el hook beforeCreate del modelo
+    var pas = await models.Usuario.create({
+      email: 'pas@eusa.es',
+      password_hash: '123456',
+      nombre: 'Admin',
+      apellidos: 'PAS',
+      telefono: '+34955123456',
+      codigo_tarjeta: generarCodigoTarjetaSeed(),
+      rol: 'pas'
+    });
 
     var profes = await models.Usuario.bulkCreate([
-      { email: 'prof1@eusa.es', password_hash: pass, nombre: 'Manuel', apellidos: 'Chaves', rol: 'profesor' },
-      { email: 'prof2@eusa.es', password_hash: pass, nombre: 'Laura', apellidos: 'Video', rol: 'profesor' },
-      { email: 'prof3@eusa.es', password_hash: pass, nombre: 'David', apellidos: 'Codigo', rol: 'profesor' },
-      { email: 'prof4@eusa.es', password_hash: pass, nombre: 'Maria', apellidos: 'Mates', rol: 'profesor' },
-      { email: 'prof5@eusa.es', password_hash: pass, nombre: 'Jose', apellidos: 'Historia', rol: 'profesor' }
-    ]);
+      { email: 'prof1@eusa.es', password_hash: '123456', nombre: 'Manuel', apellidos: 'Chaves', telefono: '+34612345001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'profesor' },
+      { email: 'prof2@eusa.es', password_hash: '123456', nombre: 'Laura', apellidos: 'Video', telefono: '+34612345002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'profesor' },
+      { email: 'prof3@eusa.es', password_hash: '123456', nombre: 'David', apellidos: 'Codigo', telefono: '+34612345003', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'profesor' },
+      { email: 'prof4@eusa.es', password_hash: '123456', nombre: 'Maria', apellidos: 'Mates', telefono: '+34612345004', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'profesor' },
+      { email: 'prof5@eusa.es', password_hash: '123456', nombre: 'Jose', apellidos: 'Historia', telefono: '+34612345005', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'profesor' }
+    ], { individualHooks: true }); // ⚠️ IMPORTANTE: individualHooks para que se ejecute beforeCreate
 
     var alumnos = await models.Usuario.bulkCreate([
-      { email: 'alum1@eusa.es', password_hash: pass, nombre: 'Juan', apellidos: 'Uno', rol: 'alumno', grado_id: gPer.id, curso: 1, codigo_tarjeta: 'CARD-1' },
-      { email: 'alum2@eusa.es', password_hash: pass, nombre: 'Pedro', apellidos: 'Dos', rol: 'alumno', grado_id: gCav.id, curso: 2, codigo_tarjeta: 'CARD-2' },
-      { email: 'alum3@eusa.es', password_hash: pass, nombre: 'Luis', apellidos: 'Tres', rol: 'alumno', grado_id: gDam.id, curso: 1, codigo_tarjeta: 'CARD-3' },
-      { email: 'alum4@eusa.es', password_hash: pass, nombre: 'Ana', apellidos: 'Cuatro', rol: 'alumno', grado_id: gPub.id, curso: 3, codigo_tarjeta: 'CARD-4' },
-      { email: 'alum5@eusa.es', password_hash: pass, nombre: 'Eva', apellidos: 'Cinco', rol: 'alumno', grado_id: gCav.id, curso: 4, codigo_tarjeta: 'CARD-5' },
-      { email: 'alum6@eusa.es', password_hash: pass, nombre: 'Cris', apellidos: 'Seis', rol: 'alumno', grado_id: gDam.id, curso: 2, codigo_tarjeta: 'CARD-6' }
-    ]);
+      { email: 'alum1@eusa.es', password_hash: '123456', nombre: 'Juan', apellidos: 'Uno', telefono: '+34622111001', rol: 'alumno', grado_id: gPer.id, curso: 1, codigo_tarjeta: generarCodigoTarjetaSeed() },
+      { email: 'alum2@eusa.es', password_hash: '123456', nombre: 'Pedro', apellidos: 'Dos', telefono: '+34622111002', rol: 'alumno', grado_id: gCav.id, curso: 2, codigo_tarjeta: generarCodigoTarjetaSeed() },
+      { email: 'alum3@eusa.es', password_hash: '123456', nombre: 'Luis', apellidos: 'Tres', telefono: '+34622111003', rol: 'alumno', grado_id: gDam.id, curso: 1, codigo_tarjeta: generarCodigoTarjetaSeed() },
+      { email: 'alum4@eusa.es', password_hash: '123456', nombre: 'Ana', apellidos: 'Cuatro', telefono: '+34622111004', rol: 'alumno', grado_id: gPub.id, curso: 3, codigo_tarjeta: generarCodigoTarjetaSeed() },
+      { email: 'alum5@eusa.es', password_hash: '123456', nombre: 'Eva', apellidos: 'Cinco', telefono: '+34622111005', rol: 'alumno', grado_id: gCav.id, curso: 4, codigo_tarjeta: generarCodigoTarjetaSeed() },
+      { email: 'alum6@eusa.es', password_hash: '123456', nombre: 'Cris', apellidos: 'Seis', telefono: '+34622111006', rol: 'alumno', grado_id: gDam.id, curso: 2, codigo_tarjeta: generarCodigoTarjetaSeed() }
+    ], { individualHooks: true }); // ⚠️ IMPORTANTE: individualHooks para que se ejecute beforeCreate
+
 
     // Categorías
     var cats = await models.Categoria.bulkCreate([

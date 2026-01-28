@@ -136,10 +136,10 @@
               {{ equipo.modelo }}
             </div>
 
-            <!-- Unidades (solo número) -->
+            <!-- Unidades (Disponibles / Totales) -->
             <div class="td td-unidades">
               <button class="btn-numero-unidades" (click)="toggleFila(equipo.id)">
-                {{ equipo.unidades?.length || 0 }}
+                {{ getUnidadesDisponiblesCount(equipo) }} / {{ equipo.unidades?.length || 0 }}
               </button>
             </div>
 
@@ -329,10 +329,10 @@
               {{ getNombreCategoria(libro) }}
             </div>
 
-            <!-- Ejemplares (solo número) -->
+            <!-- Ejemplares (Disponibles / Totales) -->
             <div class="td td-ejemplares">
               <button class="btn-numero-ejemplares" (click)="toggleFila(libro.id)">
-                {{ libro.ejemplares?.length || 0 }}
+                {{ getEjemplaresDisponiblesCount(libro) }} / {{ libro.ejemplares?.length || 0 }}
               </button>
             </div>
 

@@ -27,6 +27,12 @@ export class UsuariosComponent implements OnInit {
   // ===== BÚSQUEDA =====
 
   textoBusqueda: string = '';
+  filtroEstado: string = '';
+
+  // ===== ORDENACIÓN =====
+
+  sortColumn: string = 'nombre'; // Columna por defecto
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   // ===== MODAL =====
 
@@ -41,12 +47,12 @@ export class UsuariosComponent implements OnInit {
   errorMessage: string = '';
   guardando: boolean = false;
 
-// ===== MODAL DE NOTIFICACIONES =====
+  // ===== MODAL DE NOTIFICACIONES =====
 
-mostrarModalNotificacion: boolean = false;
-tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
-tituloModalNotificacion: string = '';
-mensajeModalNotificacion: string = '';  
+  mostrarModalNotificacion: boolean = false;
+  tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
+  tituloModalNotificacion: string = '';
+  mensajeModalNotificacion: string = '';
 
   // ===== OPCIONES DE DROPDOWNS =====
 
@@ -91,88 +97,151 @@ mensajeModalNotificacion: string = '';
   // ===== MÉTODOS PÚBLICOS =====
 
   /**
-  * Busca usuarios por texto
+  * Aplica todos los filtros (texto, estado, tipo estudios) y ordenación
   */
-  buscar(): void {
-    console.log('🔍 Buscando:', this.textoBusqueda);
-
-    if (!this.textoBusqueda.trim()) {
-      this.usuariosFiltrados = [...this.usuarios];
-      return;
-    }
-
-    const textoNormalizado = this.normalizarTexto(this.textoBusqueda);
-
-    this.usuariosFiltrados = this.usuarios.filter(usuario => {
-      const nombre = this.normalizarTexto(usuario.nombre);
-      const apellidos = usuario.apellidos ? this.normalizarTexto(usuario.apellidos) : '';
-      const email = this.normalizarTexto(usuario.email);
-
-      return nombre.includes(textoNormalizado) ||
-        apellidos.includes(textoNormalizado) ||
-        email.includes(textoNormalizado);
+  aplicarFiltros(): void {
+    console.log('🔍 Aplicando filtros:', {
+      texto: this.textoBusqueda,
+      estado: this.filtroEstado
     });
 
-    console.log('✅ Usuarios filtrados:', this.usuariosFiltrados.length);
+    let resultado = [...this.usuarios];
+
+    // 1. Filtro por texto
+    if (this.textoBusqueda.trim()) {
+      const texto = this.normalizarTexto(this.textoBusqueda);
+      resultado = resultado.filter(usuario => {
+        const nombre = this.normalizarTexto(usuario.nombre);
+        const apellidos = usuario.apellidos ? this.normalizarTexto(usuario.apellidos) : '';
+        const email = this.normalizarTexto(usuario.email);
+        return nombre.includes(texto) || apellidos.includes(texto) || email.includes(texto);
+      });
+    }
+
+    // 2. Filtro por estado
+    if (this.filtroEstado) {
+      resultado = resultado.filter(usuario => usuario.estado_perfil === this.filtroEstado);
+    }
+
+    // 4. Aplicar ordenación
+    this.aplicarOrdenacion(resultado);
+  }
+
+  /**
+   * Cambia la columna de ordenación o la dirección
+   */
+  ordenar(columna: string): void {
+    if (this.sortColumn === columna) {
+      // Si es la misma columna, alternar dirección
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Si es una columna nueva, poner asc
+      this.sortColumn = columna;
+      this.sortDirection = 'asc';
+    }
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Lógica interna de ordenación
+   */
+  private aplicarOrdenacion(datos: Usuario[]): void {
+    datos.sort((a, b) => {
+      let valorA: any;
+      let valorB: any;
+
+      switch (this.sortColumn) {
+        case 'nombre':
+          valorA = `${a.nombre} ${a.apellidos || ''}`.toLowerCase();
+          valorB = `${b.nombre} ${b.apellidos || ''}`.toLowerCase();
+          break;
+        case 'email':
+          valorA = a.email.toLowerCase();
+          valorB = b.email.toLowerCase();
+          break;
+        case 'grado':
+          valorA = this.getTipoEstudiosLabel(a.tipo_estudios || '').toLowerCase();
+          valorB = this.getTipoEstudiosLabel(b.tipo_estudios || '').toLowerCase();
+          break;
+        case 'estado':
+          valorA = a.estado_perfil.toLowerCase();
+          valorB = b.estado_perfil.toLowerCase();
+          break;
+        case 'tipob':
+          const contA = this.contadoresTipoB.get(a.id);
+          const contB = this.contadoresTipoB.get(b.id);
+          valorA = contA ? contA.usados : 0;
+          valorB = contB ? contB.usados : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (valorA < valorB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valorA > valorB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    this.usuariosFiltrados = datos;
   }
 
   /**
  * Genera el barcode cuando se abre el modal
  */
-generarBarcode(): void {
-  if (this.usuarioSeleccionado) {
-    setTimeout(() => {
-      const barcodeSvg = document.getElementById('barcodeModal');
-      if (barcodeSvg) {
-        // Solo usar codigo_tarjeta del backend
-        const codigoTarjeta = this.usuarioSeleccionado!.codigo_tarjeta;
-        
-        if (codigoTarjeta) {
-          try {
-            JsBarcode(barcodeSvg, codigoTarjeta, {
-              format: 'CODE128',
-              width: 2,
-              height: 80,
-              displayValue: true
-            });
-            console.log('✅ Barcode generado:', codigoTarjeta);
-          } catch (err) {
-            console.error('❌ Error generando barcode:', err);
+  generarBarcode(): void {
+    if (this.usuarioSeleccionado) {
+      setTimeout(() => {
+        const barcodeSvg = document.getElementById('barcodeModal');
+        if (barcodeSvg) {
+          // Solo usar codigo_tarjeta del backend
+          const codigoTarjeta = this.usuarioSeleccionado!.codigo_tarjeta;
+
+          if (codigoTarjeta) {
+            try {
+              JsBarcode(barcodeSvg, codigoTarjeta, {
+                format: 'CODE128',
+                width: 2,
+                height: 80,
+                displayValue: true
+              });
+              console.log('✅ Barcode generado:', codigoTarjeta);
+            } catch (err) {
+              console.error('❌ Error generando barcode:', err);
+            }
+          } else {
+            // Si no tiene código, limpiar el SVG y mostrar mensaje
+            barcodeSvg.innerHTML = '';
+            console.warn('⚠️ Usuario sin código de tarjeta asignado');
           }
-        } else {
-          // Si no tiene código, limpiar el SVG y mostrar mensaje
-          barcodeSvg.innerHTML = '';
-          console.warn('⚠️ Usuario sin código de tarjeta asignado');
         }
-      }
-    }, 100);
+      }, 100);
+    }
   }
-}
 
   /**
    * Abre el modal de edición de un usuario
    */
- abrirModalEditar(usuario: Usuario): void {
-  console.log('👤 Abriendo modal para:', usuario.nombre);
-  this.usuarioSeleccionado = usuario;
-  this.codigoBarrasUsuario = usuario.id.toString(); // ⬅️ CAMBIO: Usar ID para barcode
+  abrirModalEditar(usuario: Usuario): void {
+    console.log('👤 Abriendo modal para:', usuario.nombre);
+    this.usuarioSeleccionado = usuario;
 
-  // Cargar datos en el formulario
-  this.formularioUsuario.patchValue({
-    nombre: usuario.nombre,
-    apellidos: usuario.apellidos || '',
-    email: usuario.email,
-    tipo_estudios: usuario.tipo_estudios || '',
-    fecha_inicio_est: usuario.fecha_inicio_est || '',
-    fecha_fin_prev: usuario.fecha_fin_prev || '',
-    estado_perfil: usuario.estado_perfil || 'activo'
-  });
+    // Cargar datos en el formulario
+    this.formularioUsuario.patchValue({
+      nombre: usuario.nombre,
+      apellidos: usuario.apellidos || '',
+      email: usuario.email,
+      telefono: usuario.telefono || '',
+      tipo_estudios: usuario.tipo_estudios || '',
+      fecha_inicio_est: usuario.fecha_inicio_est || '',
+      fecha_fin_prev: usuario.fecha_fin_prev || '',
+      estado_perfil: usuario.estado_perfil || 'activo'
+    });
 
-  this.mostrarModal = true;
+    this.mostrarModal = true;
 
-  //Generar el el cod de barras cuando se abre el modal
-  this.generarBarcode();
-}
+    //Generar el el cod de barras cuando se abre el modal
+    this.generarBarcode();
+  }
 
   /**
    * Cierra el modal
@@ -193,41 +262,41 @@ generarBarcode(): void {
     }
 
     if (this.formularioUsuario.invalid) {
-  this.tipoModalNotificacion = 'error';
-  this.tituloModalNotificacion = 'Formulario Incompleto';
-  this.mensajeModalNotificacion = 'Por favor, completa todos los campos requeridos';
-  this.mostrarModalNotificacion = true;
-  return;
-}
+      this.tipoModalNotificacion = 'error';
+      this.tituloModalNotificacion = 'Formulario Incompleto';
+      this.mensajeModalNotificacion = 'Por favor, completa todos los campos requeridos';
+      this.mostrarModalNotificacion = true;
+      return;
+    }
 
     this.guardando = true;
     const datos = this.formularioUsuario.value;
 
     this.usuariosService.actualizarUsuario(this.usuarioSeleccionado.id, datos).subscribe({
-next: (response: any) => {
-  console.log('✅ Usuario actualizado:', response);
-  this.guardando = false;
-  
-  // Primero mostrar notificación, luego cerrar modal de edición
-  this.tipoModalNotificacion = 'exito';
-  this.tituloModalNotificacion = 'Usuario Actualizado';
-  this.mensajeModalNotificacion = 'Los datos del usuario se han guardado correctamente';
-  this.mostrarModalNotificacion = true;
-  
-  // Cerrar modal de edición y recargar datos
-  this.mostrarModal = false;
-  this.usuarioSeleccionado = null;
-  this.formularioUsuario.reset();
-  this.cargarUsuarios();
-},
-     error: (err: any) => {
-  console.error('❌ Error al actualizar usuario:', err);
-  this.tipoModalNotificacion = 'error';
-  this.tituloModalNotificacion = 'Error al Guardar';
-  this.mensajeModalNotificacion = 'No se pudo actualizar el usuario. Inténtalo de nuevo.';
-  this.mostrarModalNotificacion = true;
-  this.guardando = false;
-}
+      next: (response: any) => {
+        console.log('✅ Usuario actualizado:', response);
+        this.guardando = false;
+
+        // Primero mostrar notificación, luego cerrar modal de edición
+        this.tipoModalNotificacion = 'exito';
+        this.tituloModalNotificacion = 'Usuario Actualizado';
+        this.mensajeModalNotificacion = 'Los datos del usuario se han guardado correctamente';
+        this.mostrarModalNotificacion = true;
+
+        // Cerrar modal de edición y recargar datos
+        this.mostrarModal = false;
+        this.usuarioSeleccionado = null;
+        this.formularioUsuario.reset();
+        this.cargarUsuarios();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al actualizar usuario:', err);
+        this.tipoModalNotificacion = 'error';
+        this.tituloModalNotificacion = 'Error al Guardar';
+        this.mensajeModalNotificacion = 'No se pudo actualizar el usuario. Inténtalo de nuevo.';
+        this.mostrarModalNotificacion = true;
+        this.guardando = false;
+      }
     });
   }
 
@@ -257,6 +326,7 @@ next: (response: any) => {
       nombre: ['', Validators.required],
       apellidos: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
+      telefono: [''],
       tipo_estudios: [''],
       fecha_inicio_est: [''],
       fecha_fin_prev: [''],
@@ -275,7 +345,7 @@ next: (response: any) => {
       next: (usuarios: Usuario[]) => {
         console.log('👥 Usuarios recibidos:', usuarios);
         this.usuarios = usuarios;
-        this.usuariosFiltrados = [...usuarios];
+        this.aplicarFiltros();
         this.isLoading = false;
 
         // Cargar contadores Tipo B para cada usuario
@@ -323,7 +393,7 @@ next: (response: any) => {
   /**
  * Cierra el modal de notificación
  */
-cerrarModalNotificacion(): void {
-  this.mostrarModalNotificacion = false;
-}
+  cerrarModalNotificacion(): void {
+    this.mostrarModalNotificacion = false;
+  }
 }

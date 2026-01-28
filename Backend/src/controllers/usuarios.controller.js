@@ -11,6 +11,7 @@ function obtenerPerfilActual(req, res) {
       'email',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'codigo_tarjeta',
@@ -56,6 +57,7 @@ function listarUsuarios(req, res) {
       'email',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'codigo_tarjeta',
@@ -85,6 +87,7 @@ function obtenerDetalleUsuario(req, res) {
       'codigo_tarjeta',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'tipo_estudios',
@@ -152,6 +155,7 @@ function actualizarUsuario(req, res) {
   var camposActualizables = {
     nombre: datos.nombre,
     apellidos: datos.apellidos,
+    telefono: datos.telefono,
     email: datos.email,
     tipo_estudios: datos.tipo_estudios,
     fecha_inicio_est: datos.fecha_inicio_est,
@@ -183,6 +187,7 @@ function actualizarUsuario(req, res) {
           email: usuarioActualizado.email,
           nombre: usuarioActualizado.nombre,
           apellidos: usuarioActualizado.apellidos,
+          telefono: usuarioActualizado.telefono,
           rol: usuarioActualizado.rol,
           estado_perfil: usuarioActualizado.estado_perfil,
           tipo_estudios: usuarioActualizado.tipo_estudios,
@@ -307,9 +312,17 @@ function buscarPorCodigoBarras(req, res) {
  * Ejemplo: EUSA202400001
  */
 function generarCodigoTarjeta() {
-  const anio = new Date().getFullYear();
-  const numeroAleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `EUSA${anio}${numeroAleatorio}`;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  const ms = now.getMilliseconds().toString().padStart(3, '0');
+
+  // Formato: EUSA20260128094512555
+  return `EUSA${year}${month}${day}${hours}${minutes}${seconds}${ms}`;
 }
 
 // CREAR NUEVO USUARIO (solo PAS)
@@ -319,6 +332,7 @@ function crearUsuario(req, res) {
   models.Usuario.create({
     nombre: datos.nombre,
     apellidos: datos.apellidos,
+    telefono: datos.telefono,
     email: datos.email,
     password_hash: datos.password_hash || '123456', // Password por defecto si no viene
     rol: datos.rol || 'alumno',

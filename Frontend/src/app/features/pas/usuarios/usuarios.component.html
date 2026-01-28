@@ -4,10 +4,32 @@
   <!-- Título principal -->
   <h1 class="page-title">Gestión de Usuarios</h1>
 
-  <!-- Barra de búsqueda -->
-  <div class="busqueda">
-    <input type="text" class="input-busqueda" placeholder="Buscar alumno..." [(ngModel)]="textoBusqueda"
-      (input)="buscar()" />
+  <!-- Barra de búsqueda y filtros -->
+  <div class="filtros-container">
+    <div class="busqueda-wrapper">
+      <input type="text" class="input-busqueda" placeholder="Buscar por nombre o email..." [(ngModel)]="textoBusqueda"
+        (input)="aplicarFiltros()" />
+    </div>
+
+    <div class="selects-wrapper">
+      <!-- Filtro Estado -->
+      <select class="select-filtro" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+        <option value="">Todos los Estados</option>
+        <option *ngFor="let opcion of opcionesEstado" [value]="opcion.valor">
+          {{ opcion.etiqueta }}
+        </option>
+      </select>
+
+      <!-- Botón Limpiar -->
+      <button class="btn-limpiar" (click)="textoBusqueda=''; filtroEstado=''; aplicarFiltros()"
+        title="Limpiar todos los filtros">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Tabla de usuarios -->
@@ -15,22 +37,38 @@
 
     <!-- Header tabla -->
     <div class="table-header">
-      <div class="th th-nombre">Nombre</div>
-      <div class="th th-email">Email</div>
-      <div class="th th-grado">Grado</div>
-      <div class="th th-curso">Curso</div>
-      <div class="th th-tipob">
-        Tipo B
-        <span class="info-icon" title="Cada alumno tiene un máximo de 5 préstamos tipo B por trimestre">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" class="feather feather-info">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
+      <div class="th th-nombre sortable" (click)="ordenar('nombre')">
+        Nombre
+        <span class="sort-icon" [class.active]="sortColumn === 'nombre'">
+          {{ sortColumn === 'nombre' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
         </span>
       </div>
-      <div class="th th-estado">Estado</div>
+      <div class="th th-email sortable" (click)="ordenar('email')">
+        Email
+        <span class="sort-icon" [class.active]="sortColumn === 'email'">
+          {{ sortColumn === 'email' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
+      <div class="th th-telefono">Teléfono</div>
+      <div class="th th-grado sortable" (click)="ordenar('grado')">
+        Grado
+        <span class="sort-icon" [class.active]="sortColumn === 'grado'">
+          {{ sortColumn === 'grado' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
+      <div class="th th-curso">Curso</div>
+      <div class="th th-tipob sortable" (click)="ordenar('tipob')">
+        Tipo B
+        <span class="sort-icon" [class.active]="sortColumn === 'tipob'">
+          {{ sortColumn === 'tipob' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
+      <div class="th th-estado sortable" (click)="ordenar('estado')">
+        Estado
+        <span class="sort-icon" [class.active]="sortColumn === 'estado'">
+          {{ sortColumn === 'estado' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕' }}
+        </span>
+      </div>
     </div>
 
     <!-- Body tabla -->
@@ -63,6 +101,11 @@
           {{ usuario.email }}
         </div>
 
+        <!-- Teléfono -->
+        <div class="td td-telefono">
+          {{ usuario.telefono || '-' }}
+        </div>
+
         <!-- Grado -->
         <div class="td td-grado">
           {{ getTipoEstudiosLabel(usuario.tipo_estudios || '') }}
@@ -80,7 +123,9 @@
 
         <!-- Estado -->
         <div class="td td-estado">
-          {{ getEstadoLabel(usuario.estado_perfil) }}
+          <span class="badge-estado" [ngClass]="usuario.estado_perfil">
+            {{ getEstadoLabel(usuario.estado_perfil) }}
+          </span>
         </div>
       </div>
 
@@ -97,19 +142,19 @@
     <!-- Título del modal -->
     <h2 class="modal-title">Perfil</h2>
 
-   <!-- SECCIÓN: Código de Barras Personal -->
-<div class="codigo-barras-section" *ngIf="usuarioSeleccionado">
-  <div class="codigo-barras-label">Código de Barras Personal:</div>
-  <div class="codigo-barras-container">
-    <!-- Si tiene código de tarjeta -->
-    <svg id="barcodeModal" *ngIf="usuarioSeleccionado.codigo_tarjeta"></svg>
-    
-    <!-- Si NO tiene código de tarjeta -->
-    <div class="sin-codigo" *ngIf="!usuarioSeleccionado.codigo_tarjeta">
-      <p>Este usuario no tiene código de tarjeta asignado</p>
+    <!-- SECCIÓN: Código de Barras Personal -->
+    <div class="codigo-barras-section" *ngIf="usuarioSeleccionado">
+      <div class="codigo-barras-label">Código de Barras Personal:</div>
+      <div class="codigo-barras-container">
+        <!-- Si tiene código de tarjeta -->
+        <svg id="barcodeModal" *ngIf="usuarioSeleccionado.codigo_tarjeta"></svg>
+
+        <!-- Si NO tiene código de tarjeta -->
+        <div class="sin-codigo" *ngIf="!usuarioSeleccionado.codigo_tarjeta">
+          <p>Este usuario no tiene código de tarjeta asignado</p>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- Formulario -->
     <form [formGroup]="formularioUsuario" (ngSubmit)="guardarCambios()">
@@ -124,6 +169,12 @@
       <div class="form-field">
         <label class="field-label">Email</label>
         <input type="email" class="field-input" formControlName="email" />
+      </div>
+
+      <!-- Campo: Teléfono -->
+      <div class="form-field">
+        <label class="field-label">Teléfono</label>
+        <input type="text" class="field-input" formControlName="telefono" />
       </div>
 
       <!-- Campo: Año de Matrícula -->
@@ -173,7 +224,7 @@
         </select>
       </div>
 
- <!-- Botones -->
+      <!-- Botones -->
       <div class="modal-actions">
         <button type="button" class="btn-cancelar" (click)="cerrarModal()">
           Cancelar
@@ -189,11 +240,5 @@
 </div>
 
 <!-- MODAL DE NOTIFICACIONES (Reutilizable) - FUERA del modal de edición -->
-<app-modal
-  [mostrar]="mostrarModalNotificacion"
-  [tipo]="tipoModalNotificacion"
-  [titulo]="tituloModalNotificacion"
-  [mensaje]="mensajeModalNotificacion"
-  [textoBtnPrincipal]="'Aceptar'"
-  (cerrar)="cerrarModalNotificacion()"
-></app-modal>
+<app-modal [mostrar]="mostrarModalNotificacion" [tipo]="tipoModalNotificacion" [titulo]="tituloModalNotificacion"
+  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'" (cerrar)="cerrarModalNotificacion()"></app-modal>

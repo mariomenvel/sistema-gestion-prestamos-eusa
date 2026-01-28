@@ -45,8 +45,13 @@ export class MisPrestamosComponent implements OnInit {
 
   // ===== FILTROS =====
   filtroTipo: string = 'todos'; // 'todos' | 'tipoA' | 'tipoB'
+  filtroEstado: string = 'todos'; // 'todos' | 'pendiente' | 'activo' | 'vencido' | 'cerrado'
   filtroFechaDesde: string = '';
   filtroFechaHasta: string = '';
+
+  // ===== ORDENACIÓN =====
+  sortColumn: string = 'fecha'; // 'fecha' o 'material'
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   // ===== ESTADO =====
   isLoading: boolean = false;
@@ -61,7 +66,7 @@ export class MisPrestamosComponent implements OnInit {
   // ===== CICLO DE VIDA =====
   ngOnInit(): void {
     this.cargarDatos();
-    
+
     // Suscribirse a cambios de solicitudes
     this.solicitudesService.solicitudCreada$.subscribe(() => {
       this.cargarDatos();
@@ -74,7 +79,7 @@ export class MisPrestamosComponent implements OnInit {
    * Aplica todos los filtros
    */
   aplicarFiltros(): void {
-    this.filasFiltradas = this.filas.filter(fila => {
+    let resultado = this.filas.filter(fila => {
       // Filtro por búsqueda de material
       if (this.textoBusqueda.trim()) {
         const textoNormalizado = this.normalizarTexto(this.textoBusqueda);
@@ -92,10 +97,17 @@ export class MisPrestamosComponent implements OnInit {
         }
       }
 
+      // 🔴 Filtro por estado 🟢
+      if (this.filtroEstado !== 'todos') {
+        if (fila.estado !== this.filtroEstado) {
+          return false;
+        }
+      }
+
       // Filtro por rango de fechas
       if (this.filtroFechaDesde || this.filtroFechaHasta) {
         const fechaFila = new Date(fila.fecha).getTime();
-        
+
         if (this.filtroFechaDesde) {
           const fechaDesde = new Date(this.filtroFechaDesde).getTime();
           if (fechaFila < fechaDesde) {
@@ -104,7 +116,6 @@ export class MisPrestamosComponent implements OnInit {
         }
 
         if (this.filtroFechaHasta) {
-          // Agregar 1 día para incluir todo el día seleccionado
           const fechaHasta = new Date(this.filtroFechaHasta);
           fechaHasta.setDate(fechaHasta.getDate() + 1);
           if (fechaFila > fechaHasta.getTime()) {
@@ -115,6 +126,45 @@ export class MisPrestamosComponent implements OnInit {
 
       return true;
     });
+
+    // 4. Aplicar ordenación
+    this.aplicarOrdenacion(resultado);
+  }
+
+  ordenar(columna: string): void {
+    if (this.sortColumn === columna) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columna;
+      this.sortDirection = columna === 'fecha' ? 'desc' : 'asc';
+    }
+    this.aplicarFiltros();
+  }
+
+  private aplicarOrdenacion(datos: FilaTabla[]): void {
+    datos.sort((a, b) => {
+      let valorA: any;
+      let valorB: any;
+
+      switch (this.sortColumn) {
+        case 'fecha':
+          valorA = new Date(a.fecha).getTime();
+          valorB = new Date(b.fecha).getTime();
+          break;
+        case 'material':
+          valorA = a.material.toLowerCase();
+          valorB = b.material.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (valorA < valorB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valorA > valorB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    this.filasFiltradas = datos;
   }
 
   /**
@@ -123,9 +173,10 @@ export class MisPrestamosComponent implements OnInit {
   limpiarFiltros(): void {
     this.textoBusqueda = '';
     this.filtroTipo = 'todos';
+    this.filtroEstado = 'todos';
     this.filtroFechaDesde = '';
     this.filtroFechaHasta = '';
-    this.filasFiltradas = [...this.filas];
+    this.aplicarFiltros();
   }
 
   /**
@@ -146,7 +197,7 @@ export class MisPrestamosComponent implements OnInit {
   getTipoTexto(tipo: string): string {
     return tipo === 'prof_trabajo' || tipo === 'a' ? 'Tipo A' : 'Tipo B';
   }
-  
+
   /**
    * Obtiene la clase CSS para el estado
    */
@@ -216,6 +267,7 @@ export class MisPrestamosComponent implements OnInit {
             });
 
             this.filasFiltradas = [...this.filas];
+            this.aplicarFiltros(); // Esto ya ordena y filtra
             this.isLoading = false;
 
             console.log('✅ Filas procesadas:', this.filas);
@@ -244,7 +296,7 @@ export class MisPrestamosComponent implements OnInit {
     // Solicitud tiene items directamente
     if (solicitud.items && solicitud.items.length > 0) {
       const nombres: string[] = [];
-      
+
       solicitud.items.forEach((item: any) => {
         // Si es un libro
         if (item.Libro) {
@@ -279,7 +331,7 @@ export class MisPrestamosComponent implements OnInit {
 
     // Préstamo tiene items
     const items = prestamo.items;
-    
+
     if (items && items.length > 0) {
       const primerItem = items[0];
 

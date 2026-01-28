@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 16-01-2026 a las 18:56:41
+-- Tiempo de generación: 28-01-2026 a las 09:44:38
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -40,11 +40,11 @@ CREATE TABLE `categorias` (
 --
 
 INSERT INTO `categorias` (`id`, `nombre`, `activa`, `createdAt`, `updatedAt`) VALUES
-(1, 'Fotografía', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'Iluminación', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'Sonido', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Informática', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'Accesorios', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Fotografía', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'Iluminación', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'Sonido', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Informática', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'Accesorios', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -90,16 +90,16 @@ CREATE TABLE `ejemplares` (
 --
 
 INSERT INTO `ejemplares` (`id`, `libro_id`, `codigo_barra`, `c122003`, `estanteria`, `balda`, `estado`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 'BK-0-A', NULL, NULL, NULL, '', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 1, 'BK-0-B', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 2, 'BK-1-A', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 2, 'BK-1-B', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 3, 'BK-2-A', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 3, 'BK-2-B', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(7, 4, 'BK-3-A', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(8, 4, 'BK-3-B', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(9, 5, 'BK-4-A', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(10, 5, 'BK-4-B', NULL, NULL, NULL, 'disponible', '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 1, 'BK-0-A', NULL, NULL, NULL, '', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 1, 'BK-0-B', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 2, 'BK-1-A', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 2, 'BK-1-B', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 3, 'BK-2-A', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 3, 'BK-2-B', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(7, 4, 'BK-3-A', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(8, 4, 'BK-3-B', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(9, 5, 'BK-4-A', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(10, 5, 'BK-4-B', NULL, NULL, NULL, 'disponible', '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -124,12 +124,12 @@ CREATE TABLE `equipos` (
 --
 
 INSERT INTO `equipos` (`id`, `categoria_id`, `nombre_id`, `marca`, `modelo`, `descripcion`, `foto_url`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 1, 'Canon', '5D Mark IV', 'Full Frame', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 1, 1, 'Sony', 'A7 III', 'Mirrorless', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 1, 2, 'Manfrotto', '055', 'Trípode robusto', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 3, 3, 'Sennheiser', 'G4', 'Inalámbrico', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 4, 4, 'Dell', 'Latitude', 'i5 8GB', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 2, 5, 'Aputure', '120d', 'Luz día', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 1, 1, 'Canon', '5D Mark IV', 'Full Frame', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 1, 1, 'Sony', 'A7 III', 'Mirrorless', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 1, 2, 'Manfrotto', '055', 'Trípode robusto', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 3, 3, 'Sennheiser', 'G4', 'Inalámbrico', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 4, 4, 'Dell', 'Latitude', 'i5 8GB', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 2, 5, 'Aputure', '120d', 'Luz día', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -150,11 +150,11 @@ CREATE TABLE `generos` (
 --
 
 INSERT INTO `generos` (`id`, `nombre`, `activo`, `createdAt`, `updatedAt`) VALUES
-(1, 'Novela', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'Manual Técnico', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'Ensayo', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Arte', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'Historia', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Novela', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'Manual Técnico', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'Ensayo', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Arte', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'Historia', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -175,12 +175,12 @@ CREATE TABLE `grados` (
 --
 
 INSERT INTO `grados` (`id`, `nombre`, `activo`, `createdAt`, `updatedAt`) VALUES
-(1, 'Periodismo', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'Publicidad y RRPP', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'Comunicación Audiovisual', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Doble Grado PER+CAV', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'Ciclo DAM', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 'Ciclo DAW', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Periodismo', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'Publicidad y RRPP', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'Comunicación Audiovisual', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Doble Grado PER+CAV', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'Ciclo DAM', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 'Ciclo DAW', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -205,11 +205,11 @@ CREATE TABLE `libros` (
 --
 
 INSERT INTO `libros` (`id`, `titulo`, `autor`, `editorial`, `libro_numero`, `genero_id`, `foto_url`, `createdAt`, `updatedAt`) VALUES
-(1, 'Clean Architecture', 'Uncle Bob', NULL, 'L001', 2, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'El Quijote', 'Cervantes', NULL, 'L002', 1, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'La Luz en Cine', 'Storaro', NULL, 'L003', 4, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Sapiens', 'Harari', NULL, 'L004', 3, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'JavaScript Good Parts', 'Crockford', NULL, 'L005', 2, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Clean Architecture', 'Uncle Bob', NULL, 'L001', 2, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'El Quijote', 'Cervantes', NULL, 'L002', 1, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'La Luz en Cine', 'Storaro', NULL, 'L003', 4, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Sapiens', 'Harari', NULL, 'L004', 3, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'JavaScript Good Parts', 'Crockford', NULL, 'L005', 2, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -233,11 +233,11 @@ CREATE TABLE `motivos_rechazo` (
 --
 
 INSERT INTO `motivos_rechazo` (`id`, `titulo_es`, `cuerpo_es`, `titulo_en`, `cuerpo_en`, `clave`, `createdAt`, `updatedAt`) VALUES
-(1, 'Material no disponible', 'El material no se encuentra disponible.', 'Item not available', 'Item not available.', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'Sanción vigente', 'Tienes sanción activa.', 'Sanction active', 'You have an active sanction.', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'Fin de Curso', 'Cierre de préstamos por fin de curso.', 'End of Term', 'Loans closed.', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Datos incompletos', 'Solicitud mal formada.', 'Incomplete data', 'Bad request.', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'Exceso de cupo', 'Has superado el límite de préstamos.', 'Quota exceeded', 'Limit reached.', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Material no disponible', 'El material no se encuentra disponible.', 'Item not available', 'Item not available.', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'Sanción vigente', 'Tienes sanción activa.', 'Sanction active', 'You have an active sanction.', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'Fin de Curso', 'Cierre de préstamos por fin de curso.', 'End of Term', 'Loans closed.', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Datos incompletos', 'Solicitud mal formada.', 'Incomplete data', 'Bad request.', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'Exceso de cupo', 'Has superado el límite de préstamos.', 'Quota exceeded', 'Limit reached.', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -258,11 +258,11 @@ CREATE TABLE `nombres` (
 --
 
 INSERT INTO `nombres` (`id`, `nombre`, `activa`, `createdAt`, `updatedAt`) VALUES
-(1, 'Cámara Réflex', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'Trípode Video', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'Micrófono Corbata', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'Portátil Windows', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'Foco LED', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 'Cámara Réflex', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'Trípode Video', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'Micrófono Corbata', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'Portátil Windows', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'Foco LED', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -309,14 +309,14 @@ CREATE TABLE `prestamos` (
 --
 
 INSERT INTO `prestamos` (`id`, `usuario_id`, `solicitud_id`, `tipo`, `estado`, `fecha_inicio`, `fecha_devolucion_prevista`, `fecha_devolucion_real`, `profesor_solicitante_id`, `createdAt`, `updatedAt`, `ejemplar_id`) VALUES
-(1, 8, 2, 'a', 'activo', '2026-01-16 17:55:03', '2026-01-17 17:55:03', NULL, 2, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(2, 11, 5, 'b', 'vencido', '2026-01-11 17:55:03', '2026-01-15 17:55:03', NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(3, 12, NULL, 'c', 'cerrado', '2026-01-06 17:55:03', '2026-01-07 17:55:03', '2026-01-07 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(4, 7, NULL, 'b', 'cerrado', '2025-12-17 17:55:03', '2025-12-22 17:55:03', '2025-12-22 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(5, 8, NULL, 'b', 'cerrado', '2025-12-17 17:55:03', '2025-12-22 17:55:03', '2025-12-22 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(6, 9, NULL, 'b', 'cerrado', '2025-12-17 17:55:03', '2025-12-22 17:55:03', '2025-12-22 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(7, 10, NULL, 'b', 'cerrado', '2025-12-17 17:55:03', '2025-12-22 17:55:03', '2025-12-22 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(8, 11, NULL, 'b', 'cerrado', '2025-12-17 17:55:03', '2025-12-22 17:55:03', '2025-12-22 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL);
+(1, 7, 2, 'a', 'activo', '2026-01-28 08:44:02', '2026-01-29 08:44:02', NULL, 3, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(2, 12, 5, 'b', 'vencido', '2026-01-23 08:44:02', '2026-01-27 08:44:02', NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(3, 11, NULL, 'c', 'cerrado', '2026-01-18 08:44:02', '2026-01-19 08:44:02', '2026-01-19 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(4, 8, NULL, 'b', 'cerrado', '2025-12-29 08:44:02', '2026-01-03 08:44:02', '2026-01-03 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(5, 7, NULL, 'b', 'cerrado', '2025-12-29 08:44:02', '2026-01-03 08:44:02', '2026-01-03 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(6, 10, NULL, 'b', 'cerrado', '2025-12-29 08:44:02', '2026-01-03 08:44:02', '2026-01-03 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(7, 9, NULL, 'b', 'cerrado', '2025-12-29 08:44:02', '2026-01-03 08:44:02', '2026-01-03 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(8, 12, NULL, 'b', 'cerrado', '2025-12-29 08:44:02', '2026-01-03 08:44:02', '2026-01-03 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -340,13 +340,13 @@ CREATE TABLE `prestamo_items` (
 --
 
 INSERT INTO `prestamo_items` (`id`, `prestamo_id`, `unidad_id`, `ejemplar_id`, `fecha_devolucion`, `devuelto`, `createdAt`, `updatedAt`) VALUES
-(1, 1, 3, NULL, NULL, 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 2, 5, NULL, NULL, 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 4, 1, NULL, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 5, 2, NULL, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 6, 3, NULL, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 7, 4, NULL, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(7, 8, 5, NULL, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 1, 3, NULL, NULL, 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 2, 5, NULL, NULL, 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 4, 1, NULL, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 5, 2, NULL, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 6, 3, NULL, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 7, 4, NULL, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(7, 8, 5, NULL, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -371,13 +371,13 @@ CREATE TABLE `sanciones` (
 --
 
 INSERT INTO `sanciones` (`id`, `usuario_id`, `severidad`, `estado`, `inicio`, `fin`, `motivo`, `createdAt`, `updatedAt`) VALUES
-(1, 12, '', '', '2025-01-01 00:00:00', '2025-01-07 00:00:00', 'Retraso leve', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 9, '', 'activa', '2026-01-16 17:55:03', '2026-01-31 17:55:03', 'Rotura Material', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 7, '', '', '2025-11-17 17:55:03', '2025-11-22 17:55:03', 'Seed generado #0', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 8, '', '', '2025-11-17 17:55:03', '2025-11-22 17:55:03', 'Seed generado #1', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 9, '', '', '2025-11-17 17:55:03', '2025-11-22 17:55:03', 'Seed generado #2', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 10, '', '', '2025-11-17 17:55:03', '2025-11-22 17:55:03', 'Seed generado #3', '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(7, 11, '', '', '2025-11-17 17:55:03', '2025-11-22 17:55:03', 'Seed generado #4', '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 11, '', '', '2025-01-01 00:00:00', '2025-01-07 00:00:00', 'Retraso leve', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 10, '', 'activa', '2026-01-28 08:44:02', '2026-02-12 08:44:02', 'Rotura Material', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 8, '', '', '2025-11-29 08:44:02', '2025-12-04 08:44:02', 'Seed generado #0', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 7, '', '', '2025-11-29 08:44:02', '2025-12-04 08:44:02', 'Seed generado #1', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 10, '', '', '2025-11-29 08:44:02', '2025-12-04 08:44:02', 'Seed generado #2', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 9, '', '', '2025-11-29 08:44:02', '2025-12-04 08:44:02', 'Seed generado #3', '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(7, 12, '', '', '2025-11-29 08:44:02', '2025-12-04 08:44:02', 'Seed generado #4', '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -408,11 +408,11 @@ CREATE TABLE `solicitudes` (
 --
 
 INSERT INTO `solicitudes` (`id`, `usuario_id`, `tipo`, `estado`, `normas_aceptadas`, `observaciones`, `gestionado_por_id`, `profesor_asociado_id`, `grado_id`, `motivo_rechazo`, `creada_en`, `resuelta_en`, `createdAt`, `updatedAt`, `ejemplar_id`) VALUES
-(1, 7, 'uso_propio', 'pendiente', 1, 'Urgente', NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(2, 8, 'prof_trabajo', 'aprobada', 1, NULL, NULL, 2, 1, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(3, 9, 'uso_propio', 'rechazada', 1, NULL, NULL, NULL, NULL, 'No hay stock', '2026-01-16 17:55:03', '2026-01-16 17:55:03', '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(4, 10, 'prof_trabajo', 'pendiente', 1, NULL, NULL, 3, 2, NULL, '2026-01-16 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL),
-(5, 11, 'uso_propio', 'aprobada', 1, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03', NULL);
+(1, 8, 'uso_propio', 'pendiente', 1, 'Urgente', NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(2, 7, 'prof_trabajo', 'aprobada', 1, NULL, NULL, 3, 1, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(3, 10, 'uso_propio', 'rechazada', 1, NULL, NULL, NULL, NULL, 'No hay stock', '2026-01-28 08:44:02', '2026-01-28 08:44:02', '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(4, 9, 'prof_trabajo', 'pendiente', 1, NULL, NULL, 4, 2, NULL, '2026-01-28 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL),
+(5, 12, 'uso_propio', 'aprobada', 1, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -435,11 +435,11 @@ CREATE TABLE `solicitud_items` (
 --
 
 INSERT INTO `solicitud_items` (`id`, `solicitud_id`, `libro_id`, `equipo_id`, `cantidad`, `createdAt`, `updatedAt`) VALUES
-(1, 1, NULL, 1, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 2, NULL, 2, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 3, 1, NULL, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 4, NULL, 5, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 5, NULL, 3, 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 1, NULL, 1, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 2, NULL, 2, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 3, 1, NULL, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 4, NULL, 5, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 5, NULL, 3, 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -464,18 +464,18 @@ CREATE TABLE `unidades` (
 --
 
 INSERT INTO `unidades` (`id`, `equipo_id`, `numero_serie`, `codigo_barra`, `ubicacion`, `estado_fisico`, `esta_prestado`, `createdAt`, `updatedAt`) VALUES
-(1, 1, NULL, 'EQ-0-A', NULL, 'funciona', 1, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 1, NULL, 'EQ-0-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 2, NULL, 'EQ-1-A', NULL, '', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 2, NULL, 'EQ-1-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 3, NULL, 'EQ-2-A', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 3, NULL, 'EQ-2-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(7, 4, NULL, 'EQ-3-A', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(8, 4, NULL, 'EQ-3-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(9, 5, NULL, 'EQ-4-A', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(10, 5, NULL, 'EQ-4-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(11, 6, NULL, 'EQ-5-A', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(12, 6, NULL, 'EQ-5-B', NULL, 'funciona', 0, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+(1, 1, NULL, 'EQ-0-A', NULL, 'funciona', 1, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 1, NULL, 'EQ-0-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 2, NULL, 'EQ-1-A', NULL, '', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 2, NULL, 'EQ-1-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 3, NULL, 'EQ-2-A', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 3, NULL, 'EQ-2-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(7, 4, NULL, 'EQ-3-A', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(8, 4, NULL, 'EQ-3-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(9, 5, NULL, 'EQ-4-A', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(10, 5, NULL, 'EQ-4-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(11, 6, NULL, 'EQ-5-A', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(12, 6, NULL, 'EQ-5-B', NULL, 'funciona', 0, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 -- --------------------------------------------------------
 
@@ -490,6 +490,7 @@ CREATE TABLE `usuarios` (
   `password_hash` varchar(255) NOT NULL,
   `nombre` varchar(120) NOT NULL,
   `apellidos` varchar(150) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
   `rol` enum('alumno','profesor','pas') NOT NULL,
   `estado_perfil` enum('activo','bloqueado','inactivo') NOT NULL DEFAULT 'activo',
   `tipo_estudios` enum('grado_uni','grado_sup','master') DEFAULT NULL,
@@ -506,19 +507,19 @@ CREATE TABLE `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `email`, `codigo_tarjeta`, `password_hash`, `nombre`, `apellidos`, `rol`, `estado_perfil`, `tipo_estudios`, `grado`, `grado_id`, `curso`, `fecha_inicio_est`, `fecha_fin_prev`, `createdAt`, `updatedAt`) VALUES
-(1, 'pas@eusa.es', NULL, '$2b$10$bKxbhDdHnEG8ne1ESVdYKukR4YTRrnIQh9GfZsNRxQi5XT5GiXWGu', 'Admin', 'PAS', 'pas', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(2, 'prof1@eusa.es', NULL, '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Manuel', 'Chaves', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(3, 'prof2@eusa.es', NULL, '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Laura', 'Video', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(4, 'prof3@eusa.es', NULL, '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'David', 'Codigo', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(5, 'prof4@eusa.es', NULL, '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Maria', 'Mates', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(6, 'prof5@eusa.es', NULL, '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Jose', 'Historia', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(7, 'alum1@eusa.es', 'CARD-1', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Juan', 'Uno', 'alumno', 'activo', NULL, NULL, 1, 1, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(8, 'alum2@eusa.es', 'CARD-2', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Pedro', 'Dos', 'alumno', 'activo', NULL, NULL, 3, 2, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(9, 'alum3@eusa.es', 'CARD-3', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Luis', 'Tres', 'alumno', 'activo', NULL, NULL, 5, 1, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(10, 'alum4@eusa.es', 'CARD-4', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Ana', 'Cuatro', 'alumno', 'activo', NULL, NULL, 2, 3, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(11, 'alum5@eusa.es', 'CARD-5', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Eva', 'Cinco', 'alumno', 'activo', NULL, NULL, 3, 4, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03'),
-(12, 'alum6@eusa.es', 'CARD-6', '$2b$10$RaR8cMyxKCWKPv.rhHKdB.GtNoJZ51gBO0vC.6fMrHSJuKhbaPCr6', 'Cris', 'Seis', 'alumno', 'activo', NULL, NULL, 5, 2, NULL, NULL, '2026-01-16 17:55:03', '2026-01-16 17:55:03');
+INSERT INTO `usuarios` (`id`, `email`, `codigo_tarjeta`, `password_hash`, `nombre`, `apellidos`, `telefono`, `rol`, `estado_perfil`, `tipo_estudios`, `grado`, `grado_id`, `curso`, `fecha_inicio_est`, `fecha_fin_prev`, `createdAt`, `updatedAt`) VALUES
+(1, 'pas@eusa.es', 'EUSA20260128094402412', '$2b$10$uOzsVOhB569LWMoQbgilTum1UcTv5viREk82J6V1BUyueRf6dfzSa', 'Admin', 'PAS', '+34955123456', 'pas', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(2, 'prof4@eusa.es', 'EUSA20260128094402416', '$2b$10$VoU0e710eQr9tzXnMsH55uryHyjiKPFy6DS49.ygsPUqjPB7zWxmC', 'Maria', 'Mates', '+34612345004', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(3, 'prof1@eusa.es', 'EUSA20260128094402413', '$2b$10$TV5yN40n6rRuIY08QuMINeDasoj6ZyERvv2e0QN0ft88Slin2trJq', 'Manuel', 'Chaves', '+34612345001', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(4, 'prof2@eusa.es', 'EUSA20260128094402414', '$2b$10$yXrLfCAxSRuvPay5RI7pWOSWWhGbX7X1zpup/UYzh8tRxv3MmqGV.', 'Laura', 'Video', '+34612345002', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(5, 'prof3@eusa.es', 'EUSA20260128094402415', '$2b$10$1YFq5ohg0aDouW7LmQM5TuF9hSsp2A90oXbAu69WRXYy/C8U5ZTeK', 'David', 'Codigo', '+34612345003', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(6, 'prof5@eusa.es', 'EUSA20260128094402417', '$2b$10$bz9bQG7A4u8abKcAmRiDBeNg5IaFzdH.cp2U1tNUg0rrBKPIroBKK', 'Jose', 'Historia', '+34612345005', 'profesor', 'activo', NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(7, 'alum2@eusa.es', 'EUSA20260128094402419', '$2b$10$wQGIxbGyWasetHpT7DkvCOXkwlSIrfo34LgORgtJC5xuLEhDeM.KC', 'Pedro', 'Dos', '+34622111002', 'alumno', 'activo', NULL, NULL, 3, 2, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(8, 'alum1@eusa.es', 'EUSA20260128094402418', '$2b$10$w8DMT1YOmn8mwyP.jX6RVehFBurB54sYwBqsVT6zXnXCnAZg987E2', 'Juan', 'Uno', '+34622111001', 'alumno', 'activo', NULL, NULL, 1, 1, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(9, 'alum4@eusa.es', 'EUSA20260128094402421', '$2b$10$zTcUZ07hHcKMy7yHILt0.uAHxW8..HDq3jddC0kz6rHA5r3GvtG2O', 'Ana', 'Cuatro', '+34622111004', 'alumno', 'activo', NULL, NULL, 2, 3, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(10, 'alum3@eusa.es', 'EUSA20260128094402420', '$2b$10$fmfb.WZ8bYlkp4lelGRiNuxClHtYarJp9xjuQMQGDKzc4stvAKHbq', 'Luis', 'Tres', '+34622111003', 'alumno', 'activo', NULL, NULL, 5, 1, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(11, 'alum6@eusa.es', 'EUSA20260128094402423', '$2b$10$nKUfkDYlzdODuGlyfenSFuRmFufHUIg1vh9fFhEX6BL1EyV04hUgC', 'Cris', 'Seis', '+34622111006', 'alumno', 'activo', NULL, NULL, 5, 2, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02'),
+(12, 'alum5@eusa.es', 'EUSA20260128094402422', '$2b$10$smlIdUudq2PlFH8ivrYjoOpsljkt.4RGziVQUwLIdi1GD9YlNtd4m', 'Eva', 'Cinco', '+34622111005', 'alumno', 'activo', NULL, NULL, 3, 4, NULL, NULL, '2026-01-28 08:44:02', '2026-01-28 08:44:02');
 
 --
 -- Índices para tablas volcadas
@@ -828,7 +829,7 @@ ALTER TABLE `solicitudes`
 -- Filtros para la tabla `solicitud_items`
 --
 ALTER TABLE `solicitud_items`
-  ADD CONSTRAINT `solicitud_items_ibfk_1` FOREIGN KEY (`solicitud_id`) REFERENCES `solicitudes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `solicitud_items_ibfk_1` FOREIGN KEY (`solicitud_id`) REFERENCES `solicitudes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `solicitud_items_ibfk_2` FOREIGN KEY (`libro_id`) REFERENCES `libros` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `solicitud_items_ibfk_3` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 

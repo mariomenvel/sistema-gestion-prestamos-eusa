@@ -56,8 +56,14 @@ function obtenerReportePrestamos(req, res) {
     where: where,
     include: [
       { model: models.Usuario },
-      { model: models.Ejemplar },
-      { model: models.Unidad }
+      {
+        model: models.PrestamoItem,
+        as: 'items',
+        include: [
+          { model: models.Unidad, include: [{ model: models.Equipo, as: 'equipo' }] },
+          { model: models.Ejemplar, include: [{ model: models.Libro, as: 'libro' }] }
+        ]
+      }
     ],
     order: [['fecha_inicio', 'DESC']]
   })
@@ -114,8 +120,14 @@ function obtenerReporteSolicitudes(req, res) {
     where: where,
     include: [
       { model: models.Usuario },
-      { model: models.Ejemplar },
-      { model: models.Unidad }
+      {
+        model: models.SolicitudItem,
+        as: 'items',
+        include: [
+          { model: models.Libro },
+          { model: models.Equipo }
+        ]
+      }
     ],
     order: [['creada_en', 'DESC']]
   })
@@ -181,23 +193,23 @@ function obtenerReporteSanciones(req, res) {
  */
 function obtenerLibroMasPrestado(req, res) {
   var db = require('../db');
-  
+
   db.sequelize.query(`
     SELECT 
       l.id,
       l.titulo,
       l.autor,
-      COUNT(p.id) as total_prestamos
+      COUNT(pi.id) as total_prestamos
     FROM libros l
     INNER JOIN ejemplares e ON e.libro_id = l.id
-    INNER JOIN prestamos p ON p.ejemplar_id = e.id
+    INNER JOIN prestamo_items pi ON pi.ejemplar_id = e.id
     GROUP BY l.id, l.titulo, l.autor
     ORDER BY total_prestamos DESC
     LIMIT 1
   `, {
     type: Sequelize.QueryTypes.SELECT
   })
-    .then(function(resultados) {
+    .then(function (resultados) {
       if (resultados.length === 0) {
         return res.json({
           titulo: 'Sin datos',
@@ -213,7 +225,7 @@ function obtenerLibroMasPrestado(req, res) {
         totalPrestamos: parseInt(libro.total_prestamos)
       });
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.error('Error al obtener libro más prestado:', error);
       res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     });
@@ -224,25 +236,25 @@ function obtenerLibroMasPrestado(req, res) {
  */
 function obtenerMaterialMasPrestado(req, res) {
   var db = require('../db');
-  
+
   db.sequelize.query(`
     SELECT 
       eq.id,
       eq.marca,
       eq.modelo,
       cat.nombre as categoria,
-      COUNT(p.id) as total_prestamos
+      COUNT(pi.id) as total_prestamos
     FROM equipos eq
     INNER JOIN unidades u ON u.equipo_id = eq.id
-    INNER JOIN prestamos p ON p.unidad_id = u.id
-    LEFT JOIN categorias cat ON cat.codigo = eq.categoria_codigo
+    INNER JOIN prestamo_items pi ON pi.unidad_id = u.id
+    LEFT JOIN categorias cat ON cat.id = eq.categoria_id
     GROUP BY eq.id, eq.marca, eq.modelo, cat.nombre
     ORDER BY total_prestamos DESC
     LIMIT 1
   `, {
     type: Sequelize.QueryTypes.SELECT
   })
-    .then(function(resultados) {
+    .then(function (resultados) {
       if (resultados.length === 0) {
         return res.json({
           nombre: 'Sin datos',
@@ -258,7 +270,7 @@ function obtenerMaterialMasPrestado(req, res) {
         totalPrestamos: parseInt(material.total_prestamos)
       });
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.error('Error al obtener material más prestado:', error);
       res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     });
@@ -268,7 +280,7 @@ function obtenerMaterialMasPrestado(req, res) {
  */
 function obtenerUsuarioMasSolicita(req, res) {
   var db = require('../db');
-  
+
   db.sequelize.query(`
     SELECT 
       u.grado,
@@ -283,7 +295,7 @@ function obtenerUsuarioMasSolicita(req, res) {
   `, {
     type: Sequelize.QueryTypes.SELECT
   })
-    .then(function(resultados) {
+    .then(function (resultados) {
       if (resultados.length === 0) {
         return res.json({
           nombre: 'Sin datos',
@@ -293,14 +305,14 @@ function obtenerUsuarioMasSolicita(req, res) {
       }
 
       var dato = resultados[0];
-      
+
       res.json({
         nombre: dato.grado,
         curso: dato.curso + 'º',
         totalSolicitudes: parseInt(dato.total_solicitudes)
       });
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.error('Error al obtener grado que más solicita:', error);
       res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     });
@@ -311,25 +323,26 @@ function obtenerUsuarioMasSolicita(req, res) {
  */
 function obtenerTop5Materiales(req, res) {
   var db = require('../db');
-  
+
   db.sequelize.query(`
     SELECT 
+      eq.id,
       eq.marca,
       eq.modelo,
       cat.nombre as categoria,
-      COUNT(p.id) as total_prestamos
+      COUNT(pi.id) as total_prestamos
     FROM equipos eq
     INNER JOIN unidades u ON u.equipo_id = eq.id
-    INNER JOIN prestamos p ON p.unidad_id = u.id
-    LEFT JOIN categorias cat ON cat.codigo = eq.categoria_codigo
+    INNER JOIN prestamo_items pi ON pi.unidad_id = u.id
+    LEFT JOIN categorias cat ON cat.id = eq.categoria_id
     GROUP BY eq.id, eq.marca, eq.modelo, cat.nombre
     ORDER BY total_prestamos DESC
     LIMIT 5
   `, {
     type: Sequelize.QueryTypes.SELECT
   })
-    .then(function(resultados) {
-      var top5 = resultados.map(function(item, index) {
+    .then(function (resultados) {
+      var top5 = resultados.map(function (item, index) {
         return {
           posicion: index + 1,
           nombre: item.marca + ' ' + item.modelo,
@@ -350,7 +363,7 @@ function obtenerTop5Materiales(req, res) {
 
       res.json(top5);
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.error('Error al obtener top 5 materiales:', error);
       res.status(500).json({ mensaje: 'Error al obtener estadísticas' });
     });
