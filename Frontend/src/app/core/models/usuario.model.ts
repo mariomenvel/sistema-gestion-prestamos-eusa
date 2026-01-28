@@ -9,6 +9,7 @@ export interface Usuario {
   apellidos: string;
   rol: 'alumno' | 'profesor' | 'pas'; // Coincide con tu enum de BD
   estado_perfil: 'activo' | 'bloqueado' | 'inactivo';
+  telefono?: string;
 
   // Opcionales (solo para alumnos)
   tipo_estudios?: 'grado_uni' | 'grado_sup' | 'master';
