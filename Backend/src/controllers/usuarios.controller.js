@@ -11,6 +11,7 @@ function obtenerPerfilActual(req, res) {
       'email',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'codigo_tarjeta',
@@ -56,6 +57,7 @@ function listarUsuarios(req, res) {
       'email',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'codigo_tarjeta',
@@ -85,6 +87,7 @@ function obtenerDetalleUsuario(req, res) {
       'codigo_tarjeta',
       'nombre',
       'apellidos',
+      'telefono',
       'rol',
       'estado_perfil',
       'tipo_estudios',
@@ -152,6 +155,7 @@ function actualizarUsuario(req, res) {
   var camposActualizables = {
     nombre: datos.nombre,
     apellidos: datos.apellidos,
+    telefono: datos.telefono,
     email: datos.email,
     tipo_estudios: datos.tipo_estudios,
     fecha_inicio_est: datos.fecha_inicio_est,
@@ -183,6 +187,7 @@ function actualizarUsuario(req, res) {
           email: usuarioActualizado.email,
           nombre: usuarioActualizado.nombre,
           apellidos: usuarioActualizado.apellidos,
+          telefono: usuarioActualizado.telefono,
           rol: usuarioActualizado.rol,
           estado_perfil: usuarioActualizado.estado_perfil,
           tipo_estudios: usuarioActualizado.tipo_estudios,
@@ -319,6 +324,7 @@ function crearUsuario(req, res) {
   models.Usuario.create({
     nombre: datos.nombre,
     apellidos: datos.apellidos,
+    telefono: datos.telefono,
     email: datos.email,
     password_hash: datos.password_hash || '123456', // Password por defecto si no viene
     rol: datos.rol || 'alumno',

@@ -39,23 +39,23 @@ async function seed() {
 
     // Usuarios (1 Admin + 3 Profes + 6 Alumnos)
     var pass = await bcrypt.hash('123456', 10);
-    var pas = await models.Usuario.create({ email: 'pas@eusa.es', password_hash: pass, nombre: 'Admin', apellidos: 'PAS', rol: 'pas' });
+    var pas = await models.Usuario.create({ email: 'pas@eusa.es', password_hash: pass, nombre: 'Admin', apellidos: 'PAS', telefono: '+34955123456', rol: 'pas' });
 
     var profes = await models.Usuario.bulkCreate([
-      { email: 'prof1@eusa.es', password_hash: pass, nombre: 'Manuel', apellidos: 'Chaves', rol: 'profesor' },
-      { email: 'prof2@eusa.es', password_hash: pass, nombre: 'Laura', apellidos: 'Video', rol: 'profesor' },
-      { email: 'prof3@eusa.es', password_hash: pass, nombre: 'David', apellidos: 'Codigo', rol: 'profesor' },
-      { email: 'prof4@eusa.es', password_hash: pass, nombre: 'Maria', apellidos: 'Mates', rol: 'profesor' },
-      { email: 'prof5@eusa.es', password_hash: pass, nombre: 'Jose', apellidos: 'Historia', rol: 'profesor' }
+      { email: 'prof1@eusa.es', password_hash: pass, nombre: 'Manuel', apellidos: 'Chaves', telefono: '+34612345001', rol: 'profesor' },
+      { email: 'prof2@eusa.es', password_hash: pass, nombre: 'Laura', apellidos: 'Video', telefono: '+34612345002', rol: 'profesor' },
+      { email: 'prof3@eusa.es', password_hash: pass, nombre: 'David', apellidos: 'Codigo', telefono: '+34612345003', rol: 'profesor' },
+      { email: 'prof4@eusa.es', password_hash: pass, nombre: 'Maria', apellidos: 'Mates', telefono: '+34612345004', rol: 'profesor' },
+      { email: 'prof5@eusa.es', password_hash: pass, nombre: 'Jose', apellidos: 'Historia', telefono: '+34612345005', rol: 'profesor' }
     ]);
 
     var alumnos = await models.Usuario.bulkCreate([
-      { email: 'alum1@eusa.es', password_hash: pass, nombre: 'Juan', apellidos: 'Uno', rol: 'alumno', grado_id: gPer.id, curso: 1, codigo_tarjeta: 'CARD-1' },
-      { email: 'alum2@eusa.es', password_hash: pass, nombre: 'Pedro', apellidos: 'Dos', rol: 'alumno', grado_id: gCav.id, curso: 2, codigo_tarjeta: 'CARD-2' },
-      { email: 'alum3@eusa.es', password_hash: pass, nombre: 'Luis', apellidos: 'Tres', rol: 'alumno', grado_id: gDam.id, curso: 1, codigo_tarjeta: 'CARD-3' },
-      { email: 'alum4@eusa.es', password_hash: pass, nombre: 'Ana', apellidos: 'Cuatro', rol: 'alumno', grado_id: gPub.id, curso: 3, codigo_tarjeta: 'CARD-4' },
-      { email: 'alum5@eusa.es', password_hash: pass, nombre: 'Eva', apellidos: 'Cinco', rol: 'alumno', grado_id: gCav.id, curso: 4, codigo_tarjeta: 'CARD-5' },
-      { email: 'alum6@eusa.es', password_hash: pass, nombre: 'Cris', apellidos: 'Seis', rol: 'alumno', grado_id: gDam.id, curso: 2, codigo_tarjeta: 'CARD-6' }
+      { email: 'alum1@eusa.es', password_hash: pass, nombre: 'Juan', apellidos: 'Uno', telefono: '+34622111001', rol: 'alumno', grado_id: gPer.id, curso: 1, codigo_tarjeta: 'CARD-1' },
+      { email: 'alum2@eusa.es', password_hash: pass, nombre: 'Pedro', apellidos: 'Dos', telefono: '+34622111002', rol: 'alumno', grado_id: gCav.id, curso: 2, codigo_tarjeta: 'CARD-2' },
+      { email: 'alum3@eusa.es', password_hash: pass, nombre: 'Luis', apellidos: 'Tres', telefono: '+34622111003', rol: 'alumno', grado_id: gDam.id, curso: 1, codigo_tarjeta: 'CARD-3' },
+      { email: 'alum4@eusa.es', password_hash: pass, nombre: 'Ana', apellidos: 'Cuatro', telefono: '+34622111004', rol: 'alumno', grado_id: gPub.id, curso: 3, codigo_tarjeta: 'CARD-4' },
+      { email: 'alum5@eusa.es', password_hash: pass, nombre: 'Eva', apellidos: 'Cinco', telefono: '+34622111005', rol: 'alumno', grado_id: gCav.id, curso: 4, codigo_tarjeta: 'CARD-5' },
+      { email: 'alum6@eusa.es', password_hash: pass, nombre: 'Cris', apellidos: 'Seis', telefono: '+34622111006', rol: 'alumno', grado_id: gDam.id, curso: 2, codigo_tarjeta: 'CARD-6' }
     ]);
 
     // Categorías

@@ -36,6 +36,11 @@ var Usuario = db.sequelize.define('Usuario', {
     allowNull: false
   },
 
+  telefono: {
+    type: Sequelize.STRING(20),
+    allowNull: true
+  },
+
   rol: {
     type: Sequelize.ENUM('alumno', 'profesor', 'pas'),
     allowNull: false
