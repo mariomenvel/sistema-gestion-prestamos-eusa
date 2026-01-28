@@ -18,7 +18,7 @@ import { ReportesService, LibroMasPrestado, MaterialMasPrestado, UsuarioMasSolic
 export class ReportesComponent implements OnInit {
 
   // ===== DATOS DE ESTADÍSTICAS =====
-  
+
   // Libro más prestado
   libroMasPrestado: LibroMasPrestado = {
     titulo: 'Cargando...',
@@ -44,24 +44,24 @@ export class ReportesComponent implements OnInit {
   top5Materiales: Top5Item[] = [];
 
   // ===== ESTADO =====
-  
+
   isLoading: boolean = false;
   errorMessage: string = '';
 
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private reportesService: ReportesService
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     this.cargarEstadisticas();
   }
 
   // ===== MÉTODOS PRIVADOS =====
-  
+
   /**
    * Carga todas las estadísticas desde el backend
    */
@@ -69,14 +69,27 @@ export class ReportesComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
+    let callsCompleted = 0;
+    const totalCalls = 4;
+
+    const checkLoading = () => {
+      callsCompleted++;
+      if (callsCompleted === totalCalls) {
+        this.isLoading = false;
+      }
+    };
+
     // Cargar libro más prestado
     this.reportesService.getLibroMasPrestado().subscribe({
       next: (data) => {
         console.log('📚 Libro más prestado:', data);
         this.libroMasPrestado = data;
+        checkLoading();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar libro más prestado:', err);
+        this.libroMasPrestado = { titulo: 'Error', autor: 'No se pudo cargar', totalPrestamos: 0 };
+        checkLoading();
       }
     });
 
@@ -85,9 +98,12 @@ export class ReportesComponent implements OnInit {
       next: (data) => {
         console.log('📷 Material más prestado:', data);
         this.materialMasPrestado = data;
+        checkLoading();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar material más prestado:', err);
+        this.materialMasPrestado = { nombre: 'Error', categoria: 'No se pudo cargar', totalPrestamos: 0 };
+        checkLoading();
       }
     });
 
@@ -96,9 +112,12 @@ export class ReportesComponent implements OnInit {
       next: (data) => {
         console.log('👤 Usuario que más solicita:', data);
         this.gradoMasSolicita = data;
+        checkLoading();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar usuario que más solicita:', err);
+        this.gradoMasSolicita = { nombre: 'Error', curso: '-', totalSolicitudes: 0 };
+        checkLoading();
       }
     });
 
@@ -107,12 +126,18 @@ export class ReportesComponent implements OnInit {
       next: (data) => {
         console.log('🏆 Top 5 materiales:', data);
         this.top5Materiales = data;
-        this.isLoading = false;
+        checkLoading();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar top 5:', err);
-        this.errorMessage = 'Error al cargar estadísticas';
-        this.isLoading = false;
+        this.errorMessage = 'Algunas estadísticas no pudieron cargarse';
+        // Poblar con vacíos si hay error crítico
+        if (this.top5Materiales.length === 0) {
+          for (let i = 1; i <= 5; i++) {
+            this.top5Materiales.push({ posicion: i, nombre: 'Error', categoria: '-', totalPrestamos: 0 });
+          }
+        }
+        checkLoading();
       }
     });
   }
