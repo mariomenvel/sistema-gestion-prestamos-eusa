@@ -372,16 +372,29 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
           this.cerrarModal();
         }, 3000);
       },
-      error: (err) => {
-        console.error('❌ Error al crear solicitud:', err);
-        this.tipoModalNotificacion = 'error';
-        this.tituloModalNotificacion = 'Error en la Solicitud';
-        this.mensajeModalNotificacion = err.error?.mensaje || 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
-        this.mostrarModalNotificacion = true; this.enviandoSolicitud = false;
-      },
-      complete: () => {
-        this.enviandoSolicitud = false;
-      }
+     error: (err) => {
+  console.error('❌ Error al crear solicitud:', err);
+  
+  // Intentar obtener el mensaje de error más específico
+  let mensajeError = 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
+  
+  if (err.error && err.error.mensaje) {
+    // Mensaje del backend (formato: { mensaje: "..." })
+    mensajeError = err.error.mensaje;
+  } else if (err.message) {
+    // Mensaje del error HTTP
+    mensajeError = err.message;
+  } else if (typeof err.error === 'string') {
+    // Por si el backend envía un string directamente
+    mensajeError = err.error;
+  }
+  
+  this.tipoModalNotificacion = 'error';
+  this.tituloModalNotificacion = 'Error en la Solicitud';
+  this.mensajeModalNotificacion = mensajeError;
+  this.mostrarModalNotificacion = true;
+  this.enviandoSolicitud = false;
+}
     });
   }
 
