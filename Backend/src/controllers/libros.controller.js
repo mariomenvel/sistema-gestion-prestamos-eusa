@@ -63,7 +63,7 @@ function obtenerLibroPorId(req, res) {
 
 /**
  * POST /libros
- * Crear libro (con imagen opcional)
+ * Crear libro (con imagen opcional) y ejemplares
  */
 function crearLibro(req, res) {
   var titulo = req.body.titulo;
@@ -71,6 +71,7 @@ function crearLibro(req, res) {
   var editorial = req.body.editorial;
   var libroNumero = req.body.libro_numero;
   var generoId = req.body.genero_id;
+  var ejemplares = req.body.ejemplares || []; // Array de ejemplares
 
   if (!titulo || !libroNumero || !generoId) {
     return res.status(400).json({
@@ -84,16 +85,35 @@ function crearLibro(req, res) {
     fotoUrl = '/uploads/libros/' + req.file.filename;
   }
 
-  models.Libro.create({
-    titulo: titulo,
-    autor: autor,
-    editorial: editorial,
-    libro_numero: libroNumero,
-    genero_id: generoId,
-    foto_url: fotoUrl
+  // Usamos transacción para asegurar que se creen libro y ejemplares o nada
+  models.sequelize.transaction(function (t) {
+    return models.Libro.create({
+      titulo: titulo,
+      autor: autor,
+      editorial: editorial,
+      libro_numero: libroNumero,
+      genero_id: generoId,
+      foto_url: fotoUrl
+    }, { transaction: t })
+      .then(function (libro) {
+        if (ejemplares.length > 0) {
+          // Crear ejemplares asociados
+          var ejemplaresData = ejemplares.map(e => ({
+            libro_id: libro.id,
+            codigo_barra: e.codigo_barra,
+            estanteria: e.estanteria,
+            balda: e.balda,
+            estado: e.estado || 'disponible'
+          }));
+
+          return models.Ejemplar.bulkCreate(ejemplaresData, { transaction: t })
+            .then(() => libro); // Retornar el libro
+        }
+        return libro;
+      });
   })
-    .then(function (libro) {
-      res.status(201).json(libro);
+    .then(function (result) {
+      res.status(201).json(result);
     })
     .catch(function (error) {
       console.error('Error al crear libro:', error);
