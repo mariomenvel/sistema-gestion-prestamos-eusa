@@ -87,10 +87,89 @@ $font-family: 'Inter', sans-serif;
 // FILTROS
 // ========================================
 
-.filtros {
+.filtros-container {
   display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: $color-white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid $color-border;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filtros-basicos {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filtros-avanzados {
+  display: flex;
+  gap: 32px;
+  padding-top: 12px;
+  border-top: 1px dashed $color-border;
+  align-items: center;
+}
+
+.rango-filtro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.inputs-rango {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    color: $color-text-disabled;
+    font-weight: 700;
+  }
+}
+
+.input-mini {
+  width: 60px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-blue;
+  }
+}
+
+.btn-reset {
+  padding: 0 16px;
+  height: 44px;
+  background: $color-bg-gray;
+  border: none;
+  border-radius: 4px;
+  color: $color-text-secondary;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: darken($color-bg-gray, 10%);
+    color: $color-text-primary;
+  }
 }
 
 // ========================================
@@ -218,12 +297,12 @@ $font-family: 'Inter', sans-serif;
 // Header de la tabla
 .table-header {
   display: grid;
-  grid-template-columns: 0.8fr 2fr 1.2fr 1fr 1fr 0.8fr 1fr;
+  // Estos valores serán sobreescritos por .header-equipos o .header-libros
+  grid-template-columns: 1fr;
   gap: 16px;
 
   background: $color-primary-blue;
-  border: 1px solid $color-border;
-  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid darken($color-primary-blue, 10%);
 
   padding: 16px 24px;
 
@@ -240,10 +319,32 @@ $font-family: 'Inter', sans-serif;
   letter-spacing: -0.03em;
   color: $color-white;
 
-  // Centrar la columna de Unidades
-  &.th-unidades {
+  // Centrar columnas específicas
+  &.th-centrado {
     text-align: center;
   }
+
+  &.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+      background: darken($color-primary-blue, 5%);
+    }
+
+    &.th-centrado {
+      justify-content: center;
+    }
+  }
+}
+
+.sort-icon {
+  font-size: 10px;
+  color: rgba($color-white, 0.8);
 }
 
 // Body de la tabla
@@ -271,14 +372,25 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
+// Configuración de columnas para Equipos (9 columnas ahora)
+.header-equipos,
+.row-equipos {
+  grid-template-columns: 80px 1fr 1.2fr 1.2fr 1.2fr 1.5fr 60px 60px 110px !important;
+}
+
+// Configuración de columnas para Libros (8 columnas ahora)
+.header-libros,
+.row-libros {
+  grid-template-columns: 80px 1fr 2fr 1.2fr 1.2fr 60px 60px 110px !important;
+}
+
 // Fila de la tabla
 .table-row {
   display: grid;
-  grid-template-columns: 0.8fr 2fr 1.2fr 1fr 1fr 0.8fr 1fr;
   gap: 16px;
   align-items: center;
 
-  padding: 8px 24px;
+  padding: 12px 24px;
   border-bottom: 1px solid rgba($color-border, 0.5);
 
   transition: background 0.2s ease;
@@ -298,21 +410,70 @@ $font-family: 'Inter', sans-serif;
 
 .td {
   font-family: $font-family;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  font-size: 13px;
   color: $color-text-primary;
 
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  // white-space: nowrap; // Quitamos esto para que la descripción pueda romper si es necesario
 
-  // Centrar la columna de unidades
-  &.td-unidades {
+  &.td-foto {
     display: flex;
     justify-content: center;
   }
+
+  &.clickable {
+    cursor: pointer;
+    text-decoration: underline dotted transparent;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: $color-primary-blue;
+      text-decoration-color: rgba($color-primary-blue, 0.4);
+    }
+  }
+
+  // Centrar columnas de conteo
+  &.td-count-disp,
+  &.td-count-total {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.count-pill {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 14px;
+
+  &.disp {
+    color: $color-success-green-dark;
+  }
+
+  &.total {
+    color: $color-text-secondary;
+  }
+}
+
+.thumb-material {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid $color-border;
+}
+
+.thumb-placeholder {
+  width: 50px;
+  height: 50px;
+  background: $color-bg-light;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  opacity: 0.5;
 }
 
 .td-acciones {

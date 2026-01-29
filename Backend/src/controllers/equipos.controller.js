@@ -13,6 +13,9 @@ function obtenerEquipos(req, res) {
       {
         model: models.Unidad,
         as: 'unidades'
+      },
+      {
+        model: models.Nombre
       }
     ]
   })
@@ -31,7 +34,8 @@ function obtenerEquipoPorId(req, res) {
   models.Equipo.findByPk(equipoId, {
     include: [
       { model: models.Categoria },
-      { model: models.Unidad }
+      { model: models.Unidad },
+      { model: models.Nombre }
     ]
   })
     .then(function (equipo) {
@@ -167,7 +171,8 @@ async function subirImagenEquipo(req, res) {
     const equipoCompleto = await models.Equipo.findByPk(id, {
       include: [
         { model: models.Categoria, as: 'categoria', attributes: ['id', 'nombre', 'activa'] },
-        { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado'] }
+        { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado'] },
+        { model: models.Nombre }
       ]
     });
 

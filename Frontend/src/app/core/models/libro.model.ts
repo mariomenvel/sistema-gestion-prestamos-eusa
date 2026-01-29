@@ -8,7 +8,9 @@ export interface Libro {
   editorial?: string;
   libro_numero: string;
   categoria_codigo: string;
-  
+  categoria_id?: number;
+  isbn?: string;
+
   // Relaciones (pueden venir o no dependiendo del endpoint)
   categoria?: Categoria;
   ejemplares?: Ejemplar[];

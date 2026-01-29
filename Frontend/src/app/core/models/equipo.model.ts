@@ -1,5 +1,6 @@
 import { Categoria } from './categoria.model';
 import { Unidad } from './unidad.model';
+import { Nombre } from './nombre.model';
 
 export interface Equipo {
   id: number;
@@ -12,8 +13,11 @@ export interface Equipo {
   descripcion?: string;
   foto_url?: string;
   categoria_codigo: string;
+  categoria_id?: number;
+  nombre_id?: number;
 
   // Relaciones
   categoria?: Categoria;
   unidades?: Unidad[];
+  Nombre?: Nombre;
 }

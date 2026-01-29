@@ -40,26 +40,44 @@ export class MaterialesComponent implements OnInit {
 
   // ===== TABS =====
 
-  tipoActivo: 'libros' | 'equipos' = 'equipos';
+  tipoSeleccionado: 'libros' | 'equipos' = 'equipos';
 
   // ===== DATOS =====
 
   libros: Libro[] = [];
-  equipos: Equipo[] = [];
+  equipos: any[] = []; // Cambiamos a any temporalmente para evitar errores de tipado con las nuevas relaciones
 
   librosFiltrados: Libro[] = [];
-  equiposFiltrados: Equipo[] = [];
+  materialesOriginales: (Libro | Equipo)[] = []; // New: Combined list for filtering
+
+  // librosFiltrados: Libro[] = []; // Removed, replaced by materialesFiltrados
+  // equiposFiltrados: Equipo[] = []; // Removed, replaced by materialesFiltrados
 
   // ===== FILTROS =====
 
-  textoBusqueda: string = '';
+  busqueda: string = ''; // Renamed from textoBusqueda
   filtroCategoria: string = '';
-  filtroEstado: string = '';
+  filtroNombre: string = ''; // Nuevo filtro por nombre genérico
+
+  // Filtros de rango (Nuevos)
+  minDisponibles: number | null = null;
+  maxDisponibles: number | null = null;
+  minTotales: number | null = null;
+  maxTotales: number | null = null;
+
+  // Ordenación (Nuevo)
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  materialesFiltrados: (Libro | Equipo)[] = []; // New: Combined filtered list
 
   // ===== ESTADO =====
 
   isLoading: boolean = false;
   errorMessage: string = '';
+
+  // ===== CATEGORÍAS =====
+  categorias: any[] = [];
 
   // ===== MODAL AÑADIR MATERIAL =====
 
@@ -75,6 +93,7 @@ export class MaterialesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarMateriales();
+    this.cargarCategorias();
   }
 
   // ===== MÉTODOS PÚBLICOS =====
@@ -83,7 +102,7 @@ export class MaterialesComponent implements OnInit {
    * Busca materiales por texto
    */
   buscar(): void {
-    console.log('🔍 Buscando:', this.textoBusqueda);
+    console.log('🔍 Buscando:', this.busqueda); // Changed from textoBusqueda
     this.aplicarFiltros();
   }
 
@@ -91,9 +110,28 @@ export class MaterialesComponent implements OnInit {
    * Limpia todos los filtros
    */
   limpiarFiltros(): void {
-    this.textoBusqueda = '';
+    this.busqueda = ''; // Changed from textoBusqueda
     this.filtroCategoria = '';
-    this.filtroEstado = '';
+    this.filtroNombre = '';
+    this.minDisponibles = null;
+    this.maxDisponibles = null;
+    this.minTotales = null;
+    this.maxTotales = null;
+    this.sortColumn = '';
+    this.sortDirection = 'asc';
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Cambia la columna de ordenación
+   */
+  toggleSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
     this.aplicarFiltros();
   }
 
@@ -200,26 +238,46 @@ export class MaterialesComponent implements OnInit {
   /**
    * Obtiene las categorías únicas de los materiales actuales
    */
-  getCategoriasDisponibles(): string[] {
-    const categorias = new Set<string>();
-
-    if (this.tipoActivo === 'libros') {
-      this.libros.forEach(libro => {
-        if (libro.categoria_codigo) {
-          categorias.add(libro.categoria_codigo);
-        }
-      });
-    } else {
-      this.equipos.forEach(equipo => {
-        if (equipo.categoria_codigo) {
-          categorias.add(equipo.categoria_codigo);
-        }
-      });
-    }
-
-    return Array.from(categorias).sort();
+  /**
+   * Obtiene la lista de nombres genéricos únicos de los materiales cargados
+   */
+  getNombresDisponibles(): any[] {
+    const nombresMap = new Map<number, string>();
+    this.equipos.forEach(equipo => {
+      if (equipo.nombre_id && equipo.Nombre) {
+        nombresMap.set(Number(equipo.nombre_id), equipo.Nombre.nombre);
+      }
+    });
+    return Array.from(nombresMap.entries()).map(([id, nombre]) => ({ id, nombre }));
   }
 
+  /**
+   * Obtiene las categorías disponibles basadas en los materiales cargados
+   */
+  getCategoriasDisponibles(): string[] {
+    const codigos = new Set<string>();
+    this.libros.forEach(l => { if (l.categoria_codigo) codigos.add(l.categoria_codigo); });
+    this.equipos.forEach(e => { if (e.categoria_codigo) codigos.add(e.categoria_codigo); });
+    return Array.from(codigos);
+  }
+
+  /**
+   * Carga la lista completa de categorías desde el servidor
+   */
+  private cargarCategorias(): void {
+    this.materialesService.getCategorias().subscribe({
+      next: (cats) => {
+        this.categorias = cats;
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar categorías:', err);
+      }
+    });
+  }
+
+  /**
+   * Obtiene el nombre legible de una categoría por su código
+   */
   /**
    * Obtiene el nombre legible de una categoría por su código
    */
@@ -237,6 +295,11 @@ export class MaterialesComponent implements OnInit {
     }
 
     return codigo;
+  }
+
+  setTipo(tipo: 'libros' | 'equipos'): void {
+    this.tipoSeleccionado = tipo;
+    this.aplicarFiltros();
   }
 
   /**
@@ -392,7 +455,8 @@ export class MaterialesComponent implements OnInit {
       marca: this.equipoEnEdicion.marca,
       modelo: this.equipoEnEdicion.modelo,
       descripcion: this.equipoEnEdicion.descripcion,
-      categoria_codigo: this.equipoEnEdicion.categoria_codigo
+      categoria_codigo: this.equipoEnEdicion.categoria_codigo,
+      nombre_id: this.equipoEnEdicion.nombre_id // Asegurar que nombre_id se incluya
     };
 
     console.log('💾 Guardando equipo:', datosActualizados);
@@ -446,6 +510,7 @@ export class MaterialesComponent implements OnInit {
     const index = this.equipos.findIndex(e => e.id === equipoActualizado.id);
     if (index !== -1) {
       this.equipos[index] = equipoActualizado;
+      this.materialesOriginales = [...this.libros, ...this.equipos]; // Re-combine
       this.aplicarFiltros();
     }
   }
@@ -594,6 +659,7 @@ export class MaterialesComponent implements OnInit {
     const index = this.libros.findIndex(l => l.id === libroActualizado.id);
     if (index !== -1) {
       this.libros[index] = libroActualizado;
+      this.materialesOriginales = [...this.libros, ...this.equipos]; // Re-combine
       this.aplicarFiltros();
     }
   }
@@ -651,15 +717,30 @@ export class MaterialesComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
+    let librosCargados = false;
+    let equiposCargados = false;
+
+    const checkAndApplyFilters = () => {
+      if (librosCargados && equiposCargados) {
+        this.materialesOriginales = [...this.libros, ...this.equipos];
+        this.aplicarFiltros();
+        this.isLoading = false;
+      }
+    };
+
     // Cargar libros
     this.materialesService.getLibros().subscribe({
       next: (libros: Libro[]) => {
         console.log('📚 Libros recibidos:', libros);
         this.libros = libros;
-        this.aplicarFiltros();
+        librosCargados = true;
+        checkAndApplyFilters();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar libros:', err);
+        this.errorMessage = 'Error al cargar los libros';
+        librosCargados = true;
+        checkAndApplyFilters();
       }
     });
 
@@ -668,13 +749,14 @@ export class MaterialesComponent implements OnInit {
       next: (equipos: Equipo[]) => {
         console.log('📷 Equipos recibidos:', equipos);
         this.equipos = equipos;
-        this.aplicarFiltros();
-        this.isLoading = false;
+        equiposCargados = true;
+        checkAndApplyFilters();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar equipos:', err);
-        this.errorMessage = 'Error al cargar los materiales';
-        this.isLoading = false;
+        this.errorMessage = 'Error al cargar los equipos';
+        equiposCargados = true;
+        checkAndApplyFilters();
       }
     });
   }
@@ -683,80 +765,134 @@ export class MaterialesComponent implements OnInit {
    * Aplica los filtros activos
    */
   aplicarFiltros(): void {
-    // Filtrar libros
-    let resultadoLibros = [...this.libros];
+    let filtrados = this.materialesOriginales;
 
-    // Filtro por texto (búsqueda)
-    if (this.textoBusqueda.trim()) {
-      const texto = this.textoBusqueda.toLowerCase();
-      resultadoLibros = resultadoLibros.filter(libro =>
-        libro.titulo.toLowerCase().includes(texto) ||
-        libro.libro_numero.toLowerCase().includes(texto) ||
-        (libro.autor && libro.autor.toLowerCase().includes(texto)) ||
-        (libro.editorial && libro.editorial.toLowerCase().includes(texto))
-      );
+    // 1. Filtro por tipo (Libro / Equipo)
+    if (this.tipoSeleccionado === 'libros') {
+      filtrados = filtrados.filter(m => 'ejemplares' in m);
+    } else if (this.tipoSeleccionado === 'equipos') {
+      filtrados = filtrados.filter(m => 'unidades' in m);
     }
 
-    // Filtro por categoría
-    if (this.filtroCategoria) {
-      resultadoLibros = resultadoLibros.filter(libro =>
-        libro.categoria_codigo === this.filtroCategoria
-      );
-    }
-
-    // Filtro por estado (disponible/no disponible)
-    if (this.filtroEstado) {
-      if (this.filtroEstado === 'disponible') {
-        resultadoLibros = resultadoLibros.filter(libro => this.tieneDisponibles(libro));
-      } else if (this.filtroEstado === 'no_disponible') {
-        resultadoLibros = resultadoLibros.filter(libro => !this.tieneDisponibles(libro));
-      }
-    }
-
-    this.librosFiltrados = resultadoLibros;
-
-    // Filtrar equipos
-    let resultadoEquipos = [...this.equipos];
-
-    // Filtro por texto (búsqueda) - INCLUYE CÓDIGO COMPLETO
-    if (this.textoBusqueda.trim()) {
-      const texto = this.textoBusqueda.toLowerCase();
-      resultadoEquipos = resultadoEquipos.filter(equipo => {
-        // Código completo = categoria_codigo + id (ej: CAM4)
-        const codigoCompleto = `${equipo.categoria_codigo}${equipo.id}`.toLowerCase();
-
-        return equipo.marca.toLowerCase().includes(texto) ||
-          equipo.modelo.toLowerCase().includes(texto) ||
-          codigoCompleto.includes(texto) ||
-          (equipo.categoria_codigo && equipo.categoria_codigo.toLowerCase().includes(texto)) ||
-          (equipo.descripcion && equipo.descripcion.toLowerCase().includes(texto));
+    // 2. Filtro por búsqueda (Búsqueda textual)
+    if (this.busqueda.trim()) {
+      const b = this.busqueda.toLowerCase();
+      filtrados = filtrados.filter(m => {
+        if ('titulo' in m) {
+          const libro = m as Libro;
+          return libro.titulo.toLowerCase().includes(b) ||
+            (libro.autor && libro.autor.toLowerCase().includes(b)) ||
+            (libro.isbn && libro.isbn.toLowerCase().includes(b));
+        } else {
+          const equipo = m as Equipo;
+          const nombreGenerico = equipo.Nombre?.nombre?.toLowerCase() || '';
+          return equipo.marca.toLowerCase().includes(b) ||
+            equipo.modelo.toLowerCase().includes(b) ||
+            nombreGenerico.includes(b) ||
+            (equipo.descripcion && equipo.descripcion.toLowerCase().includes(b));
+        }
       });
     }
 
-    // Filtro por categoría
-    if (this.filtroCategoria) {
-      resultadoEquipos = resultadoEquipos.filter(equipo =>
-        equipo.categoria_codigo === this.filtroCategoria
-      );
+    // 3. Filtro por Categoría
+    if (this.filtroCategoria && this.filtroCategoria !== '') {
+      filtrados = filtrados.filter(m => {
+        const catId = (m as any).categoria_id || (m as any).categoria?.id;
+        return catId?.toString() === this.filtroCategoria;
+      });
     }
 
-    // Filtro por estado (disponible/no disponible)
-    if (this.filtroEstado) {
-      if (this.filtroEstado === 'disponible') {
-        resultadoEquipos = resultadoEquipos.filter(equipo => this.tieneDisponibles(equipo));
-      } else if (this.filtroEstado === 'no_disponible') {
-        resultadoEquipos = resultadoEquipos.filter(equipo => !this.tieneDisponibles(equipo));
-      }
+    // 3.1 Filtro por Nombre Genérico
+    if (this.filtroNombre && this.filtroNombre !== '') {
+      filtrados = filtrados.filter(m => (m as Equipo).nombre_id?.toString() === this.filtroNombre);
     }
 
-    this.equiposFiltrados = resultadoEquipos;
+    // 4. Filtros de Rango de Disponibles
+    if (this.minDisponibles !== null) {
+      filtrados = filtrados.filter(m => {
+        const count = 'unidades' in m ? this.getUnidadesDisponiblesCount(m as Equipo) : this.getEjemplaresDisponiblesCount(m as Libro);
+        return count >= (this.minDisponibles ?? 0);
+      });
+    }
+    if (this.maxDisponibles !== null) {
+      filtrados = filtrados.filter(m => {
+        const count = 'unidades' in m ? this.getUnidadesDisponiblesCount(m as Equipo) : this.getEjemplaresDisponiblesCount(m as Libro);
+        return count <= (this.maxDisponibles ?? Infinity);
+      });
+    }
 
-    console.log('🔍 Filtros aplicados:', {
-      libros: this.librosFiltrados.length,
-      equipos: this.equiposFiltrados.length,
-      texto: this.textoBusqueda,
-      categoria: this.filtroCategoria,
-      estado: this.filtroEstado
-    });
+    // 5. Filtros de Rango de Totales
+    if (this.minTotales !== null) {
+      filtrados = filtrados.filter(m => {
+        const count = 'unidades' in m ? (m as Equipo).unidades?.length || 0 : (m as Libro).ejemplares?.length || 0;
+        return count >= (this.minTotales ?? 0);
+      });
+    }
+    if (this.maxTotales !== null) {
+      filtrados = filtrados.filter(m => {
+        const count = 'unidades' in m ? (m as Equipo).unidades?.length || 0 : (m as Libro).ejemplares?.length || 0;
+        return count <= (this.maxTotales ?? Infinity);
+      });
+    }
+
+    // 6. Ordenación (Nuevo)
+    if (this.sortColumn) {
+      filtrados.sort((a, b) => {
+        let valA: any;
+        let valB: any;
+
+        // Mapeo de columnas a propiedades reales
+        switch (this.sortColumn) {
+          case 'nombre':
+            valA = (a as any).Nombre?.nombre || (a as any).titulo || '';
+            valB = (b as any).Nombre?.nombre || (b as any).titulo || '';
+            break;
+          case 'categoria':
+            valA = (a as any).categoria?.nombre || '';
+            valB = (b as any).categoria?.nombre || '';
+            break;
+          case 'marca':
+            valA = (a as any).marca || '';
+            valB = (b as any).marca || '';
+            break;
+          case 'modelo':
+            valA = (a as any).modelo || '';
+            valB = (b as any).modelo || '';
+            break;
+          case 'disp':
+            valA = 'unidades' in a ? this.getUnidadesDisponiblesCount(a as Equipo) : this.getEjemplaresDisponiblesCount(a as Libro);
+            valB = 'unidades' in b ? this.getUnidadesDisponiblesCount(b as Equipo) : this.getEjemplaresDisponiblesCount(b as Libro);
+            break;
+          case 'total':
+            valA = 'unidades' in a ? (a as Equipo).unidades?.length || 0 : (a as Libro).ejemplares?.length || 0;
+            valB = 'unidades' in b ? (b as Equipo).unidades?.length || 0 : (b as Libro).ejemplares?.length || 0;
+            break;
+          case 'autor':
+            valA = (a as any).autor || '';
+            valB = (b as any).autor || '';
+            break;
+          case 'editorial':
+            valA = (a as any).editorial || '';
+            valB = (b as any).editorial || '';
+            break;
+          case 'codigo':
+            valA = (a as any).libro_numero || '';
+            valB = (b as any).libro_numero || '';
+            break;
+          default:
+            return 0;
+        }
+
+        // Comparación segura
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    this.materialesFiltrados = filtrados;
   }
 }

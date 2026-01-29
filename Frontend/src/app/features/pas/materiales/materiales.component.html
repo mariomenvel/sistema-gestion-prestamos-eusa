@@ -9,44 +9,66 @@
     </button>
   </div>
 
-  <!-- Filtros -->
-  <div class="filtros">
+  <div class="filtros-container">
+    <div class="filtros-basicos">
+      <div class="tipo-toggle">
+        <button class="btn-tipo" [class.activo]="tipoSeleccionado === 'libros'" (click)="setTipo('libros')">
+          <i class="fas fa-book"></i> Libros
+        </button>
+        <button class="btn-tipo" [class.activo]="tipoSeleccionado === 'equipos'" (click)="setTipo('equipos')">
+          <i class="fas fa-laptop"></i> Equipos
+        </button>
+      </div>
 
-    <!-- NUEVO: Botones Libros/Equipos -->
-    <div class="tipo-toggle">
-      <button class="btn-tipo" [class.activo]="tipoActivo === 'libros'"
-        (click)="tipoActivo = 'libros'; aplicarFiltros()">
-        Libros
+      <div class="busqueda">
+        <input type="text" class="input-busqueda" [(ngModel)]="busqueda" (input)="aplicarFiltros()"
+          [placeholder]="tipoSeleccionado === 'libros' ? 'Buscar por título, autor o ISBN...' : 'Buscar por marca, modelo o descripción...'">
+      </div>
+
+      <div class="filtro">
+        <select class="select-filtro" [(ngModel)]="filtroCategoria" (change)="aplicarFiltros()">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let cat of categorias" [value]="cat.id">
+            {{ cat.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filtro" *ngIf="tipoSeleccionado === 'equipos'">
+        <select class="select-filtro" [(ngModel)]="filtroNombre" (change)="aplicarFiltros()">
+          <option value="">Todos los nombres</option>
+          <option *ngFor="let n of getNombresDisponibles()" [value]="n.id">
+            {{ n.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <button class="btn-reset" (click)="limpiarFiltros()" title="Limpiar todos los filtros">
+        Limpiar
       </button>
-      <button class="btn-tipo" [class.activo]="tipoActivo === 'equipos'"
-        (click)="tipoActivo = 'equipos'; aplicarFiltros()">
-        Equipos
-      </button>
     </div>
 
-    <!-- Barra de búsqueda -->
-    <div class="busqueda">
-      <input type="text" class="input-busqueda" placeholder="Buscar por nombre, código, marca..."
-        [(ngModel)]="textoBusqueda" (input)="buscar()" />
-    </div>
+    <!-- FILTROS AVANZADOS (Rangos de disponibilidad) -->
+    <div class="filtros-avanzados">
+      <div class="rango-filtro">
+        <label>Disponibles:</label>
+        <div class="inputs-rango">
+          <input type="number" class="input-mini" [(ngModel)]="minDisponibles" (input)="aplicarFiltros()"
+            placeholder="Mín">
+          <span>-</span>
+          <input type="number" class="input-mini" [(ngModel)]="maxDisponibles" (input)="aplicarFiltros()"
+            placeholder="Máx">
+        </div>
+      </div>
 
-    <!-- Filtro Categoría -->
-    <div class="filtro">
-      <select class="select-filtro" [(ngModel)]="filtroCategoria" (change)="aplicarFiltros()">
-        <option value="">Todas las categorías</option>
-        <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
-          {{ getNombreCategoriaPorCodigo(catCodigo) }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Filtro Estado -->
-    <div class="filtro">
-      <select class="select-filtro" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
-        <option value="">Todos los estados</option>
-        <option value="disponible">Disponible</option>
-        <option value="no_disponible">No disponible</option>
-      </select>
+      <div class="rango-filtro">
+        <label>Totales:</label>
+        <div class="inputs-rango">
+          <input type="number" class="input-mini" [(ngModel)]="minTotales" (input)="aplicarFiltros()" placeholder="Mín">
+          <span>-</span>
+          <input type="number" class="input-mini" [(ngModel)]="maxTotales" (input)="aplicarFiltros()" placeholder="Máx">
+        </div>
+      </div>
     </div>
 
   </div>
@@ -55,26 +77,68 @@
   <div class="table-container">
 
     <!-- Header tabla -->
-    <div class="table-header">
+    <div class="table-header" [ngClass]="tipoSeleccionado === 'equipos' ? 'header-equipos' : 'header-libros'">
       <!-- Encabezados para EQUIPOS -->
-      <ng-container *ngIf="tipoActivo === 'equipos'">
-        <div class="th th-codigo">Código</div>
-        <div class="th th-nombre">Nombre</div>
-        <div class="th th-categoria">Categoría</div>
-        <div class="th th-marca">Marca</div>
-        <div class="th th-modelo">Modelo</div>
-        <div class="th th-unidades">Unidades</div>
-        <div class="th th-acciones">Acciones</div>
+      <ng-container *ngIf="tipoSeleccionado === 'equipos'">
+        <div class="th">Foto</div>
+        <div class="th sortable" (click)="toggleSort('categoria')">
+          Categoría
+          <span class="sort-icon" *ngIf="sortColumn === 'categoria'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th sortable" (click)="toggleSort('nombre')">
+          Nombre
+          <span class="sort-icon" *ngIf="sortColumn === 'nombre'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th sortable" (click)="toggleSort('marca')">
+          Marca
+          <span class="sort-icon" *ngIf="sortColumn === 'marca'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th sortable" (click)="toggleSort('modelo')">
+          Modelo
+          <span class="sort-icon" *ngIf="sortColumn === 'modelo'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th">Descripción</div>
+        <div class="th th-centrado sortable" (click)="toggleSort('disp')">
+          Disp.
+          <span class="sort-icon" *ngIf="sortColumn === 'disp'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-centrado sortable" (click)="toggleSort('total')">
+          Total
+          <span class="sort-icon" *ngIf="sortColumn === 'total'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th">Acciones</div>
       </ng-container>
 
       <!-- Encabezados para LIBROS -->
-      <ng-container *ngIf="tipoActivo === 'libros'">
-        <div class="th th-codigo">Código</div>
-        <div class="th th-titulo">Título</div>
-        <div class="th th-autor">Autor</div>
-        <div class="th th-editorial">Editorial</div>
-        <div class="th th-categoria">Categoría</div>
-        <div class="th th-ejemplares">Ejemplares</div>
+      <ng-container *ngIf="tipoSeleccionado === 'libros'">
+        <div class="th th-foto sortable" (click)="toggleSort('codigo')">
+          Portada
+          <span class="sort-icon" *ngIf="sortColumn === 'codigo'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-categoria sortable" (click)="toggleSort('categoria')">
+          Categoría
+          <span class="sort-icon" *ngIf="sortColumn === 'categoria'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-titulo sortable" (click)="toggleSort('nombre')">
+          Título
+          <span class="sort-icon" *ngIf="sortColumn === 'nombre'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-autor sortable" (click)="toggleSort('autor')">
+          Autor
+          <span class="sort-icon" *ngIf="sortColumn === 'autor'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-editorial sortable" (click)="toggleSort('editorial')">
+          Editorial
+          <span class="sort-icon" *ngIf="sortColumn === 'editorial'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-centrado sortable" (click)="toggleSort('disp')">
+          Disp.
+          <span class="sort-icon" *ngIf="sortColumn === 'disp'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
+        <div class="th th-centrado sortable" (click)="toggleSort('total')">
+          Total
+          <span class="sort-icon" *ngIf="sortColumn === 'total'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        </div>
         <div class="th th-acciones">Acciones</div>
       </ng-container>
     </div>
@@ -94,387 +158,415 @@
 
       <!-- Sin materiales (Equipos) -->
       <div class="empty-state"
-        *ngIf="!isLoading && !errorMessage && tipoActivo === 'equipos' && equiposFiltrados.length === 0">
+        *ngIf="!isLoading && !errorMessage && tipoSeleccionado === 'equipos' && materialesFiltrados.length === 0">
         <p>No hay equipos disponibles</p>
       </div>
 
       <!-- Sin materiales (Libros) -->
       <div class="empty-state"
-        *ngIf="!isLoading && !errorMessage && tipoActivo === 'libros' && librosFiltrados.length === 0">
+        *ngIf="!isLoading && !errorMessage && tipoSeleccionado === 'libros' && materialesFiltrados.length === 0">
         <p>No hay libros disponibles</p>
       </div>
 
       <!-- FILAS DE EQUIPOS -->
-      <ng-container *ngIf="tipoActivo === 'equipos'">
-        <ng-container *ngFor="let equipo of equiposFiltrados">
-
-          <!-- FILA PRINCIPAL DEL EQUIPO -->
-          <div class="table-row" [class.expanded]="isFilaExpandida(equipo.id)">
-
-            <!-- Código -->
-            <div class="td td-codigo">
-              {{ equipo.categoria_codigo }}{{ equipo.id }}
-            </div>
-
-            <!-- Nombre (Marca + Modelo) -->
-            <div class="td td-nombre">
-              {{ equipo.marca }} {{ equipo.modelo }}
-            </div>
-
-            <!-- Categoría -->
-            <div class="td td-categoria">
-              {{ getNombreCategoria(equipo) }}
-            </div>
-
-            <!-- Marca -->
-            <div class="td td-marca">
-              {{ equipo.marca }}
-            </div>
-
-            <!-- Modelo -->
-            <div class="td td-modelo">
-              {{ equipo.modelo }}
-            </div>
-
-            <!-- Unidades (Disponibles / Totales) -->
-            <div class="td td-unidades">
-              <button class="btn-numero-unidades" (click)="toggleFila(equipo.id)">
-                {{ getUnidadesDisponiblesCount(equipo) }} / {{ equipo.unidades?.length || 0 }}
-              </button>
-            </div>
-
-            <!-- Acciones -->
-            <div class="td td-acciones">
-              <button class="btn-editar" (click)="editarEquipo(equipo)" title="Editar equipo"></button>
-              <button class="btn-eliminar" (click)="eliminarMaterial(equipo, 'equipo')" title="Eliminar equipo">
-                🗑️
-              </button>
-            </div>
-          </div>
-
-          <!-- SUBTABLA DE UNIDADES (desplegable simplificado) -->
-          <div class="subtable-container-simple" *ngIf="isFilaExpandida(equipo.id)">
-
-            <!-- MODO EDICIÓN -->
-            <div class="equipo-edicion" *ngIf="isEquipoEnEdicion(equipo)">
-
-              <h3 class="edicion-titulo">Editar Equipo</h3>
-
-              <div class="edicion-grid">
-
-                <!-- Columna Izquierda: Imagen -->
-                <div class="edicion-imagen-seccion">
-                  <label class="edicion-label">Imagen del equipo</label>
-
-                  <div class="imagen-upload">
-                    <img *ngIf="equipoEnEdicion!.foto_url" [src]="equipoEnEdicion!.foto_url"
-                      [alt]="equipoEnEdicion!.marca + ' ' + equipoEnEdicion!.modelo">
-                    <div *ngIf="!equipoEnEdicion!.foto_url" class="imagen-placeholder">
-                      📷
-                    </div>
-                  </div>
-
-                  <input type="file" id="inputImagen" accept="image/*" (change)="onArchivoImagenSeleccionado($event)"
-                    style="display: none;">
-
-                  <label for="inputImagen" class="btn-seleccionar-imagen">
-                    Seleccionar imagen
-                  </label>
-
-                  <p class="imagen-info">Formatos: JPG, PNG, SVG</p>
-                </div>
-
-                <!-- Columna Derecha: Formulario -->
-                <div class="edicion-form-seccion">
-
-                  <!-- Marca -->
-                  <div class="form-field">
-                    <label class="edicion-label">Marca *</label>
-                    <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.marca"
-                      placeholder="Ej: Canon">
-                  </div>
-
-                  <!-- Modelo -->
-                  <div class="form-field">
-                    <label class="edicion-label">Modelo *</label>
-                    <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.modelo"
-                      placeholder="Ej: EOS 250D">
-                  </div>
-
-                  <!-- Categoría -->
-                  <div class="form-field">
-                    <label class="edicion-label">Categoría *</label>
-                    <select class="select-edicion" [(ngModel)]="equipoEnEdicion!.categoria_codigo">
-                      <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
-                        {{ getNombreCategoriaPorCodigo(catCodigo) }}
-                      </option>
-                    </select>
-                  </div>
-
-                  <!-- Descripción -->
-                  <div class="form-field">
-                    <label class="edicion-label">Descripción</label>
-                    <textarea class="textarea-edicion" [(ngModel)]="equipoEnEdicion!.descripcion"
-                      placeholder="Descripción opcional del equipo" rows="3"></textarea>
-                  </div>
-
-                </div>
-
-              </div>
-
-              <!-- Botones de acción -->
-              <div class="edicion-botones">
-                <button class="btn-cancelar-edicion" (click)="cancelarEdicion()">
-                  Cancelar
-                </button>
-                <button class="btn-guardar-edicion" (click)="guardarEquipo()">
-                  Guardar Cambios
-                </button>
-              </div>
-
-            </div>
-
-            <!-- MODO VISTA (normal) -->
-            <div class="equipo-detalle" *ngIf="!isEquipoEnEdicion(equipo)">
-              <div class="equipo-imagen">
-                <img *ngIf="equipo.foto_url" [src]="equipo.foto_url" [alt]="equipo.marca + ' ' + equipo.modelo">
-                <div *ngIf="!equipo.foto_url" class="imagen-placeholder">
-                </div>
-              </div>
-
-              <div class="equipo-info">
-                <h4>{{ equipo.marca }} {{ equipo.modelo }}</h4>
-                <p><strong>Categoría:</strong> {{ getNombreCategoria(equipo) }}</p>
-                <p *ngIf="equipo.descripcion"><strong>Descripción:</strong> {{ equipo.descripcion }}</p>
-              </div>
-            </div>
-
-            <!-- Separador -->
-            <div class="subtable-divider"></div>
-
-            <!-- Lista simple de unidades -->
-            <div class="unidades-list">
-
-              <!-- Fila de unidad simple -->
-              <div class="unidad-row" *ngFor="let unidad of equipo.unidades; let i = index">
-
-                <div class="unidad-numero">{{ i + 1 }}.</div>
-
-                <!-- Número de Serie (editable) -->
-                <div class="unidad-campo">
-                  <label>N° Serie:</label>
-                  <input type="text" class="input-simple" [(ngModel)]="unidad.numero_serie"
-                    placeholder="Sin número de serie" (blur)="guardarCambiosUnidad(unidad)"
-                    [disabled]="isEquipoEnEdicion(equipo)">
-                </div>
-
-                <!-- Código de Barras (editable) -->
-                <div class="unidad-campo">
-                  <label>Código:</label>
-                  <input type="text" class="input-simple" [(ngModel)]="unidad.codigo_barra"
-                    (blur)="guardarCambiosUnidad(unidad)" [disabled]="isEquipoEnEdicion(equipo)">
-                </div>
-
-                <!-- Estado (select) -->
-                <div class="unidad-campo">
-                  <label>Estado:</label>
-                  <select class="select-simple" [(ngModel)]="unidad.estado" (change)="guardarCambiosUnidad(unidad)"
-                    [disabled]="isEquipoEnEdicion(equipo)">
-                    <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
-                      {{ estado.texto }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Botón Eliminar -->
-                <button class="btn-eliminar-unidad" (click)="eliminarUnidad(unidad)" title="Eliminar unidad"
-                  [disabled]="isEquipoEnEdicion(equipo)">
-                  🗑️
-                </button>
-              </div>
-            </div>
-          </div>
-        </ng-container>
-      </ng-container>
-
-      <!-- FILAS DE LIBROS -->
-      <ng-container *ngIf="tipoActivo === 'libros'">
-        <ng-container *ngFor="let libro of librosFiltrados">
-
-          <!-- FILA PRINCIPAL DEL LIBRO -->
-          <div class="table-row table-row-libro" [class.expanded]="isFilaExpandida(libro.id)">
-
-            <!-- Código -->
-            <div class="td td-codigo">
-              {{ libro.libro_numero }}
-            </div>
-
-            <!-- Título -->
-            <div class="td td-titulo">
-              {{ libro.titulo }}
-            </div>
-
-            <!-- Autor -->
-            <div class="td td-autor">
-              {{ libro.autor || 'N/A' }}
-            </div>
-
-            <!-- Editorial -->
-            <div class="td td-editorial">
-              {{ libro.editorial || 'N/A' }}
-            </div>
-
-            <!-- Categoría -->
-            <div class="td td-categoria">
-              {{ getNombreCategoria(libro) }}
-            </div>
-
-            <!-- Ejemplares (Disponibles / Totales) -->
-            <div class="td td-ejemplares">
-              <button class="btn-numero-ejemplares" (click)="toggleFila(libro.id)">
-                {{ getEjemplaresDisponiblesCount(libro) }} / {{ libro.ejemplares?.length || 0 }}
-              </button>
-            </div>
-
-            <!-- Acciones -->
-            <div class="td td-acciones">
-              <button class="btn-editar" (click)="editarLibro(libro)" title="Editar libro"></button>
-              <button class="btn-eliminar" (click)="eliminarMaterial(libro, 'libro')" title="Eliminar libro">
-                🗑️
-              </button>
-            </div>
-          </div>
-
-          <!-- SUBTABLA DE EJEMPLARES (desplegable simplificado) -->
-          <div class="subtable-container-simple" *ngIf="isFilaExpandida(libro.id)">
-
-            <!-- MODO EDICIÓN -->
-            <div class="libro-edicion" *ngIf="isLibroEnEdicion(libro)">
-
-              <h3 class="edicion-titulo">Editar Libro</h3>
-
-              <div class="edicion-form-libro">
-
-                <!-- Título -->
-                <div class="form-field">
-                  <label class="edicion-label">Título *</label>
-                  <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.titulo"
-                    placeholder="Título del libro">
-                </div>
-
-                <!-- Autor -->
-                <div class="form-field">
-                  <label class="edicion-label">Autor</label>
-                  <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.autor"
-                    placeholder="Nombre del autor">
-                </div>
-
-                <!-- Editorial -->
-                <div class="form-field">
-                  <label class="edicion-label">Editorial</label>
-                  <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.editorial"
-                    placeholder="Editorial">
+      <ng-container *ngIf="tipoSeleccionado === 'equipos'">
+        <div class="table-body">
+          <ng-container *ngFor="let m of materialesFiltrados">
+            <!-- FILA DE EQUIPO -->
+            <ng-container *ngIf="'unidades' in m">
+              <div class="table-row row-equipos" [class.expanded]="isFilaExpandida(m.id)">
+                <!-- Foto -->
+                <div class="td td-foto">
+                  <img *ngIf="$any(m).foto_url" [src]="$any(m).foto_url" alt="Foto material" class="thumb-material">
+                  <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📷</div>
                 </div>
 
                 <!-- Categoría -->
-                <div class="form-field">
-                  <label class="edicion-label">Categoría *</label>
-                  <select class="select-edicion" [(ngModel)]="libroEnEdicion!.categoria_codigo">
-                    <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
-                      {{ getNombreCategoriaPorCodigo(catCodigo) }}
-                    </option>
-                  </select>
+                <div class="td td-categoria">
+                  {{ m.categoria?.nombre || 'Sin cat.' }}
+                </div>
+
+                <!-- Nombre -->
+                <div class="td td-nombre clickable" (click)="toggleFila(m.id)">
+                  {{ $any(m).Nombre?.nombre || 'Sin nombre' }}
+                </div>
+
+                <!-- Marca -->
+                <div class="td td-marca">
+                  {{ $any(m).marca }}
+                </div>
+
+                <!-- Modelo -->
+                <div class="td td-modelo">
+                  {{ $any(m).modelo }}
+                </div>
+
+                <!-- Descripción -->
+                <div class="td td-descripcion" [title]="$any(m).descripcion">
+                  {{ $any(m).descripcion || '---' }}
+                </div>
+
+                <!-- Disponibles -->
+                <div class="td td-count-disp">
+                  <span class="count-pill disp">{{ getUnidadesDisponiblesCount($any(m)) }}</span>
+                </div>
+
+                <!-- Totales -->
+                <div class="td td-count-total">
+                  <span class="count-pill total">{{ $any(m).unidades?.length || 0 }}</span>
+                </div>
+
+                <!-- Acciones -->
+                <div class="td td-acciones">
+                  <button class="btn-editar" (click)="editarEquipo($any(m))" title="Editar equipo"></button>
+                  <button class="btn-eliminar" (click)="eliminarMaterial(m, 'equipo')" title="Eliminar equipo">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+
+              <!-- SUBTABLA DE UNIDADES (desplegable simplificado) -->
+              <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
+
+                <!-- MODO EDICIÓN -->
+                <div class="equipo-edicion" *ngIf="isEquipoEnEdicion($any(m))">
+
+                  <h3 class="edicion-titulo">Editar Equipo</h3>
+
+                  <div class="edicion-grid">
+
+                    <!-- Columna Izquierda: Imagen -->
+                    <div class="edicion-imagen-seccion">
+                      <label class="edicion-label">Imagen del equipo</label>
+
+                      <div class="imagen-upload">
+                        <img *ngIf="equipoEnEdicion!.foto_url" [src]="equipoEnEdicion!.foto_url"
+                          [alt]="equipoEnEdicion!.marca + ' ' + equipoEnEdicion!.modelo">
+                        <div *ngIf="!equipoEnEdicion!.foto_url" class="imagen-placeholder">
+                          📷
+                        </div>
+                      </div>
+
+                      <input type="file" id="inputImagen" accept="image/*"
+                        (change)="onArchivoImagenSeleccionado($event)" style="display: none;">
+
+                      <label for="inputImagen" class="btn-seleccionar-imagen">
+                        Seleccionar imagen
+                      </label>
+
+                      <p class="imagen-info">Formatos: JPG, PNG, SVG</p>
+                    </div>
+
+                    <!-- Columna Derecha: Formulario -->
+                    <div class="edicion-form-seccion">
+
+                      <!-- Marca -->
+                      <div class="form-field">
+                        <label class="edicion-label">Marca *</label>
+                        <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.marca"
+                          placeholder="Ej: Canon">
+                      </div>
+
+                      <!-- Modelo -->
+                      <div class="form-field">
+                        <label class="edicion-label">Modelo *</label>
+                        <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.modelo"
+                          placeholder="Ej: EOS 250D">
+                      </div>
+
+                      <!-- Categoría -->
+                      <div class="form-field">
+                        <label class="edicion-label">Categoría *</label>
+                        <select class="select-edicion" [(ngModel)]="equipoEnEdicion!.categoria_codigo">
+                          <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
+                            {{ getNombreCategoriaPorCodigo(catCodigo) }}
+                          </option>
+                        </select>
+                      </div>
+
+                      <!-- Descripción -->
+                      <div class="form-field">
+                        <label class="edicion-label">Descripción</label>
+                        <textarea class="textarea-edicion" [(ngModel)]="equipoEnEdicion!.descripcion"
+                          placeholder="Descripción opcional del equipo" rows="3"></textarea>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="edicion-botones">
+                    <button class="btn-cancelar-edicion" (click)="cancelarEdicion()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-edicion" (click)="guardarEquipo()">
+                      Guardar Cambios
+                    </button>
+                  </div>
+
+                </div>
+
+                <!-- MODO VISTA (normal) -->
+                <div class="equipo-detalle" *ngIf="!isEquipoEnEdicion($any(m))">
+                  <div class="equipo-imagen">
+                    <img *ngIf="$any(m).foto_url" [src]="$any(m).foto_url" [alt]="$any(m).marca + ' ' + $any(m).modelo">
+                    <div *ngIf="!$any(m).foto_url" class="imagen-placeholder">
+                    </div>
+                  </div>
+
+                  <div class="equipo-info">
+                    <h4>{{ $any(m).marca }} {{ $any(m).modelo }}</h4>
+                    <p><strong>Categoría:</strong> {{ getNombreCategoria(m) }}</p>
+                    <p *ngIf="$any(m).descripcion"><strong>Descripción:</strong> {{ $any(m).descripcion }}</p>
+                  </div>
+                </div>
+
+                <!-- Separador -->
+                <div class="subtable-divider"></div>
+
+                <!-- Lista simple de unidades -->
+                <div class="unidades-list">
+
+                  <!-- Fila de unidad simple -->
+                  <div class="unidad-row" *ngFor="let unidad of $any(m).unidades; let i = index">
+
+                    <div class="unidad-numero">{{ i + 1 }}.</div>
+
+                    <!-- Número de Serie (editable) -->
+                    <div class="unidad-campo">
+                      <label>N° Serie:</label>
+                      <input type="text" class="input-simple" [(ngModel)]="unidad.numero_serie"
+                        placeholder="Sin número de serie" (blur)="guardarCambiosUnidad(unidad)"
+                        [disabled]="isEquipoEnEdicion($any(m))">
+                    </div>
+
+                    <!-- Código de Barras (editable) -->
+                    <div class="unidad-campo">
+                      <label>Código:</label>
+                      <input type="text" class="input-simple" [(ngModel)]="unidad.codigo_barra"
+                        (blur)="guardarCambiosUnidad(unidad)" [disabled]="isEquipoEnEdicion($any(m))">
+                    </div>
+
+                    <!-- Estado Préstamo (Badge) -->
+                    <div class="unidad-campo">
+                      <label>Préstamo:</label>
+                      <span class="badge" [ngClass]="getPrestadoBadgeClass(unidad.esta_prestado)">
+                        {{ getPrestadoTexto(unidad.esta_prestado) }}
+                      </span>
+                    </div>
+
+                    <!-- Estado Físico (Select con Badge context) -->
+                    <div class="unidad-campo">
+                      <label>Estado Físico:</label>
+                      <select class="select-simple" [(ngModel)]="unidad.estado_fisico"
+                        (change)="guardarCambiosUnidad(unidad)" [disabled]="isEquipoEnEdicion($any(m))"
+                        [ngClass]="getFisicoBadgeClass(unidad.estado_fisico)">
+                        <option value="funciona">Funcional</option>
+                        <option value="en_reparacion">En reparación</option>
+                        <option value="no_funciona">No funciona</option>
+                        <option value="falla">Con fallos</option>
+                        <option value="perdido_sustraido">Perdido</option>
+                      </select>
+                    </div>
+
+                    <!-- Botón Eliminar -->
+                    <button class="btn-eliminar-unidad" (click)="eliminarUnidad(unidad)" title="Eliminar unidad"
+                      [disabled]="isEquipoEnEdicion($any(m))">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+      </ng-container>
+
+      <!-- FILAS DE LIBROS -->
+      <ng-container *ngIf="tipoSeleccionado === 'libros'">
+        <div class="table-body">
+          <ng-container *ngFor="let m of materialesFiltrados">
+            <!-- FILA DE LIBRO -->
+            <ng-container *ngIf="'ejemplares' in m">
+              <div class="table-row row-libros" [class.expanded]="isFilaExpandida(m.id)">
+                <!-- Foto (Placeholder o similar) -->
+                <div class="td td-foto">
+                  <div class="thumb-placeholder">📚</div>
+                </div>
+
+                <!-- Categoría -->
+                <div class="td td-categoria">
+                  {{ m.categoria?.nombre || 'Sin cat.' }}
+                </div>
+
+                <!-- Título -->
+                <div class="td td-titulo clickable" [title]="$any(m).titulo" (click)="toggleFila(m.id)">
+                  {{ $any(m).titulo }}
+                </div>
+
+                <!-- Autor -->
+                <div class="td td-autor">
+                  {{ $any(m).autor || '---' }}
+                </div>
+
+                <!-- Editorial -->
+                <div class="td td-editorial">
+                  {{ $any(m).editorial || '---' }}
+                </div>
+
+                <!-- Disponibles -->
+                <div class="td td-count-disp">
+                  <span class="count-pill disp">{{ getEjemplaresDisponiblesCount($any(m)) }}</span>
+                </div>
+
+                <!-- Totales -->
+                <div class="td td-count-total">
+                  <span class="count-pill total">{{ $any(m).ejemplares?.length || 0 }}</span>
+                </div>
+
+                <!-- Acciones -->
+                <div class="td td-acciones">
+                  <button class="btn-editar" (click)="$any(m).titulo ? editarLibro($any(m)) : null"
+                    title="Editar"></button>
+                  <button class="btn-eliminar" (click)="eliminarMaterial(m, 'libro')" title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+
+              <!-- SUBTABLA DE EJEMPLARES (desplegable simplificado) -->
+              <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
+
+                <!-- MODO EDICIÓN -->
+                <div class="libro-edicion" *ngIf="isLibroEnEdicion($any(m))">
+
+                  <h3 class="edicion-titulo">Editar Libro</h3>
+
+                  <div class="edicion-form-libro">
+
+                    <!-- Título -->
+                    <div class="form-field">
+                      <label class="edicion-label">Título *</label>
+                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.titulo"
+                        placeholder="Título del libro">
+                    </div>
+
+                    <!-- Autor -->
+                    <div class="form-field">
+                      <label class="edicion-label">Autor</label>
+                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.autor"
+                        placeholder="Nombre del autor">
+                    </div>
+
+                    <!-- Editorial -->
+                    <div class="form-field">
+                      <label class="edicion-label">Editorial</label>
+                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.editorial"
+                        placeholder="Editorial">
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="form-field">
+                      <label class="edicion-label">Categoría *</label>
+                      <select class="select-edicion" [(ngModel)]="libroEnEdicion!.categoria_codigo">
+                        <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
+                          {{ getNombreCategoriaPorCodigo(catCodigo) }}
+                        </option>
+                      </select>
+                    </div>
+
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="edicion-botones">
+                    <button class="btn-cancelar-edicion" (click)="cancelarEdicionLibro()">
+                      Cancelar
+                    </button>
+                    <button class="btn-guardar-edicion" (click)="guardarLibro()">
+                      Guardar Cambios
+                    </button>
+                  </div>
+
+                </div>
+
+                <!-- MODO VISTA (normal) -->
+                <div class="libro-detalle" *ngIf="!isLibroEnEdicion($any(m))">
+                  <div class="libro-info-completa">
+                    <h4>{{ $any(m).titulo }}</h4>
+                    <p><strong>Autor:</strong> {{ $any(m).autor || 'No especificado' }}</p>
+                    <p><strong>Editorial:</strong> {{ $any(m).editorial || 'No especificado' }}</p>
+                    <p><strong>Categoría:</strong> {{ getNombreCategoria(m) }}</p>
+                    <p><strong>Código:</strong> {{ $any(m).libro_numero }}</p>
+                  </div>
+                </div>
+
+                <!-- Separador -->
+                <div class="subtable-divider"></div>
+
+                <!-- Lista simple de ejemplares -->
+                <div class="ejemplares-list">
+
+                  <!-- Fila de ejemplar simple -->
+                  <div class="ejemplar-row" *ngFor="let ejemplar of $any(m).ejemplares; let i = index">
+
+                    <div class="ejemplar-numero">{{ i + 1 }}.</div>
+
+                    <!-- Código de Barras (editable) -->
+                    <div class="ejemplar-campo">
+                      <label>Código de Barras:</label>
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.codigo_barra"
+                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                    </div>
+
+                    <!-- Estantería (editable) -->
+                    <div class="ejemplar-campo">
+                      <label>Estantería:</label>
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.estanteria" placeholder="Ej: 014"
+                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                    </div>
+
+                    <!-- Balda (editable) -->
+                    <div class="ejemplar-campo">
+                      <label>Balda:</label>
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.balda" placeholder="Ej: 6"
+                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                    </div>
+
+                    <!-- Estado (select) -->
+                    <div class="ejemplar-campo">
+                      <label>Estado:</label>
+                      <select class="select-simple" [(ngModel)]="ejemplar.estado"
+                        (change)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                        <option *ngFor="let est of estadosDisponibles" [value]="est.valor">
+                          {{ est.texto }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <!-- Botón Eliminar -->
+                    <button class="btn-eliminar-ejemplar" (click)="eliminarEjemplar(ejemplar)" title="Eliminar ejemplar"
+                      [disabled]="isLibroEnEdicion($any(m))">
+                      🗑️
+                    </button>
+                  </div>
                 </div>
 
               </div>
 
-              <!-- Botones de acción -->
-              <div class="edicion-botones">
-                <button class="btn-cancelar-edicion" (click)="cancelarEdicionLibro()">
-                  Cancelar
-                </button>
-                <button class="btn-guardar-edicion" (click)="guardarLibro()">
-                  Guardar Cambios
-                </button>
-              </div>
+            </ng-container>
+          </ng-container>
 
-            </div>
+        </div>
 
-            <!-- MODO VISTA (normal) -->
-            <div class="libro-detalle" *ngIf="!isLibroEnEdicion(libro)">
-              <div class="libro-info-completa">
-                <h4>{{ libro.titulo }}</h4>
-                <p><strong>Autor:</strong> {{ libro.autor || 'No especificado' }}</p>
-                <p><strong>Editorial:</strong> {{ libro.editorial || 'No especificado' }}</p>
-                <p><strong>Categoría:</strong> {{ getNombreCategoria(libro) }}</p>
-                <p><strong>Código:</strong> {{ libro.libro_numero }}</p>
-              </div>
-            </div>
-
-            <!-- Separador -->
-            <div class="subtable-divider"></div>
-
-            <!-- Lista simple de ejemplares -->
-            <div class="ejemplares-list">
-
-              <!-- Fila de ejemplar simple -->
-              <div class="ejemplar-row" *ngFor="let ejemplar of libro.ejemplares; let i = index">
-
-                <div class="ejemplar-numero">{{ i + 1 }}.</div>
-
-                <!-- Código de Barras (editable) -->
-                <div class="ejemplar-campo">
-                  <label>Código de Barras:</label>
-                  <input type="text" class="input-simple" [(ngModel)]="ejemplar.codigo_barra"
-                    (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion(libro)">
-                </div>
-
-                <!-- Estantería (editable) -->
-                <div class="ejemplar-campo">
-                  <label>Estantería:</label>
-                  <input type="text" class="input-simple" [(ngModel)]="ejemplar.estanteria" placeholder="Ej: 014"
-                    (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion(libro)">
-                </div>
-
-                <!-- Balda (editable) -->
-                <div class="ejemplar-campo">
-                  <label>Balda:</label>
-                  <input type="text" class="input-simple" [(ngModel)]="ejemplar.balda" placeholder="Ej: 6"
-                    (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion(libro)">
-                </div>
-
-                <!-- Estado (select) -->
-                <div class="ejemplar-campo">
-                  <label>Estado:</label>
-                  <select class="select-simple" [(ngModel)]="ejemplar.estado"
-                    (change)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion(libro)">
-                    <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
-                      {{ estado.texto }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Botón Eliminar -->
-                <button class="btn-eliminar-ejemplar" (click)="eliminarEjemplar(ejemplar)" title="Eliminar ejemplar"
-                  [disabled]="isLibroEnEdicion(libro)">
-                  🗑️
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-        </ng-container>
       </ng-container>
 
     </div>
 
-  </div>
-<!-- Modal Añadir Material -->
-<app-aniadir-material 
-  [isOpen]="modalAnadirAbierto"
-  (close)="cerrarModalAnadir()"
-  (materialCreado)="onMaterialCreado()">
-</app-aniadir-material>
+    <!-- Modal Añadir Material -->
+    <app-aniadir-material [isOpen]="modalAnadirAbierto" (close)="cerrarModalAnadir()"
+      (materialCreado)="onMaterialCreado()">
+    </app-aniadir-material>
 
+  </div>
 </div>
