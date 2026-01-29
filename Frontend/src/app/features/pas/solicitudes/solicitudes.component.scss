@@ -822,7 +822,6 @@ $font-family: 'Inter', sans-serif;
 
 .btn-confirmar {
   min-width: 136px;
-
   border: none;
   color: $color-white;
 
@@ -830,10 +829,18 @@ $font-family: 'Inter', sans-serif;
     background: #28A745;
     box-shadow: 0px 4px 16px rgba(40, 167, 69, 0.25);
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: darken(#28A745, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(40, 167, 69, 0.35);
+    }
+
+    &:disabled {
+      background: $color-border !important;
+      color: $color-text-disabled !important;
+      cursor: not-allowed !important;
+      opacity: 0.7;
+      box-shadow: none !important;
     }
   }
 
@@ -841,14 +848,22 @@ $font-family: 'Inter', sans-serif;
     background: #DC3545;
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.25);
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: darken(#DC3545, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(220, 53, 69, 0.35);
     }
+
+    &:disabled {
+      background: $color-border !important;
+      color: $color-text-disabled !important;
+      cursor: not-allowed !important;
+      opacity: 0.7;
+      box-shadow: none !important;
+    }
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0);
   }
 }

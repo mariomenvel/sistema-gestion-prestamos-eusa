@@ -347,7 +347,7 @@
       <button class="btn-cancelar" (click)="cerrarModalAprobar()">
         Cancelar
       </button>
-      <button class="btn-confirmar" (click)="confirmarAprobacion()" [disabled]="aprobandoSolicitud">
+      <button class="btn-confirmar success" (click)="confirmarAprobacion()" [disabled]="aprobandoSolicitud">
         {{ aprobandoSolicitud ? 'Aprobando...' : 'Aprobar Solicitud' }}
       </button>
     </div>
@@ -446,8 +446,9 @@
       <button class="btn-cancelar" (click)="cerrarModalRechazar()">
         Cancelar
       </button>
-      <button class="btn-confirmar danger" (click)="confirmarRechazo()" [disabled]="!motivoSeleccionado">
-        Confirmar Rechazo
+      <button class="btn-confirmar danger" (click)="confirmarRechazo()"
+        [disabled]="!motivoSeleccionado">
+        {{ rechazandoSolicitud ? 'Rechazando...' : 'Confirmar Rechazo' }}
       </button>
     </div>
 

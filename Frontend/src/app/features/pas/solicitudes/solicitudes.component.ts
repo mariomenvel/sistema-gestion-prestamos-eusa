@@ -45,12 +45,13 @@ export class SolicitudesComponent implements OnInit {
   solicitudSeleccionada: Solicitud | null = null;
 
   // Datos del modal aprobar
-  aprobandoSolicitud:boolean = false;
+  aprobandoSolicitud: boolean = false;
   fechaDevolucion: string = '';
   idiomaEmailAprobacion: string = 'es'; // 'es' o 'en'
 
 
   // Datos del modal rechazar
+rechazandoSolicitud: boolean = false;
   motivoRechazo: string = '';
   idiomaEmailRechazo: string = 'es';
   motivosRechazo: any[] = [];
@@ -146,6 +147,7 @@ export class SolicitudesComponent implements OnInit {
     this.limpiarBusquedaMaterial();
     this.itemsSolicitudConDisponibilidad = [];
     this.idiomaEmailAprobacion = 'es';
+    this.aprobandoSolicitud = false;
     this.mostrarModalAprobar = true;
 
     // Cargar disponibilidad de los items
@@ -247,6 +249,7 @@ export class SolicitudesComponent implements OnInit {
 
   cerrarModalAprobar(): void {
     this.mostrarModalAprobar = false;
+     this.aprobandoSolicitud = false;
     this.solicitudSeleccionada = null;
     this.fechaDevolucion = '';
     this.itemsAdicionales = [];
@@ -365,6 +368,7 @@ export class SolicitudesComponent implements OnInit {
 
   abrirModalRechazar(solicitud: Solicitud): void {
     this.solicitudSeleccionada = solicitud;
+    this.rechazandoSolicitud = false;
     this.idiomaEmailRechazo = 'es';
     this.motivoSeleccionado = null;
     this.mostrarModalRechazar = true;
@@ -373,7 +377,12 @@ export class SolicitudesComponent implements OnInit {
     this.cargarMotivosRechazo();
   }
 
-  confirmarRechazo(): void {
+ confirmarRechazo(): void {
+    // PROTECCIÓN CONTRA DOBLE CLIC
+    if (this.rechazandoSolicitud) {
+      return;
+    }
+
     if (!this.solicitudSeleccionada) return;
 
     if (!this.motivoSeleccionado) {
@@ -386,12 +395,18 @@ export class SolicitudesComponent implements OnInit {
       idioma: this.idiomaEmailRechazo
     };
 
+    // ACTIVAR PROTECCIÓN
+    this.rechazandoSolicitud = true;
+
     this.solicitudesService.rechazarSolicitud(this.solicitudSeleccionada.id, datosRechazo).subscribe({
       next: () => {
-this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email al alumno');        this.mostrarModalRechazar = false;
+        this.rechazandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
+        this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email al alumno');
+        this.mostrarModalRechazar = false;
         this.cargarSolicitudes();
       },
       error: (err) => {
+        this.rechazandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
         console.error('❌ Error al rechazar:', err);
         this.mostrarNotificacion('error', 'Error', err.message || 'No se pudo rechazar la solicitud');
       }
