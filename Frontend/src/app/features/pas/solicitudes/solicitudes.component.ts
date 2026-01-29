@@ -51,7 +51,7 @@ export class SolicitudesComponent implements OnInit {
 
 
   // Datos del modal rechazar
-rechazandoSolicitud: boolean = false;
+  rechazandoSolicitud: boolean = false;
   motivoRechazo: string = '';
   idiomaEmailRechazo: string = 'es';
   motivosRechazo: any[] = [];
@@ -79,6 +79,15 @@ rechazandoSolicitud: boolean = false;
   // ===== GESTIÓN DE ITEMS DE LA SOLICITUD =====
   itemsSolicitudConDisponibilidad: ItemDisponibilidad[] = [];
   cargandoDisponibilidad: boolean = false;
+
+  // ===== MODAL DETALLES MATERIALES ===== 
+  mostrarModalDetallesMateriales: boolean = false;
+  materialesDetalles: any[] = [];
+  solicitudDetallesMateriales: Solicitud | null = null;
+
+  // ===== MODAL PERFIL USUARIO =====
+  mostrarModalPerfil: boolean = false;
+  usuarioPerfilSeleccionado: any = null;
 
   // ===== CONSTRUCTOR =====
 
@@ -122,6 +131,75 @@ rechazandoSolicitud: boolean = false;
     this.filtroFecha = '';
     this.textoBusqueda = '';
     this.aplicarFiltros();
+  }
+
+
+  /**
+   * Abre el modal con los detalles de los materiales de una solicitud
+   */
+  verMaterialesSolicitud(solicitud: Solicitud, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const items = this.getItemsSolicitud(solicitud);
+
+    if (!items || items.length === 0) {
+      return;
+    }
+
+    this.solicitudDetallesMateriales = solicitud;
+    this.materialesDetalles = items;
+    this.mostrarModalDetallesMateriales = true;
+  }
+
+  /**
+   * Cierra el modal de detalles de materiales
+   */
+  cerrarModalDetallesMateriales(): void {
+    this.mostrarModalDetallesMateriales = false;
+    this.materialesDetalles = [];
+    this.solicitudDetallesMateriales = null;
+  }
+
+  /**
+   * Obtiene el código de barras de un item
+   */
+  getCodigoItem(item: any): string {
+    if (item.Ejemplar) {
+      return item.Ejemplar.codigo_barra || '-';
+    }
+    if (item.Unidad) {
+      return item.Unidad.codigo_barra || '-';
+    }
+    return '-';
+  }
+
+  /**
+   * Abre el modal de perfil del usuario
+   */
+  abrirPerfilAlumno(solicitud: Solicitud, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const usuario = (solicitud as any).Usuario || solicitud.usuario;
+
+    if (!usuario || !usuario.id) {
+      console.warn('⚠️ No se pudo obtener el usuario');
+      return;
+    }
+
+    this.usuarioPerfilSeleccionado = usuario;
+    this.mostrarModalPerfil = true;
+  }
+
+  /**
+   * Cierra el modal de perfil
+   */
+  cerrarModalPerfil(): void {
+    this.mostrarModalPerfil = false;
+    this.usuarioPerfilSeleccionado = null;
   }
 
   /**
@@ -249,7 +327,7 @@ rechazandoSolicitud: boolean = false;
 
   cerrarModalAprobar(): void {
     this.mostrarModalAprobar = false;
-     this.aprobandoSolicitud = false;
+    this.aprobandoSolicitud = false;
     this.solicitudSeleccionada = null;
     this.fechaDevolucion = '';
     this.itemsAdicionales = [];
@@ -377,7 +455,7 @@ rechazandoSolicitud: boolean = false;
     this.cargarMotivosRechazo();
   }
 
- confirmarRechazo(): void {
+  confirmarRechazo(): void {
     // PROTECCIÓN CONTRA DOBLE CLIC
     if (this.rechazandoSolicitud) {
       return;
@@ -577,7 +655,7 @@ rechazandoSolicitud: boolean = false;
     });
   }
 
-  aplicarFiltros(): void {
+ aplicarFiltros(): void {
     let resultado = [...this.solicitudes];
 
     if (this.filtroEstadoActivo !== 'todas') {
@@ -593,8 +671,17 @@ rechazandoSolicitud: boolean = false;
       resultado = resultado.filter(s => {
         const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
         const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
+        
+        // Buscar también en TODOS los materiales de la solicitud
+        const items = this.getItemsSolicitud(s);
+        const coincideMaterial = items.some(item => {
+          const nombreItem = this.normalizarTexto(this.getNombreItem(item));
+          return nombreItem.includes(textoNormalizado);
+        });
+        
         return nombreUsuario.includes(textoNormalizado) ||
-          nombreMaterial.includes(textoNormalizado);
+               nombreMaterial.includes(textoNormalizado) ||
+               coincideMaterial;
       });
     }
 
@@ -621,7 +708,6 @@ rechazandoSolicitud: boolean = false;
     // 4. Aplicar ordenación
     this.aplicarOrdenacion(resultado);
   }
-
   /**
    * Lógica interna de ordenación
    */

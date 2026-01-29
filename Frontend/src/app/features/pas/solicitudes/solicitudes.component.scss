@@ -280,11 +280,36 @@ $font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 17px;
   letter-spacing: -0.03em;
+  justify-content: center;
   color: $color-text-primary;
 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.link-alumno {
+  color: $color-primary-blue;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($color-primary-blue, 10%);
+  }
+  .link-materiales {
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary-blue;
+    text-decoration: underline;
+  }
+}
 }
 
 // ========================================
@@ -778,6 +803,122 @@ $font-family: 'Inter', sans-serif;
   font-size: 12px;
   line-height: 15px;
   color: $color-text-secondary;
+}
+
+// ========================================
+// ENLACES CLICKEABLES
+// ========================================
+
+.link-alumno {
+  color: $color-primary-blue;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($color-primary-blue, 10%);
+  }
+}
+
+.link-materiales {
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary-blue;
+    text-decoration: underline;
+  }
+}
+
+// ========================================
+// MODAL DETALLES MATERIALES
+// ========================================
+
+.materiales-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.material-detalle-item {
+  padding: 12px;
+  background: $color-bg-light;
+  border: 1px solid $color-border;
+  border-radius: 6px;
+}
+
+.material-detalle-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.material-detalle-nombre {
+  font-weight: 500;
+  font-size: 14px;
+  color: $color-text-primary;
+}
+
+.material-detalle-codigo {
+  font-size: 13px;
+  color: $color-text-secondary;
+}
+
+// ========================================
+// MODAL PERFIL USUARIO
+// ========================================
+
+.perfil-info {
+  margin-top: 16px;
+}
+
+.perfil-row {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.perfil-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.perfil-label {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 14px;
+  color: $color-text-secondary;
+}
+
+.perfil-value {
+  font-family: $font-family;
+  font-size: 14px;
+  color: $color-text-primary;
+}
+
+// ========================================
+// ALINEACIÓN COLUMNA ESTADO
+// ========================================
+
+.th-estado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.td-estado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 // ========================================
