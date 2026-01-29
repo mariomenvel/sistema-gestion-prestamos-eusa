@@ -2,6 +2,9 @@ var models = require('../models');
 var db = require('../db');
 var Sequelize = require('sequelize');
 var DateUtils = require('../utils/date.utils');
+var notificacionesHelper = require('../utils/notificaciones');
+
+
 
 function crearSolicitud(req, res) {
   // Usuario autenticado (viene del middleware auth)
@@ -163,16 +166,17 @@ function obtenerSolicitudesPendientes(req, res) {
 }
 
 function aprobarSolicitud(req, res) {
+  console.log('📥 Body recibido:', JSON.stringify(req.body, null, 2));
+
   var solicitudId = req.params.id;
   var pasId = req.user.id;
-  
-  // Recibir fecha_devolucion del body
+
   var fechaDevolucionBody = req.body.fecha_devolucion;
-  // Items adicionales que el PAS quiera añadir
-  var itemsAdicionales = req.body.items_adicionales || [];
+  // Todos los items a prestar (originales seleccionados + adicionales)
+  var itemsAPrestar = req.body.items_adicionales || [];
 
   db.sequelize.transaction(function (t) {
-    return models.Solicitud.findByPk(solicitudId, { 
+    return models.Solicitud.findByPk(solicitudId, {
       transaction: t,
       include: [
         {
@@ -193,14 +197,14 @@ function aprobarSolicitud(req, res) {
         // Determinar fecha a usar
         var ahora = new Date();
         var fechaAUsar;
-        
+
         if (solicitud.tipo === 'prof_trabajo') {
           fechaAUsar = new Date(fechaDevolucionBody);
-          
+
           if (isNaN(fechaAUsar.getTime())) {
             throw new Error('FECHA_INVALIDA');
           }
-          
+
           if (fechaAUsar <= ahora) {
             throw new Error('FECHA_PASADA');
           }
@@ -208,49 +212,40 @@ function aprobarSolicitud(req, res) {
           fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
         }
 
-        // Buscar unidades/ejemplares disponibles para cada item
-        var promesasBuscarItems = solicitud.items.map(function (item) {
-          if (item.libro_id) {
-            return models.Ejemplar.findOne({
-              where: {
-                libro_id: item.libro_id,
-                estado: 'disponible'
-              },
-              transaction: t
-            }).then(function (ejemplar) {
-              if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
-              return {
-                tipo: 'ejemplar',
-                id: ejemplar.id
-              };
-            });
+        // Validar que hay al menos un item a prestar
+        if (!itemsAPrestar || itemsAPrestar.length === 0) {
+          throw new Error('SIN_ITEMS_SELECCIONADOS');
+        }
+
+        // Procesar todos los items enviados desde el frontend
+        var promesasItems = itemsAPrestar.map(function (item) {
+          // Si viene ejemplar_id específico
+          if (item.ejemplar_id) {
+            return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
+              .then(function (ejemplar) {
+                if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
+                if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
+                return { tipo: 'ejemplar', id: ejemplar.id };
+              });
           }
-          
-          if (item.equipo_id) {
-            return models.Unidad.findOne({
-              where: {
-                equipo_id: item.equipo_id,
-                esta_prestado: false,
-                estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
-              },
-              transaction: t
-            }).then(function (unidad) {
-              if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
-              return {
-                tipo: 'unidad',
-                id: unidad.id
-              };
-            });
+
+          // Si viene unidad_id específica
+          if (item.unidad_id) {
+            return models.Unidad.findByPk(item.unidad_id, { transaction: t })
+              .then(function (unidad) {
+                if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
+                if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
+                return { tipo: 'unidad', id: unidad.id };
+              });
           }
-          
+
           return Promise.resolve(null);
         });
 
-        // Resolver todas las búsquedas
-        return Promise.all(promesasBuscarItems).then(function (itemsEncontrados) {
+        return Promise.all(promesasItems).then(function (itemsEncontrados) {
           var unidadesIds = [];
           var ejemplaresIds = [];
-          
+
           itemsEncontrados.forEach(function (item) {
             if (item && item.tipo === 'unidad') {
               unidadesIds.push(item.id);
@@ -259,60 +254,18 @@ function aprobarSolicitud(req, res) {
             }
           });
 
-          // Procesar items adicionales del PAS
-          var promesasAdicionales = itemsAdicionales.map(function (item) {
-            if (item.libro_id) {
-              return models.Ejemplar.findOne({
-                where: {
-                  libro_id: item.libro_id,
-                  estado: 'disponible'
-                },
-                transaction: t
-              }).then(function (ejemplar) {
-                if (!ejemplar) throw new Error('EJEMPLAR_NO_DISPONIBLE_' + item.libro_id);
-                return { tipo: 'ejemplar', id: ejemplar.id };
-              });
-            }
-            
-            if (item.equipo_id) {
-              return models.Unidad.findOne({
-                where: {
-                  equipo_id: item.equipo_id,
-                  esta_prestado: false,
-                  estado_fisico: { [Sequelize.Op.in]: ['funciona', 'obsoleto'] }
-                },
-                transaction: t
-              }).then(function (unidad) {
-                if (!unidad) throw new Error('UNIDAD_NO_DISPONIBLE_' + item.equipo_id);
-                return { tipo: 'unidad', id: unidad.id };
-              });
-            }
-            
-            return Promise.resolve(null);
-          });
+          if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+            throw new Error('SIN_ITEMS_DISPONIBLES');
+          }
 
-          return Promise.all(promesasAdicionales).then(function (adicionalesEncontrados) {
-            adicionalesEncontrados.forEach(function (item) {
-              if (item && item.tipo === 'unidad') {
-                unidadesIds.push(item.id);
-              } else if (item && item.tipo === 'ejemplar') {
-                ejemplaresIds.push(item.id);
-              }
-            });
-
-            if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
-              throw new Error('SIN_ITEMS_DISPONIBLES');
-            }
-            
-            return { 
-              solicitud: solicitud, 
-              unidadesIds: unidadesIds, 
-              ejemplaresIds: ejemplaresIds,
-              fechaAUsar: fechaAUsar,
-              ahora: ahora,
-              pasId: pasId
-            };
-          });
+          return {
+            solicitud: solicitud,
+            unidadesIds: unidadesIds,
+            ejemplaresIds: ejemplaresIds,
+            fechaAUsar: fechaAUsar,
+            ahora: ahora,
+            pasId: pasId
+          };
         });
       })
       .then(function (data) {
@@ -323,7 +276,7 @@ function aprobarSolicitud(req, res) {
         var ahora = data.ahora;
         var pasId = data.pasId;
 
-        // 1. Crear CABECERA Préstamo con fecha correcta
+        // 1. Crear CABECERA Préstamo
         return models.Prestamo.create({
           usuario_id: solicitud.usuario_id,
           solicitud_id: solicitud.id,
@@ -387,23 +340,104 @@ function aprobarSolicitud(req, res) {
               solicitud.gestionado_por_id = pasId;
               solicitud.resuelta_en = ahora;
               return solicitud.save({ transaction: t });
+            }).then(function () {
+              // Retornar el ID del préstamo para usarlo después
+              return prestamo.id;
             });
           });
       });
   })
-    .then(function () {
-      res.json({ mensaje: 'Préstamo generado correctamente' });
+    .then(function (prestamoId) {
+      // Obtener idioma del body
+      var idioma = req.body.idioma || 'es';
+      
+      console.log('✅ Préstamo creado correctamente - ID:', prestamoId);
+      
+      // Obtener el préstamo completo con sus items y materiales
+      return models.Prestamo.findOne({
+        where: { solicitud_id: solicitudId },
+        include: [
+          {
+            model: models.PrestamoItem,
+            as: 'items',
+            include: [
+              {
+                model: models.Ejemplar,
+                include: [{ model: models.Libro, as: 'libro'}]
+              },
+              {
+                model: models.Unidad,
+                include: [{ model: models.Equipo, as: 'equipo' }]
+              }
+            ]
+          }
+        ]
+      })
+      .then(function(prestamoCompleto) {
+        if (!prestamoCompleto) {
+          return res.json({ mensaje: 'Préstamo generado correctamente' });
+        }
+        
+        // Obtener usuario
+        return models.Usuario.findByPk(prestamoCompleto.usuario_id)
+          .then(function(usuario) {
+            if (!usuario || !usuario.email) {
+              console.warn('⚠️ Usuario sin email');
+              return res.json({ mensaje: 'Préstamo generado correctamente' });
+            }
+            
+            console.log('📧 Enviando email a:', usuario.email);
+            console.log('📦 Items en préstamo:', prestamoCompleto.items ? prestamoCompleto.items.length : 0);
+            
+            // Enviar email
+            return notificacionesHelper.enviarEmailAprobacion(usuario, prestamoCompleto, idioma)
+              .then(function(infoEmail) {
+                console.log('✅ Email enviado:', infoEmail);
+                
+                // Crear notificación
+                return notificacionesHelper.crearNotificacion({
+                  usuario_id: usuario.id,
+                  tipo: 'estado_solicitud',
+                  prestamo_id: prestamoCompleto.id,
+                  solicitud_id: prestamoCompleto.solicitud_id,
+                  payload: {
+                    accion: 'aprobada',
+                    idioma: idioma,
+                    email_enviado: true
+                  }
+                });
+              })
+              .then(function() {
+                console.log('✅ Notificación registrada');
+                res.json({ mensaje: 'Préstamo generado correctamente' });
+              })
+              .catch(function(err) {
+                console.error('❌ Error en email:', err);
+                res.json({ mensaje: 'Préstamo generado correctamente' });
+              });
+          });
+      });
     })
     .catch(function (error) {
+      // Errores específicos
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'La solicitud no está pendiente' });
       if (error.message === 'TIPO_A_SIN_FECHA') return res.status(400).json({ mensaje: 'Para Tipo A es obligatorio enviar fecha_devolucion' });
       if (error.message === 'FECHA_INVALIDA') return res.status(400).json({ mensaje: 'La fecha de devolución no es válida' });
       if (error.message === 'FECHA_PASADA') return res.status(400).json({ mensaje: 'La fecha de devolución no puede ser en el pasado' });
+      if (error.message === 'SIN_ITEMS_SELECCIONADOS') return res.status(400).json({ mensaje: 'Debes seleccionar al menos un material para aprobar' });
       if (error.message === 'SIN_ITEMS_DISPONIBLES') return res.status(400).json({ mensaje: 'No hay materiales disponibles para esta solicitud' });
+
+      // Errores de ejemplares
       if (error.message.startsWith('EJEMPLAR_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay ejemplares disponibles del libro solicitado' });
+      if (error.message.startsWith('EJEMPLAR_NO_EXISTE')) return res.status(400).json({ mensaje: 'El ejemplar especificado no existe' });
+      if (error.message.startsWith('EJEMPLAR_YA_PRESTADO')) return res.status(400).json({ mensaje: 'El ejemplar ya está prestado a otro usuario' });
+
+      // Errores de unidades
       if (error.message.startsWith('UNIDAD_NO_DISPONIBLE')) return res.status(400).json({ mensaje: 'No hay unidades disponibles del equipo solicitado' });
-      if (error.message === 'UNIDAD_YA_PRESTADA') return res.status(400).json({ mensaje: 'Alguna unidad ya está prestada' });
+      if (error.message.startsWith('UNIDAD_NO_EXISTE')) return res.status(400).json({ mensaje: 'La unidad especificada no existe' });
+      if (error.message.startsWith('UNIDAD_YA_PRESTADA')) return res.status(400).json({ mensaje: 'La unidad ya está prestada a otro usuario' });
+      if (error.message === 'UNIDAD_NO_APTA') return res.status(400).json({ mensaje: 'La unidad no está en condiciones de ser prestada' });
 
       console.error('Error al aprobar solicitud:', error);
       res.status(500).json({ mensaje: 'Error al generar préstamo' });
@@ -459,12 +493,80 @@ function rechazarSolicitud(req, res) {
 
       return solicitud.save();
     })
-    .then(function (solicitudGuardada) {
+   .then(function (solicitudGuardada) {
+  // Obtener idioma del body
+  var idiomaEmail = req.body.idioma || 'es';
+  
+  console.log('✅ Solicitud rechazada - Enviando email en idioma:', idiomaEmail);
+  
+  // Obtener usuario para enviar email
+  return models.Usuario.findByPk(solicitudGuardada.usuario_id)
+    .then(function(usuario) {
+      if (!usuario || !usuario.email) {
+        console.warn('⚠️ Usuario sin email, no se enviará notificación');
+        return res.json({
+          mensaje: 'Solicitud rechazada correctamente',
+          solicitud: solicitudGuardada
+        });
+      }
+      
+      // Si hay motivo_id, buscar la plantilla
+      if (motivoId) {
+        return models.MotivoRechazo.findByPk(motivoId)
+          .then(function(plantilla) {
+            if (!plantilla) {
+              console.error('❌ Plantilla de rechazo no encontrada:', motivoId);
+              return res.json({
+                mensaje: 'Solicitud rechazada correctamente',
+                solicitud: solicitudGuardada
+              });
+            }
+            
+            console.log('📧 Enviando email de rechazo a:', usuario.email, '- Plantilla:', plantilla.clave);
+            
+            return notificacionesHelper.enviarEmailRechazo(usuario, solicitudGuardada, plantilla, idiomaEmail)
+              .then(function(infoEmail) {
+                console.log('✅ Email enviado:', infoEmail);
+                
+                // Crear notificación
+                return notificacionesHelper.crearNotificacion({
+                  usuario_id: usuario.id,
+                  tipo: 'estado_solicitud',
+                  solicitud_id: solicitudGuardada.id,
+                  payload: {
+                    accion: 'rechazada',
+                    idioma: idiomaEmail,
+                    motivo_id: motivoId,
+                    plantilla_clave: plantilla.clave,
+                    email_enviado: true
+                  }
+                });
+              })
+              .then(function() {
+                console.log('✅ Notificación registrada en BD');
+                res.json({
+                  mensaje: 'Solicitud rechazada correctamente',
+                  solicitud: solicitudGuardada
+                });
+              });
+          });
+      } else {
+        console.warn('⚠️ No se proporcionó motivo_id, no se enviará email');
+        res.json({
+          mensaje: 'Solicitud rechazada correctamente',
+          solicitud: solicitudGuardada
+        });
+      }
+    })
+    .catch(function(emailError) {
+      console.error('❌ Error enviando email de rechazo:', emailError);
+      // No fallar la respuesta si el email falla
       res.json({
         mensaje: 'Solicitud rechazada correctamente',
         solicitud: solicitudGuardada
       });
-    })
+    });
+})
     .catch(function (error) {
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'Solo se pueden rechazar solicitudes pendientes' });
@@ -570,6 +672,99 @@ function obtenerTodasLasSolicitudes(req, res) {
     });
 }
 
+/**
+ * GET /solicitudes/:id/disponibilidad
+ * Verifica la disponibilidad de cada item de una solicitud
+ */
+function verificarDisponibilidad(req, res) {
+  var solicitudId = req.params.id;
+
+  models.Solicitud.findByPk(solicitudId, {
+    include: [
+      {
+        model: models.SolicitudItem,
+        as: 'items',
+        include: [
+          {
+            model: models.Libro,
+            include: [{ model: models.Ejemplar, as: 'ejemplares' }]
+          },
+          {
+            model: models.Equipo,
+            include: [{ model: models.Unidad, as: 'unidades' }]
+          }
+        ]
+      }
+    ]
+  })
+    .then(function (solicitud) {
+      if (!solicitud) {
+        return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+      }
+
+      var itemsConDisponibilidad = solicitud.items.map(function (item) {
+        var resultado = {
+          id: item.id,
+          libro_id: item.libro_id,
+          equipo_id: item.equipo_id,
+          cantidad: item.cantidad,
+          tipo: item.libro_id ? 'libro' : 'equipo',
+          nombre: '',
+          disponible: false,
+          ejemplares_disponibles: [],
+          unidades_disponibles: []
+        };
+
+        if (item.Libro) {
+          resultado.nombre = item.Libro.titulo || 'Libro sin título';
+
+          // Filtrar ejemplares disponibles
+          var ejemplaresDisp = (item.Libro.ejemplares || []).filter(function (ej) {
+            return ej.estado === 'disponible';
+          });
+
+          resultado.disponible = ejemplaresDisp.length > 0;
+          resultado.ejemplares_disponibles = ejemplaresDisp.map(function (ej) {
+            return {
+              id: ej.id,
+              codigo_barra: ej.codigo_barra,
+              estado: ej.estado
+            };
+          });
+        }
+
+        if (item.Equipo) {
+          resultado.nombre = (item.Equipo.marca + ' ' + item.Equipo.modelo).trim() || 'Equipo sin datos';
+
+          // Filtrar unidades disponibles
+          var unidadesDisp = (item.Equipo.unidades || []).filter(function (u) {
+            return !u.esta_prestado &&
+              (u.estado_fisico === 'funciona' || u.estado_fisico === 'obsoleto' || !u.estado_fisico);
+          });
+
+          resultado.disponible = unidadesDisp.length > 0;
+          resultado.unidades_disponibles = unidadesDisp.map(function (u) {
+            return {
+              id: u.id,
+              codigo_barra: u.codigo_barra,
+              estado_fisico: u.estado_fisico
+            };
+          });
+        }
+
+        return resultado;
+      });
+
+      res.json({
+        solicitud_id: solicitud.id,
+        items: itemsConDisponibilidad
+      });
+    })
+    .catch(function (error) {
+      console.error('Error verificando disponibilidad:', error);
+      res.status(500).json({ mensaje: 'Error al verificar disponibilidad' });
+    });
+}
 
 module.exports = {
   crearSolicitud: crearSolicitud,
@@ -578,7 +773,9 @@ module.exports = {
   aprobarSolicitud: aprobarSolicitud,
   rechazarSolicitud: rechazarSolicitud,
   cancelarSolicitud: cancelarSolicitud,
-  obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes
+  obtenerTodasLasSolicitudes: obtenerTodasLasSolicitudes,
+  verificarDisponibilidad: verificarDisponibilidad
+
 };
 
 function validarLimiteTrimestral(usuarioId) {

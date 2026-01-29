@@ -290,6 +290,49 @@ function buscarEquiposDisponibles(req, res) {
     });
 }
 
+/**
+ * GET /equipos/unidad/:codigo
+ * Buscar unidad específica por código de barras
+ */
+function buscarUnidadPorCodigo(req, res) {
+  var codigo = req.params.codigo;
+  
+  models.Unidad.findOne({
+    where: { codigo_barra: codigo },
+    include: [{
+      model: models.Equipo,
+      as: 'equipo'
+    }]
+  })
+  .then(function(unidad) {
+    if (!unidad) {
+      return res.status(404).json({ mensaje: 'Unidad no encontrada' });
+    }
+    
+    var disponible = !unidad.esta_prestado && 
+      (unidad.estado_fisico === 'funciona' || unidad.estado_fisico === 'obsoleto' || !unidad.estado_fisico);
+    
+    res.json({
+      tipo: 'unidad',
+      id: unidad.id,
+      codigo_barra: unidad.codigo_barra,
+      estado_fisico: unidad.estado_fisico,
+      esta_prestado: unidad.esta_prestado,
+      disponible: disponible,
+      equipo: {
+        id: unidad.equipo ? unidad.equipo.id : null,
+        marca: unidad.equipo ? unidad.equipo.marca : '',
+        modelo: unidad.equipo ? unidad.equipo.modelo : '',
+        nombre: unidad.equipo ? (unidad.equipo.marca + ' ' + unidad.equipo.modelo) : 'Sin datos'
+      }
+    });
+  })
+  .catch(function(error) {
+    console.error('Error buscando unidad:', error);
+    res.status(500).json({ mensaje: 'Error al buscar unidad' });
+  });
+}
+
 module.exports = {
   obtenerEquipos: obtenerEquipos,
   obtenerEquipoPorId: obtenerEquipoPorId,
@@ -298,5 +341,6 @@ module.exports = {
   eliminarEquipo: eliminarEquipo,
   subirImagenEquipo: subirImagenEquipo,
   buscarPorCodigoBarras: buscarPorCodigoBarras,
-  buscarEquiposDisponibles: buscarEquiposDisponibles
+  buscarEquiposDisponibles: buscarEquiposDisponibles,
+  buscarUnidadPorCodigo: buscarUnidadPorCodigo 
 };

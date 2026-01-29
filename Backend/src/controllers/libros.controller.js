@@ -270,6 +270,43 @@ function buscarLibrosDisponibles(req, res) {
     res.status(500).json({ mensaje: 'Error al buscar libros' });
   });
 }
+/**
+ * GET /libros/ejemplar/:codigo
+ * Buscar ejemplar específico por código de barras
+ */
+function buscarEjemplarPorCodigo(req, res) {
+  var codigo = req.params.codigo;
+  
+  models.Ejemplar.findOne({
+    where: { codigo_barra: codigo },
+    include: [{
+      model: models.Libro,
+      as: 'libro'
+    }]
+  })
+  .then(function(ejemplar) {
+    if (!ejemplar) {
+      return res.status(404).json({ mensaje: 'Ejemplar no encontrado' });
+    }
+    
+    res.json({
+      tipo: 'ejemplar',
+      id: ejemplar.id,
+      codigo_barra: ejemplar.codigo_barra,
+      estado: ejemplar.estado,
+      disponible: ejemplar.estado === 'disponible',
+      libro: {
+        id: ejemplar.libro ? ejemplar.libro.id : null,
+        titulo: ejemplar.libro ? ejemplar.libro.titulo : 'Sin título',
+        autor: ejemplar.libro ? ejemplar.libro.autor : 'Sin autor'
+      }
+    });
+  })
+  .catch(function(error) {
+    console.error('Error buscando ejemplar:', error);
+    res.status(500).json({ mensaje: 'Error al buscar ejemplar' });
+  });
+}
 
 module.exports = {
   obtenerLibros: obtenerLibros,
@@ -278,5 +315,6 @@ module.exports = {
   actualizarLibro: actualizarLibro,
   eliminarLibro: eliminarLibro,
   buscarPorCodigoBarras: buscarPorCodigoBarras,
-  buscarLibrosDisponibles: buscarLibrosDisponibles 
+  buscarLibrosDisponibles: buscarLibrosDisponibles,
+  buscarEjemplarPorCodigo: buscarEjemplarPorCodigo
 };

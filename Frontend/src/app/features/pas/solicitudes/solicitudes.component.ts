@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { SolicitudesService, LibroDisponible, EquipoDisponible, ItemAdicional } from '../../../core/services/solicitudes.service';
-import { Solicitud } from '../../../core/models/solicitud.model';
+import {
+  SolicitudesService,
+  ItemAdicional,
+  MaterialEscaneado,
+  ItemDisponibilidad
+} from '../../../core/services/solicitudes.service'; import { Solicitud } from '../../../core/models/solicitud.model';
 
 /**
  * Componente Gestión de Solicitudes (PAS)
@@ -42,9 +46,15 @@ export class SolicitudesComponent implements OnInit {
 
   // Datos del modal aprobar
   fechaDevolucion: string = '';
+  idiomaEmailAprobacion: string = 'es'; // 'es' o 'en'
+
 
   // Datos del modal rechazar
   motivoRechazo: string = '';
+  idiomaEmailRechazo: string = 'es';
+  motivosRechazo: any[] = [];
+  motivoSeleccionado: any = null;
+  cargandoMotivos: boolean = false;
 
   // ===== MODAL DE NOTIFICACIONES =====
 
@@ -53,19 +63,20 @@ export class SolicitudesComponent implements OnInit {
   tituloModalNotificacion: string = '';
   mensajeModalNotificacion: string = '';
 
-  // ===== BÚSQUEDA DE MATERIALES ADICIONALES =====
+  // ===== BÚSQUEDA DE MATERIALES ADICIONALES (POR CÓDIGO DE BARRAS) =====
 
   mostrarBuscadorMateriales: boolean = false;
-  tipoBusqueda: 'libro' | 'equipo' = 'libro';
-  textoBusquedaMaterial: string = '';
-
-  // Resultados de búsqueda
-  librosDisponibles: LibroDisponible[] = [];
-  equiposDisponibles: EquipoDisponible[] = [];
-  buscandoMateriales: boolean = false;
+  codigoBarrasBusqueda: string = '';
+  buscandoMaterial: boolean = false;
+  materialEncontrado: MaterialEscaneado | null = null;
+  errorBusqueda: string = '';
 
   // Items adicionales seleccionados
   itemsAdicionales: ItemAdicional[] = [];
+
+  // ===== GESTIÓN DE ITEMS DE LA SOLICITUD =====
+  itemsSolicitudConDisponibilidad: ItemDisponibilidad[] = [];
+  cargandoDisponibilidad: boolean = false;
 
   // ===== CONSTRUCTOR =====
 
@@ -131,8 +142,13 @@ export class SolicitudesComponent implements OnInit {
     this.fechaDevolucion = '';
     this.itemsAdicionales = [];
     this.mostrarBuscadorMateriales = false;
-    this.limpiarBusquedaMateriales();
+    this.limpiarBusquedaMaterial();
+    this.itemsSolicitudConDisponibilidad = [];
+    this.idiomaEmailAprobacion = 'es';
     this.mostrarModalAprobar = true;
+
+    // Cargar disponibilidad de los items
+    this.cargarDisponibilidadItems(solicitud.id);
   }
 
   confirmarAprobacion(): void {
@@ -149,19 +165,47 @@ export class SolicitudesComponent implements OnInit {
       return;
     }
 
-    // Preparar items adicionales para el backend
-    const itemsParaBackend = this.itemsAdicionales.map(item => {
-      if (item.tipo === 'libro') {
-        return { libro_id: item.libro_id };
-      } else {
-        return { equipo_id: item.equipo_id };
+    // Preparar items originales incluidos (con ejemplar_id o unidad_id específicos)
+    const itemsOriginales: { ejemplar_id?: number; unidad_id?: number }[] = [];
+
+    this.itemsSolicitudConDisponibilidad
+      .filter(item => item.incluido)
+      .forEach(item => {
+        if (item.tipo === 'libro' && item.ejemplar_seleccionado_id) {
+          itemsOriginales.push({ ejemplar_id: item.ejemplar_seleccionado_id });
+        } else if (item.tipo === 'equipo' && item.unidad_seleccionada_id) {
+          itemsOriginales.push({ unidad_id: item.unidad_seleccionada_id });
+        }
+      });
+
+    // Preparar items adicionales
+    const itemsAdicionalesBackend: { ejemplar_id?: number; unidad_id?: number }[] = [];
+
+    this.itemsAdicionales.forEach(item => {
+      if (item.tipo === 'ejemplar' && item.ejemplar_id) {
+        itemsAdicionalesBackend.push({ ejemplar_id: item.ejemplar_id });
+      } else if (item.tipo === 'unidad' && item.unidad_id) {
+        itemsAdicionalesBackend.push({ unidad_id: item.unidad_id });
       }
     });
+
+    // Combinar todos los items
+    const todosLosItems = [...itemsOriginales, ...itemsAdicionalesBackend];
+
+    if (todosLosItems.length === 0) {
+      this.mostrarNotificacion(
+        'error',
+        'Sin materiales',
+        'Debes incluir al menos un material para aprobar la solicitud'
+      );
+      return;
+    }
 
     const datosAprobacion = {
       solicitud_id: this.solicitudSeleccionada.id,
       fecha_devolucion: this.solicitudSeleccionada.tipo === 'prof_trabajo' ? this.fechaDevolucion : null,
-      items_adicionales: itemsParaBackend
+      items_adicionales: todosLosItems,
+      idioma: this.idiomaEmailAprobacion
     };
 
     console.log('📤 Enviando aprobación:', datosAprobacion);
@@ -169,13 +213,10 @@ export class SolicitudesComponent implements OnInit {
     this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
       next: () => {
         console.log('✅ Solicitud aprobada');
-        const mensajeExtra = this.itemsAdicionales.length > 0
-          ? ` Se añadieron ${this.itemsAdicionales.length} material(es) adicional(es).`
-          : '';
         this.mostrarNotificacion(
           'exito',
           'Solicitud aprobada',
-          'El préstamo ha sido creado correctamente.' + mensajeExtra
+          `El préstamo ha sido creado con ${todosLosItems.length} material(es).`
         );
         this.cerrarModalAprobar();
         setTimeout(() => {
@@ -199,7 +240,7 @@ export class SolicitudesComponent implements OnInit {
     this.fechaDevolucion = '';
     this.itemsAdicionales = [];
     this.mostrarBuscadorMateriales = false;
-    this.limpiarBusquedaMateriales();
+    this.limpiarBusquedaMaterial();
   }
 
   // ===== BÚSQUEDA DE MATERIALES ADICIONALES =====
@@ -207,91 +248,103 @@ export class SolicitudesComponent implements OnInit {
   toggleBuscadorMateriales(): void {
     this.mostrarBuscadorMateriales = !this.mostrarBuscadorMateriales;
     if (this.mostrarBuscadorMateriales) {
-      this.limpiarBusquedaMateriales();
+      this.limpiarBusquedaMaterial();
     }
   }
 
-  cambiarTipoBusqueda(tipo: 'libro' | 'equipo'): void {
-    this.tipoBusqueda = tipo;
-    this.limpiarBusquedaMateriales();
+  limpiarBusquedaMaterial(): void {
+    this.codigoBarrasBusqueda = '';
+    this.materialEncontrado = null;
+    this.errorBusqueda = '';
   }
 
-  buscarMateriales(): void {
-    if (this.buscandoMateriales) return;
-
-    this.buscandoMateriales = true;
-
-    if (this.tipoBusqueda === 'libro') {
-      this.solicitudesService.buscarLibrosDisponibles(this.textoBusquedaMaterial).subscribe({
-        next: (libros) => {
-          console.log('📚 Libros encontrados:', libros);
-          this.librosDisponibles = libros;
-          this.buscandoMateriales = false;
-        },
-        error: (err) => {
-          console.error('❌ Error buscando libros:', err);
-          this.buscandoMateriales = false;
-        }
-      });
-    } else {
-      this.solicitudesService.buscarEquiposDisponibles(this.textoBusquedaMaterial).subscribe({
-        next: (equipos) => {
-          console.log('📷 Equipos encontrados:', equipos);
-          this.equiposDisponibles = equipos;
-          this.buscandoMateriales = false;
-        },
-        error: (err) => {
-          console.error('❌ Error buscando equipos:', err);
-          this.buscandoMateriales = false;
-        }
-      });
+  buscarPorCodigoBarras(): void {
+    if (!this.codigoBarrasBusqueda.trim()) {
+      this.errorBusqueda = 'Introduce un código de barras';
+      return;
     }
+
+    this.buscandoMaterial = true;
+    this.materialEncontrado = null;
+    this.errorBusqueda = '';
+
+    const codigo = this.codigoBarrasBusqueda.trim();
+
+    // Primero intentar buscar como ejemplar (libro)
+    this.solicitudesService.buscarEjemplarPorCodigo(codigo).subscribe({
+      next: (resultado) => {
+        console.log('📚 Ejemplar encontrado:', resultado);
+        this.materialEncontrado = resultado;
+        this.buscandoMaterial = false;
+      },
+      error: () => {
+        // Si no es ejemplar, buscar como unidad (equipo)
+        this.solicitudesService.buscarUnidadPorCodigo(codigo).subscribe({
+          next: (resultado) => {
+            console.log('📷 Unidad encontrada:', resultado);
+            this.materialEncontrado = resultado;
+            this.buscandoMaterial = false;
+          },
+          error: () => {
+            this.errorBusqueda = 'No se encontró ningún material con ese código';
+            this.buscandoMaterial = false;
+          }
+        });
+      }
+    });
   }
 
-  limpiarBusquedaMateriales(): void {
-    this.textoBusquedaMaterial = '';
-    this.librosDisponibles = [];
-    this.equiposDisponibles = [];
-  }
+  agregarMaterialEncontrado(): void {
+    if (!this.materialEncontrado) return;
 
-  agregarLibro(libro: LibroDisponible): void {
+    // Verificar disponibilidad
+    if (!this.materialEncontrado.disponible) {
+      this.mostrarNotificacion('error', 'No disponible', 'Este material no está disponible para préstamo');
+      return;
+    }
+
     // Verificar si ya está añadido
-    const yaExiste = this.itemsAdicionales.some(
-      item => item.tipo === 'libro' && item.libro_id === libro.id
-    );
+    const yaExiste = this.itemsAdicionales.some(item => {
+      if (this.materialEncontrado!.tipo === 'ejemplar') {
+        return item.tipo === 'ejemplar' && item.ejemplar_id === this.materialEncontrado!.id;
+      } else {
+        return item.tipo === 'unidad' && item.unidad_id === this.materialEncontrado!.id;
+      }
+    });
 
     if (yaExiste) {
-      this.mostrarNotificacion('info', 'Ya añadido', 'Este libro ya está en la lista de materiales adicionales');
+      this.mostrarNotificacion('info', 'Ya añadido', 'Este material ya está en la lista');
       return;
     }
 
-    this.itemsAdicionales.push({
-      libro_id: libro.id,
-      nombre: libro.titulo,
-      tipo: 'libro'
-    });
-
-    console.log('➕ Libro añadido:', libro.titulo);
-  }
-
-  agregarEquipo(equipo: EquipoDisponible): void {
-    const yaExiste = this.itemsAdicionales.some(
-      item => item.tipo === 'equipo' && item.equipo_id === equipo.id
-    );
-
-    if (yaExiste) {
-      this.mostrarNotificacion('info', 'Ya añadido', 'Este equipo ya está en la lista de materiales adicionales');
-      return;
+    // Construir nombre para mostrar
+    let nombre = '';
+    if (this.materialEncontrado.tipo === 'ejemplar' && this.materialEncontrado.libro) {
+      nombre = this.materialEncontrado.libro.titulo;
+    } else if (this.materialEncontrado.tipo === 'unidad' && this.materialEncontrado.equipo) {
+      nombre = this.materialEncontrado.equipo.nombre;
     }
 
-    this.itemsAdicionales.push({
-      equipo_id: equipo.id,
-      nombre: equipo.nombre,
-      tipo: 'equipo'
-    });
+    // Añadir a la lista
+    const nuevoItem: ItemAdicional = {
+      tipo: this.materialEncontrado.tipo,
+      codigo_barra: this.materialEncontrado.codigo_barra,
+      nombre: nombre
+    };
 
-    console.log('➕ Equipo añadido:', equipo.nombre);
+    if (this.materialEncontrado.tipo === 'ejemplar') {
+      nuevoItem.ejemplar_id = this.materialEncontrado.id;
+    } else {
+      nuevoItem.unidad_id = this.materialEncontrado.id;
+    }
+
+    this.itemsAdicionales.push(nuevoItem);
+    console.log('➕ Material añadido:', nuevoItem);
+
+    // Limpiar búsqueda para escanear otro
+    this.limpiarBusquedaMaterial();
   }
+
 
   eliminarItemAdicional(index: number): void {
     this.itemsAdicionales.splice(index, 1);
@@ -301,36 +354,35 @@ export class SolicitudesComponent implements OnInit {
 
   abrirModalRechazar(solicitud: Solicitud): void {
     this.solicitudSeleccionada = solicitud;
-    this.motivoRechazo = '';
+    this.idiomaEmailRechazo = 'es';
+    this.motivoSeleccionado = null;
     this.mostrarModalRechazar = true;
+
+    // Cargar plantillas de rechazo
+    this.cargarMotivosRechazo();
   }
 
   confirmarRechazo(): void {
-    if (!this.solicitudSeleccionada) {
+    if (!this.solicitudSeleccionada) return;
+
+    if (!this.motivoSeleccionado) {
+      this.mostrarNotificacion('error', 'Error', 'Debes seleccionar un motivo de rechazo');
       return;
     }
 
-    if (!this.motivoRechazo || this.motivoRechazo.trim() === '') {
-      this.mostrarNotificacion('error', 'Motivo requerido', 'Debes indicar un motivo de rechazo');
-      return;
-    }
+    const datosRechazo = {
+      motivo_id: this.motivoSeleccionado.id,
+      idioma: this.idiomaEmailRechazo
+    };
 
-    this.solicitudesService.rechazarSolicitud(this.solicitudSeleccionada.id, this.motivoRechazo).subscribe({
+    this.solicitudesService.rechazarSolicitud(this.solicitudSeleccionada.id, datosRechazo).subscribe({
       next: () => {
-        console.log('✅ Solicitud rechazada');
-        this.mostrarNotificacion('exito', 'Solicitud rechazada', 'La solicitud ha sido rechazada correctamente.');
-        this.cerrarModalRechazar();
-        setTimeout(() => {
-          this.cargarSolicitudes();
-        }, 500);
+this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email al alumno');        this.mostrarModalRechazar = false;
+        this.cargarSolicitudes();
       },
-      error: (err: any) => {
-        console.error('❌ Error al rechazar solicitud:', err);
-        let mensajeError = 'Error al rechazar la solicitud';
-        if (err.error && err.error.mensaje) {
-          mensajeError = err.error.mensaje;
-        }
-        this.mostrarNotificacion('error', 'Error en el rechazo', mensajeError);
+      error: (err) => {
+        console.error('❌ Error al rechazar:', err);
+        this.mostrarNotificacion('error', 'Error', err.message || 'No se pudo rechazar la solicitud');
       }
     });
   }
@@ -434,6 +486,49 @@ export class SolicitudesComponent implements OnInit {
   getTipoTexto(tipo: string): string {
     return tipo === 'prof_trabajo' ? 'Tipo A' : 'Tipo B';
   }
+  // ===== GESTIÓN DE MOTIVOS DE RECHAZO =====
+
+  cargarMotivosRechazo(): void {
+    this.cargandoMotivos = true;
+
+    this.solicitudesService.obtenerMotivosRechazo().subscribe({
+      next: (motivos) => {
+        this.motivosRechazo = motivos;
+        this.cargandoMotivos = false;
+        console.log('📋 Motivos de rechazo cargados:', motivos);
+      },
+      error: (err) => {
+        console.error('❌ Error cargando motivos:', err);
+        this.cargandoMotivos = false;
+        this.mostrarNotificacion('error', 'Error', 'No se pudieron cargar las plantillas');
+      }
+    });
+  }
+
+  obtenerPreviewEmailRechazo(): string {
+    if (!this.motivoSeleccionado) {
+      return '';
+    }
+
+    const texto = this.idiomaEmailRechazo === 'en'
+      ? this.motivoSeleccionado.cuerpo_en
+      : this.motivoSeleccionado.cuerpo_es;
+
+    return texto || '';
+  }
+
+  obtenerTituloEmailRechazo(): string {
+    if (!this.motivoSeleccionado) {
+      return '';
+    }
+
+    const titulo = this.idiomaEmailRechazo === 'en'
+      ? this.motivoSeleccionado.titulo_en
+      : this.motivoSeleccionado.titulo_es;
+
+    return titulo || '';
+  }
+
 
   // ===== MÉTODOS PRIVADOS =====
 
@@ -535,5 +630,54 @@ export class SolicitudesComponent implements OnInit {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase();
+  }
+  cargarDisponibilidadItems(solicitudId: number): void {
+    this.cargandoDisponibilidad = true;
+
+    this.solicitudesService.verificarDisponibilidad(solicitudId).subscribe({
+      next: (response) => {
+        console.log('📦 Disponibilidad cargada:', response);
+        // Inicializar cada item con su estado
+        this.itemsSolicitudConDisponibilidad = response.items.map(item => {
+          // Por defecto, incluir si está disponible
+          const itemConEstado = { ...item, incluido: item.disponible };
+
+          // Si tiene ejemplares disponibles, seleccionar el primero por defecto
+          if (item.ejemplares_disponibles.length > 0) {
+            itemConEstado.ejemplar_seleccionado_id = item.ejemplares_disponibles[0].id;
+            itemConEstado.codigo_barra_seleccionado = item.ejemplares_disponibles[0].codigo_barra;
+          }
+
+          // Si tiene unidades disponibles, seleccionar la primera por defecto
+          if (item.unidades_disponibles.length > 0) {
+            itemConEstado.unidad_seleccionada_id = item.unidades_disponibles[0].id;
+            itemConEstado.codigo_barra_seleccionado = item.unidades_disponibles[0].codigo_barra;
+          }
+
+          return itemConEstado;
+        });
+        this.cargandoDisponibilidad = false;
+      },
+      error: (err) => {
+        console.error('❌ Error cargando disponibilidad:', err);
+        this.cargandoDisponibilidad = false;
+      }
+    });
+  }
+
+  toggleItemIncluido(item: ItemDisponibilidad): void {
+    if (item.disponible) {
+      item.incluido = !item.incluido;
+    }
+  }
+
+  seleccionarEjemplar(item: ItemDisponibilidad, ejemplarId: number, codigoBarra: string): void {
+    item.ejemplar_seleccionado_id = ejemplarId;
+    item.codigo_barra_seleccionado = codigoBarra;
+  }
+
+  seleccionarUnidad(item: ItemDisponibilidad, unidadId: number, codigoBarra: string): void {
+    item.unidad_seleccionada_id = unidadId;
+    item.codigo_barra_seleccionado = codigoBarra;
   }
 }
