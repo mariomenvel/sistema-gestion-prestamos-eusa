@@ -259,6 +259,23 @@
 
         </div>
 
+        <!-- Imagen del Libro -->
+        <div class="form-field">
+          <label class="form-label">Portada del Libro</label>
+
+          <div class="imagen-container" *ngIf="imagenPreview">
+            <img [src]="imagenPreview" alt="Preview">
+          </div>
+
+          <input type="file" id="inputImagenLibro" accept="image/*" (change)="onImagenSeleccionada($event)"
+            style="display: none;">
+
+          <label for="inputImagenLibro" class="btn-seleccionar-archivo">
+            📷 Seleccionar portada
+          </label>
+          <p class="help-text">Formatos: JPG, PNG, GIF (máx. 5MB)</p>
+        </div>
+
         <!-- Separador -->
         <hr class="separador">
 

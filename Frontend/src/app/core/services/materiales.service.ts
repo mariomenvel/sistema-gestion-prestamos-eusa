@@ -52,9 +52,6 @@ export class MaterialesService {
     return this.apiService.post<Libro>(`/libros/${id}/imagen`, formData, headers);
   }
 
-  aniadirLibro(libro: Libro): Observable<Libro> {
-    return this.apiService.post<Libro>('/libros', libro);
-  }
 
   // ===== EQUIPOS =====
 
