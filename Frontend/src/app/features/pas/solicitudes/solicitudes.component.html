@@ -325,40 +325,30 @@
     </div>
 
     <!-- Selector de idioma para email -->
-<div class="form-group">
-  <label class="form-label">
-    Idioma del email
-  </label>
-  <div class="idioma-selector-compact">
-    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'es'">
-      <input 
-        type="radio" 
-        name="idiomaAprobacion" 
-        value="es" 
-        [(ngModel)]="idiomaEmailAprobacion"
-      />
-      <span>ES</span>
-    </label>
-    
-    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'en'">
-      <input 
-        type="radio" 
-        name="idiomaAprobacion" 
-        value="en" 
-        [(ngModel)]="idiomaEmailAprobacion"
-      />
-      <span>EN</span>
-    </label>
-  </div>
-</div>
+    <div class="form-group">
+      <label class="form-label">
+        Idioma del email
+      </label>
+      <div class="idioma-selector-compact">
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'es'">
+          <input type="radio" name="idiomaAprobacion" value="es" [(ngModel)]="idiomaEmailAprobacion" />
+          <span>ES</span>
+        </label>
+
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'en'">
+          <input type="radio" name="idiomaAprobacion" value="en" [(ngModel)]="idiomaEmailAprobacion" />
+          <span>EN</span>
+        </label>
+      </div>
+    </div>
 
     <!-- Botones -->
     <div class="modal-actions">
       <button class="btn-cancelar" (click)="cerrarModalAprobar()">
         Cancelar
       </button>
-      <button class="btn-confirmar success" (click)="confirmarAprobacion()">
-        Confirmar Aprobación
+      <button class="btn-confirmar" (click)="confirmarAprobacion()" [disabled]="aprobandoSolicitud">
+        {{ aprobandoSolicitud ? 'Aprobando...' : 'Aprobar Solicitud' }}
       </button>
     </div>
 
@@ -409,22 +399,12 @@
       <label class="campo-label">Idioma del email</label>
       <div class="idioma-selector-compact">
         <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'es'">
-          <input 
-            type="radio" 
-            name="idiomaRechazo" 
-            value="es" 
-            [(ngModel)]="idiomaEmailRechazo"
-          />
+          <input type="radio" name="idiomaRechazo" value="es" [(ngModel)]="idiomaEmailRechazo" />
           <span>ES</span>
         </label>
-        
+
         <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'en'">
-          <input 
-            type="radio" 
-            name="idiomaRechazo" 
-            value="en" 
-            [(ngModel)]="idiomaEmailRechazo"
-          />
+          <input type="radio" name="idiomaRechazo" value="en" [(ngModel)]="idiomaEmailRechazo" />
           <span>EN</span>
         </label>
       </div>
@@ -435,21 +415,14 @@
       <label class="campo-label">
         Plantilla de rechazo <span class="required">*</span>
       </label>
-      
+
       <div class="loading-motivos" *ngIf="cargandoMotivos">
         Cargando plantillas...
       </div>
-      
-      <select 
-        class="campo-select"
-        [(ngModel)]="motivoSeleccionado"
-        *ngIf="!cargandoMotivos"
-      >
+
+      <select class="campo-select" [(ngModel)]="motivoSeleccionado" *ngIf="!cargandoMotivos">
         <option [ngValue]="null">Selecciona un motivo</option>
-        <option 
-          *ngFor="let motivo of motivosRechazo" 
-          [ngValue]="motivo"
-        >
+        <option *ngFor="let motivo of motivosRechazo" [ngValue]="motivo">
           {{ idiomaEmailRechazo === 'en' ? motivo.titulo_en : motivo.titulo_es }}
         </option>
       </select>
@@ -473,11 +446,7 @@
       <button class="btn-cancelar" (click)="cerrarModalRechazar()">
         Cancelar
       </button>
-      <button 
-        class="btn-confirmar danger" 
-        (click)="confirmarRechazo()"
-        [disabled]="!motivoSeleccionado"
-      >
+      <button class="btn-confirmar danger" (click)="confirmarRechazo()" [disabled]="!motivoSeleccionado">
         Confirmar Rechazo
       </button>
     </div>

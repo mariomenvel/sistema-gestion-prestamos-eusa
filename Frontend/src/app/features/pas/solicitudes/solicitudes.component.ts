@@ -45,6 +45,7 @@ export class SolicitudesComponent implements OnInit {
   solicitudSeleccionada: Solicitud | null = null;
 
   // Datos del modal aprobar
+  aprobandoSolicitud:boolean = false;
   fechaDevolucion: string = '';
   idiomaEmailAprobacion: string = 'es'; // 'es' o 'en'
 
@@ -152,6 +153,11 @@ export class SolicitudesComponent implements OnInit {
   }
 
   confirmarAprobacion(): void {
+    //  PROTECCIÓN CONTRA DOBLE CLIC
+    if (this.aprobandoSolicitud) {
+      return;
+    }
+
     if (!this.solicitudSeleccionada) {
       return;
     }
@@ -210,8 +216,12 @@ export class SolicitudesComponent implements OnInit {
 
     console.log('📤 Enviando aprobación:', datosAprobacion);
 
+    // ACTIVAR PROTECCIÓN
+    this.aprobandoSolicitud = true;
+
     this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
       next: () => {
+        this.aprobandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
         console.log('✅ Solicitud aprobada');
         this.mostrarNotificacion(
           'exito',
@@ -224,6 +234,7 @@ export class SolicitudesComponent implements OnInit {
         }, 500);
       },
       error: (err: any) => {
+        this.aprobandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
         console.error('❌ Error al aprobar solicitud:', err);
         let mensajeError = 'Error al aprobar la solicitud';
         if (err.error && err.error.mensaje) {
