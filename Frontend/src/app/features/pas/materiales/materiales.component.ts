@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MaterialesService } from '../../../core/services/materiales.service';
 import { Libro } from '../../../core/models/libro.model';
 import { Equipo } from '../../../core/models/equipo.model';
+import { environment } from '../../../../environments/environment';
 
 /**
  * Componente Gestión de Materiales (PAS)
@@ -520,6 +521,8 @@ export class MaterialesComponent implements OnInit {
       reader.onload = (e: any) => {
         if (this.equipoEnEdicion) {
           this.equipoEnEdicion.foto_url = e.target.result;
+        } else if (this.libroEnEdicion) {
+          this.libroEnEdicion.foto_url = e.target.result;
         }
       };
       reader.readAsDataURL(archivo);
@@ -621,13 +624,40 @@ export class MaterialesComponent implements OnInit {
     this.materialesService.actualizarLibro(this.libroEnEdicion.id, datosActualizados).subscribe({
       next: (libroActualizado: any) => {
         console.log('✅ Libro actualizado:', libroActualizado);
-        this.actualizarLibroEnLista(libroActualizado);
-        alert('Libro actualizado correctamente');
-        this.cancelarEdicionLibro();
+
+        // Si hay una imagen nueva, subirla
+        if (this.archivoImagenTemporal) {
+          this.subirImagenLibro(libroActualizado.id, this.archivoImagenTemporal);
+        } else {
+          this.actualizarLibroEnLista(libroActualizado);
+          alert('Libro actualizado correctamente');
+          this.cancelarEdicionLibro();
+        }
       },
       error: (err: any) => {
         console.error('❌ Error al actualizar libro:', err);
         alert('Error al actualizar el libro');
+      }
+    });
+  }
+
+  /**
+   * Subir imagen del libro
+   */
+  private subirImagenLibro(libroId: number, archivo: File): void {
+    if (!archivo) return;
+
+    this.materialesService.subirImagenLibro(libroId, archivo).subscribe({
+      next: (libroActualizado: any) => {
+        console.log('✅ Portada subida:', libroActualizado);
+        this.actualizarLibroEnLista(libroActualizado);
+        alert('Libro y portada actualizados correctamente');
+        this.cancelarEdicionLibro();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al subir portada:', err);
+        alert('Libro actualizado, pero hubo un error al subir la portada');
+        this.cancelarEdicionLibro();
       }
     });
   }
@@ -881,5 +911,14 @@ export class MaterialesComponent implements OnInit {
     }
 
     this.materialesFiltrados = filtrados;
+  }
+
+  /**
+   * Obtiene la URL completa de la imagen
+   */
+  getImageUrl(url?: string): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith('data:')) return url;
+    return `${environment.apiUrl}${url}`;
   }
 }

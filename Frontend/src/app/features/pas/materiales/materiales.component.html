@@ -184,7 +184,8 @@
               <div class="table-row row-equipos" [class.expanded]="isFilaExpandida(m.id)">
                 <!-- Foto -->
                 <div class="td td-foto">
-                  <img *ngIf="$any(m).foto_url" [src]="$any(m).foto_url" alt="Foto material" class="thumb-material">
+                  <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Foto material"
+                    class="thumb-material">
                   <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📷</div>
                 </div>
 
@@ -247,7 +248,7 @@
                       <label class="edicion-label">Imagen del equipo</label>
 
                       <div class="imagen-upload">
-                        <img *ngIf="equipoEnEdicion!.foto_url" [src]="equipoEnEdicion!.foto_url"
+                        <img *ngIf="equipoEnEdicion!.foto_url" [src]="getImageUrl(equipoEnEdicion!.foto_url)"
                           [alt]="equipoEnEdicion!.marca + ' ' + equipoEnEdicion!.modelo">
                         <div *ngIf="!equipoEnEdicion!.foto_url" class="imagen-placeholder">
                           📷
@@ -317,7 +318,8 @@
                 <!-- MODO VISTA (normal) -->
                 <div class="equipo-detalle" *ngIf="!isEquipoEnEdicion($any(m))">
                   <div class="equipo-imagen">
-                    <img *ngIf="$any(m).foto_url" [src]="$any(m).foto_url" [alt]="$any(m).marca + ' ' + $any(m).modelo">
+                    <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)"
+                      [alt]="$any(m).marca + ' ' + $any(m).modelo">
                     <div *ngIf="!$any(m).foto_url" class="imagen-placeholder">
                     </div>
                   </div>
@@ -399,7 +401,9 @@
               <div class="table-row row-libros" [class.expanded]="isFilaExpandida(m.id)">
                 <!-- Foto (Placeholder o similar) -->
                 <div class="td td-foto">
-                  <div class="thumb-placeholder">📚</div>
+                  <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Portada"
+                    class="thumb-material">
+                  <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📚</div>
                 </div>
 
                 <!-- Categoría -->

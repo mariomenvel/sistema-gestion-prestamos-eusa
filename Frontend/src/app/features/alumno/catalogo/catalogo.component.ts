@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MaterialesService } from '../../../core/services/materiales.service';
-import { Libro } from '../../../core/models/libro.model';
-import { Equipo } from '../../../core/models/equipo.model';
-import { Categoria } from '../../../core/models/categoria.model';
+import { Libro, Equipo, Categoria } from '../../../core/models';
+import { environment } from '../../../../environments/environment';
 
 /**
  * Interface unificada para mostrar materiales (libros o equipos)
@@ -236,13 +235,13 @@ export class CatalogoComponent implements OnInit {
         marcaModelo: `${libro.autor || 'Autor desconocido'} - ${libro.editorial || 'Editorial desconocida'}`,
         descripcion: `Libro número: ${libro.libro_numero}`,
         disponible: tieneDisponibles,
-        imagenUrl: undefined
+        imagenUrl: this.getImageUrl(libro.foto_url)
       });
     });
 
     // Procesar equipos
     this.equipos.forEach(equipo => {
-      const tieneDisponibles = equipo.unidades?.some(u => u.estado === 'disponible') || false;
+      const tieneDisponibles = equipo.unidades?.some(u => u.esta_prestado === false && u.estado_fisico === 'funciona') || false;
 
       this.materiales.push({
         id: equipo.id,
@@ -252,7 +251,7 @@ export class CatalogoComponent implements OnInit {
         marcaModelo: `${equipo.marca} - ${equipo.modelo}`,
         descripcion: equipo.descripcion || 'Equipo disponible para préstamo',
         disponible: tieneDisponibles,
-        imagenUrl: equipo.foto_url
+        imagenUrl: this.getImageUrl(equipo.foto_url)
       });
     });
 
@@ -277,8 +276,6 @@ export class CatalogoComponent implements OnInit {
     // Filtro por categorías
     if (this.categoriasSeleccionadas.length > 0) {
       resultado = resultado.filter(m => {
-        // En este componente, categoríasSeleccionadas parece guardar el código o el nombre.
-        // Vamos a verificar contra el nombre de la categoría asignado al material de vista.
         return this.categoriasSeleccionadas.some(catNombre => catNombre === m.categoria);
       });
     }
@@ -296,5 +293,14 @@ export class CatalogoComponent implements OnInit {
 
     this.materialesFiltrados = resultado;
     console.log('🔍 Materiales filtrados:', this.materialesFiltrados.length);
+  }
+
+  /**
+   * Obtiene la URL completa de la imagen
+   */
+  getImageUrl(url?: string): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith('data:')) return url; // Para previsualizaciones
+    return `${environment.apiUrl}${url}`;
   }
 }

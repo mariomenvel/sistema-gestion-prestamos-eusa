@@ -35,12 +35,23 @@ export class MaterialesService {
   eliminarLibro(id: number): Observable<any> {
     return this.apiService.delete(`/libros/${id}`);
   }
-  /**
- * Actualizar un libro (título, autor, editorial, categoría)
- */
   actualizarLibro(id: number, datos: Partial<Libro>): Observable<Libro> {
     return this.apiService.put<Libro>(`/libros/${id}`, datos);
   }
+
+  /**
+   * Subir imagen de portada de un libro
+   */
+  subirImagenLibro(id: number, archivo: File): Observable<Libro> {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    return this.apiService.post<Libro>(`/libros/${id}/imagen`, formData, headers);
+  }
+
   aniadirLibro(libro: Libro): Observable<Libro> {
     return this.apiService.post<Libro>('/libros', libro);
   }

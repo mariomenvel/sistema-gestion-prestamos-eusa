@@ -353,14 +353,39 @@ export class AniadirMaterialComponent implements OnInit {
     console.log('📤 Guardando libro:', datosLibro);
 
     this.materialesService.crearLibro(datosLibro).subscribe({
-      next: () => {
-        console.log('✅ Libro creado');
-        this.finalizar();
+      next: (libro: any) => {
+        console.log('✅ Libro creado:', libro);
+
+        // Si hay una imagen, subirla después
+        if (this.archivoImagen) {
+          this.subirImagenLibro(libro.id);
+        } else {
+          this.finalizar();
+        }
       },
       error: (err: any) => {
         console.error('❌ Error al crear libro:', err);
         this.error = 'Error al crear el libro';
         this.enviando = false;
+      }
+    });
+  }
+
+  /**
+   * Sube la imagen del libro recién creado
+   */
+  private subirImagenLibro(libroId: number): void {
+    if (!this.archivoImagen) return;
+
+    this.materialesService.subirImagenLibro(libroId, this.archivoImagen).subscribe({
+      next: () => {
+        console.log('✅ Portada subida');
+        this.finalizar();
+      },
+      error: (err) => {
+        console.error('❌ Error al subir portada:', err);
+        // Aun así finalizamos para que el material aparezca
+        this.finalizar();
       }
     });
   }

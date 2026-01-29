@@ -27,6 +27,14 @@ router.post(
   uploadLibro.single('foto'),
   librosController.crearLibro
 );
+router.post(
+  '/:id/imagen',
+  auth,
+  roles.soloPAS,
+  uploadLibro.single('foto'),
+  librosController.subirImagenLibro
+);
+
 router.put('/:id', auth, roles.soloPAS, librosController.actualizarLibro);
 router.delete('/:id', auth, roles.soloPAS, librosController.eliminarLibro);
 

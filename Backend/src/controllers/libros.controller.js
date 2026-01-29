@@ -228,9 +228,9 @@ function buscarPorCodigoBarras(req, res) {
  */
 function buscarLibrosDisponibles(req, res) {
   var query = req.query.q || '';
-  
+
   var whereClause = {};
-  
+
   if (query) {
     whereClause = {
       [Sequelize.Op.or]: [
@@ -239,7 +239,7 @@ function buscarLibrosDisponibles(req, res) {
       ]
     };
   }
-  
+
   models.Libro.findAll({
     where: whereClause,
     include: [{
@@ -250,25 +250,25 @@ function buscarLibrosDisponibles(req, res) {
     }],
     limit: 20
   })
-  .then(function(libros) {
-    // Filtrar solo los que tienen ejemplares disponibles
-    var librosConDisponibles = libros.filter(function(libro) {
-      return libro.ejemplares && libro.ejemplares.length > 0;
-    }).map(function(libro) {
-      return {
-        id: libro.id,
-        titulo: libro.titulo,
-        autor: libro.autor,
-        disponibles: libro.ejemplares.length
-      };
+    .then(function (libros) {
+      // Filtrar solo los que tienen ejemplares disponibles
+      var librosConDisponibles = libros.filter(function (libro) {
+        return libro.ejemplares && libro.ejemplares.length > 0;
+      }).map(function (libro) {
+        return {
+          id: libro.id,
+          titulo: libro.titulo,
+          autor: libro.autor,
+          disponibles: libro.ejemplares.length
+        };
+      });
+
+      res.json(librosConDisponibles);
+    })
+    .catch(function (error) {
+      console.error('Error buscando libros disponibles:', error);
+      res.status(500).json({ mensaje: 'Error al buscar libros' });
     });
-    
-    res.json(librosConDisponibles);
-  })
-  .catch(function(error) {
-    console.error('Error buscando libros disponibles:', error);
-    res.status(500).json({ mensaje: 'Error al buscar libros' });
-  });
 }
 /**
  * GET /libros/ejemplar/:codigo
@@ -276,7 +276,7 @@ function buscarLibrosDisponibles(req, res) {
  */
 function buscarEjemplarPorCodigo(req, res) {
   var codigo = req.params.codigo;
-  
+
   models.Ejemplar.findOne({
     where: { codigo_barra: codigo },
     include: [{
@@ -284,28 +284,83 @@ function buscarEjemplarPorCodigo(req, res) {
       as: 'libro'
     }]
   })
-  .then(function(ejemplar) {
-    if (!ejemplar) {
-      return res.status(404).json({ mensaje: 'Ejemplar no encontrado' });
-    }
-    
-    res.json({
-      tipo: 'ejemplar',
-      id: ejemplar.id,
-      codigo_barra: ejemplar.codigo_barra,
-      estado: ejemplar.estado,
-      disponible: ejemplar.estado === 'disponible',
-      libro: {
-        id: ejemplar.libro ? ejemplar.libro.id : null,
-        titulo: ejemplar.libro ? ejemplar.libro.titulo : 'Sin título',
-        autor: ejemplar.libro ? ejemplar.libro.autor : 'Sin autor'
+    .then(function (ejemplar) {
+      if (!ejemplar) {
+        return res.status(404).json({ mensaje: 'Ejemplar no encontrado' });
       }
+
+      res.json({
+        tipo: 'ejemplar',
+        id: ejemplar.id,
+        codigo_barra: ejemplar.codigo_barra,
+        estado: ejemplar.estado,
+        disponible: ejemplar.estado === 'disponible',
+        libro: {
+          id: ejemplar.libro ? ejemplar.libro.id : null,
+          titulo: ejemplar.libro ? ejemplar.libro.titulo : 'Sin título',
+          autor: ejemplar.libro ? ejemplar.libro.autor : 'Sin autor'
+        }
+      });
+    })
+    .catch(function (error) {
+      console.error('Error buscando ejemplar:', error);
+      res.status(500).json({ mensaje: 'Error al buscar ejemplar' });
     });
-  })
-  .catch(function(error) {
-    console.error('Error buscando ejemplar:', error);
-    res.status(500).json({ mensaje: 'Error al buscar ejemplar' });
-  });
+}
+
+/**
+ * POST /libros/:id/imagen
+ * Subir imagen de portada a un libro existente
+ */
+async function subirImagenLibro(req, res) {
+  try {
+    const { id } = req.params;
+    var fs = require('fs');
+    var path = require('path');
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se proporcionó ninguna imagen' });
+    }
+
+    const libro = await models.Libro.findByPk(id);
+    if (!libro) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Libro no encontrado' });
+    }
+
+    // Eliminar imagen anterior si existe
+    if (libro.foto_url) {
+      const oldImagePath = path.join(__dirname, '../../', libro.foto_url);
+      if (fs.existsSync(oldImagePath)) {
+        try {
+          fs.unlinkSync(oldImagePath);
+        } catch (err) {
+          console.error('Error al eliminar imagen anterior:', err);
+        }
+      }
+    }
+
+    const foto_url = `/uploads/libros/${req.file.filename}`;
+    libro.foto_url = foto_url;
+    await libro.save();
+
+    const libroCompleto = await models.Libro.findByPk(id, {
+      include: [
+        { model: models.Genero, as: 'genero' },
+        { model: models.Ejemplar, as: 'ejemplares' }
+      ]
+    });
+
+    res.json(libroCompleto);
+  } catch (error) {
+    console.error('Error al subir imagen de libro:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) { }
+    }
+    res.status(500).json({ error: 'Error al subir la imagen' });
+  }
 }
 
 module.exports = {
@@ -316,5 +371,6 @@ module.exports = {
   eliminarLibro: eliminarLibro,
   buscarPorCodigoBarras: buscarPorCodigoBarras,
   buscarLibrosDisponibles: buscarLibrosDisponibles,
-  buscarEjemplarPorCodigo: buscarEjemplarPorCodigo
+  buscarEjemplarPorCodigo: buscarEjemplarPorCodigo,
+  subirImagenLibro: subirImagenLibro
 };
