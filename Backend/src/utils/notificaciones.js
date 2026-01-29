@@ -1,6 +1,5 @@
 var models = require('../models');
-// TODO: Descomentar cuando se configure nodemailer
-// var nodemailer = require('nodemailer');
+var nodemailer = require('nodemailer');
 
 /**
  * Crea un registro en la tabla notificaciones
@@ -30,35 +29,39 @@ function enviarEmail(destinatario, asunto, cuerpo) {
     console.log('Cuerpo:', cuerpo);
     console.log('---');
 
-    // TODO: Configurar nodemailer con credenciales SMTP
-    /*
+
+    var nodemailer = require('nodemailer');
+
     var transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        },
+        tls: {
+            rejectUnauthorized: false  // Permitir certificados autofirmados en desarrollo
+        }
     });
-    
+
     var mailOptions = {
-      from: process.env.EMAIL_FROM || 'biblioteca@eusa.es',
-      to: destinatario,
-      subject: asunto,
-      html: cuerpo
+        from: process.env.EMAIL_FROM,
+        to: destinatario,
+        subject: asunto,
+        html: cuerpo
     };
-    
-    return transporter.sendMail(mailOptions);
-    */
 
-    // Por ahora, simulamos envío exitoso (para desarrollo)
-    return Promise.resolve({
-        messageId: 'simulated-' + Date.now(),
-        accepted: [destinatario]
-    });
+    return transporter.sendMail(mailOptions)
+        .then(function (info) {
+            console.log('✅ Email enviado correctamente:', info.messageId);
+            return info;
+        })
+        .catch(function (error) {
+            console.error('❌ Error enviando email:', error);
+            throw error;
+        });
 }
-
 /**
  * Envía email de aprobación de solicitud
  * @param {Object} usuario - Datos del usuario
@@ -77,11 +80,12 @@ function enviarEmailAprobacion(usuario, prestamo, idioma) {
             var nombreMaterial = '';
             var codigoBarra = '';
 
-            if (item.Ejemplar) {
-                nombreMaterial = item.Ejemplar.libro ? item.Ejemplar.libro.titulo : 'Libro';
-                codigoBarra = item.Ejemplar.codigo_barra;
-            } else if (item.Unidad) {
-                nombreMaterial = item.Unidad.equipo ? item.Unidad.equipo.nombre : 'Equipo';
+            if (item.Unidad) {
+                if (item.Unidad.equipo) {
+                    nombreMaterial = (item.Unidad.equipo.marca + ' ' + item.Unidad.equipo.modelo).trim() || 'Equipo';
+                } else {
+                    nombreMaterial = 'Equipo';
+                }
                 codigoBarra = item.Unidad.codigo_barra;
             }
 
