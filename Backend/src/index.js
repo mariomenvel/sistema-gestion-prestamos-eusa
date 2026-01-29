@@ -15,6 +15,8 @@ var reportesRoutes = require('./routes/reportes.routes');
 var unidadesRoutes = require('./routes/unidades.routes');
 var categoriasRoutes = require('./routes/categorias.routes');
 var dashboardRoutes = require('./routes/dashboard.routes');
+var nombresRoutes = require('./routes/nombres.routes');
+var generosRoutes = require('./routes/generos.routes');
 
 
 var app = express();
@@ -37,6 +39,8 @@ app.use('/reportes', reportesRoutes);
 app.use('/unidades', unidadesRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/categorias', categoriasRoutes);
+app.use('/nombres', nombresRoutes);
+app.use('/generos', generosRoutes);
 app.use('/presencial', require('./routes/presencial.routes'));
 app.use('/motivos', require('./routes/motivos.routes'));
 app.use('/grados', require('./routes/grados.routes'));

@@ -77,7 +77,8 @@ export class MaterialesComponent implements OnInit {
   errorMessage: string = '';
 
   // ===== CATEGORÍAS =====
-  categorias: any[] = [];
+  categorias: any[] = []; // Para equipos
+  generos: any[] = [];    // Para libros (En UI se ven como categorías)
 
   // ===== MODAL AÑADIR MATERIAL =====
 
@@ -150,6 +151,29 @@ export class MaterialesComponent implements OnInit {
   }
 
   /**
+   * Cargar categorías y géneros
+   */
+  cargarCategorias(): void {
+    // Cargar categorías de equipos
+    this.materialesService.getCategorias().subscribe({
+      next: (categorias) => {
+        console.log('📦 Categorías (Equipos):', categorias);
+        this.categorias = categorias;
+      },
+      error: (err) => console.error('Error al cargar categorías:', err)
+    });
+
+    // Cargar géneros de libros
+    this.materialesService.getGeneros().subscribe({
+      next: (generos) => {
+        console.log('📚 Géneros (Libros):', generos);
+        this.generos = generos;
+      },
+      error: (err) => console.error('Error al cargar géneros:', err)
+    });
+  }
+
+  /**
    * Callback cuando se crea un material
    */
   onMaterialCreado(): void {
@@ -197,13 +221,16 @@ export class MaterialesComponent implements OnInit {
   }
 
   /**
-   * Obtiene el nombre de la categoría
+   * Obtiene el nombre legible de una categoría
    */
   getNombreCategoria(material: Libro | Equipo): string {
-    if (material.categoria) {
-      return material.categoria.nombre;
+    if ('ejemplares' in material) {
+      // Libro
+      return (material as Libro).genero?.nombre || 'Sin categoría';
+    } else {
+      // Equipo
+      return (material as Equipo).categoria?.nombre || 'Sin categoría';
     }
-    return 'Sin categoría';
   }
 
   /**
@@ -236,65 +263,16 @@ export class MaterialesComponent implements OnInit {
   }
 
   /**
-   * Obtiene las categorías únicas de los materiales actuales
-   */
-  /**
-   * Obtiene la lista de nombres genéricos únicos de los materiales cargados
+   * Obtiene todos los nombres genéricos únicos de los materiales cargados
    */
   getNombresDisponibles(): any[] {
-    const nombresMap = new Map<number, string>();
+    const nombresMap = new Map<number, any>();
     this.equipos.forEach(equipo => {
-      if (equipo.nombre_id && equipo.Nombre) {
-        nombresMap.set(Number(equipo.nombre_id), equipo.Nombre.nombre);
+      if (equipo.Nombre) {
+        nombresMap.set(Number(equipo.nombre_id), equipo.Nombre);
       }
     });
-    return Array.from(nombresMap.entries()).map(([id, nombre]) => ({ id, nombre }));
-  }
-
-  /**
-   * Obtiene las categorías disponibles basadas en los materiales cargados
-   */
-  getCategoriasDisponibles(): string[] {
-    const codigos = new Set<string>();
-    this.libros.forEach(l => { if (l.categoria_codigo) codigos.add(l.categoria_codigo); });
-    this.equipos.forEach(e => { if (e.categoria_codigo) codigos.add(e.categoria_codigo); });
-    return Array.from(codigos);
-  }
-
-  /**
-   * Carga la lista completa de categorías desde el servidor
-   */
-  private cargarCategorias(): void {
-    this.materialesService.getCategorias().subscribe({
-      next: (cats) => {
-        this.categorias = cats;
-      },
-      error: (err) => {
-        console.error('❌ Error al cargar categorías:', err);
-      }
-    });
-  }
-
-  /**
-   * Obtiene el nombre legible de una categoría por su código
-   */
-  /**
-   * Obtiene el nombre legible de una categoría por su código
-   */
-  getNombreCategoriaPorCodigo(codigo: string): string {
-    // Buscar en libros primero
-    const libro = this.libros.find(l => l.categoria_codigo === codigo);
-    if (libro && libro.categoria) {
-      return libro.categoria.nombre;
-    }
-
-    // Buscar en equipos
-    const equipo = this.equipos.find(e => e.categoria_codigo === codigo);
-    if (equipo && equipo.categoria) {
-      return equipo.categoria.nombre;
-    }
-
-    return codigo;
+    return Array.from(nombresMap.values());
   }
 
   setTipo(tipo: 'libros' | 'equipos'): void {
@@ -455,8 +433,8 @@ export class MaterialesComponent implements OnInit {
       marca: this.equipoEnEdicion.marca,
       modelo: this.equipoEnEdicion.modelo,
       descripcion: this.equipoEnEdicion.descripcion,
-      categoria_codigo: this.equipoEnEdicion.categoria_codigo,
-      nombre_id: this.equipoEnEdicion.nombre_id // Asegurar que nombre_id se incluya
+      categoria_id: this.equipoEnEdicion.categoria_id,
+      nombre_id: this.equipoEnEdicion.nombre_id
     };
 
     console.log('💾 Guardando equipo:', datosActualizados);
@@ -629,11 +607,13 @@ export class MaterialesComponent implements OnInit {
   guardarLibro(): void {
     if (!this.libroEnEdicion) return;
 
-    const datosActualizados: Partial<Libro> = {
+    const datosActualizados: any = {
       titulo: this.libroEnEdicion.titulo,
       autor: this.libroEnEdicion.autor,
       editorial: this.libroEnEdicion.editorial,
-      categoria_codigo: this.libroEnEdicion.categoria_codigo
+      libro_numero: this.libroEnEdicion.libro_numero,
+      genero_id: this.libroEnEdicion.genero_id,
+      isbn: this.libroEnEdicion.isbn
     };
 
     console.log('💾 Guardando libro:', datosActualizados);
@@ -794,11 +774,18 @@ export class MaterialesComponent implements OnInit {
       });
     }
 
-    // 3. Filtro por Categoría
+    // 3. Filtro por Categoría / Género
     if (this.filtroCategoria && this.filtroCategoria !== '') {
       filtrados = filtrados.filter(m => {
-        const catId = (m as any).categoria_id || (m as any).categoria?.id;
-        return catId?.toString() === this.filtroCategoria;
+        if ('ejemplares' in m) {
+          // Libro -> genero_id
+          const genId = (m as Libro).genero_id || (m as any).genero?.id;
+          return genId?.toString() === this.filtroCategoria;
+        } else {
+          // Equipo -> categoria_id
+          const catId = (m as Equipo).categoria_id || (m as any).categoria?.id;
+          return catId?.toString() === this.filtroCategoria;
+        }
       });
     }
 

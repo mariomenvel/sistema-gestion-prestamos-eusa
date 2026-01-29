@@ -15,17 +15,11 @@
 
       <!-- Selector de Tipo -->
       <div class="tipo-selector">
-        <button 
-          type="button" 
-          class="btn-tipo-selector" 
-          [class.activo]="tipoMaterial === 'equipo'"
+        <button type="button" class="btn-tipo-selector" [class.activo]="tipoMaterial === 'equipo'"
           (click)="cambiarTipo('equipo')">
           Equipo
         </button>
-        <button 
-          type="button" 
-          class="btn-tipo-selector" 
-          [class.activo]="tipoMaterial === 'libro'"
+        <button type="button" class="btn-tipo-selector" [class.activo]="tipoMaterial === 'libro'"
           (click)="cambiarTipo('libro')">
           Libro
         </button>
@@ -39,26 +33,35 @@
         <!-- Grid de campos principales -->
         <div class="form-grid">
 
-          <!-- Marca -->
+          <!-- Nombre Genérico -->
           <div class="form-field">
-            <label class="form-label">Marca *</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="equipoMarca" 
-              name="equipoMarca"
-              placeholder="Ej: Canon">
-          </div>
+            <div class="field-with-button">
+              <div class="field-content">
+                <label class="form-label">Nombre Genérico *</label>
+                <select class="form-select" [(ngModel)]="equipoNombreId" name="equipoNombreId">
+                  <option value="">Seleccionar nombre</option>
+                  <option *ngFor="let n of nombresEquipos" [value]="n.id">
+                    {{ n.nombre }}
+                  </option>
+                </select>
+              </div>
+              <button type="button" class="btn-nueva-categoria" (click)="toggleFormularioNombre()"
+                [title]="mostrarFormularioNombre ? 'Cancelar' : 'Añadir nuevo nombre'">
+                {{ mostrarFormularioNombre ? '✕' : '+' }}
+              </button>
+            </div>
 
-          <!-- Modelo -->
-          <div class="form-field">
-            <label class="form-label">Modelo *</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="equipoModelo" 
-              name="equipoModelo"
-              placeholder="Ej: EOS 250D">
+            <!-- Formulario nuevo nombre -->
+            <div class="nueva-categoria-form" *ngIf="mostrarFormularioNombre">
+              <h4>Nuevo Nombre Genérico</h4>
+              <div class="nueva-categoria-campos">
+                <input type="text" class="form-input" [(ngModel)]="nuevoNombreTexto" name="nuevoNombreTexto"
+                  placeholder="Ej: Cámara Reflex" style="grid-column: 1 / 3;">
+                <button type="button" class="btn-crear-categoria" (click)="crearNombre()">
+                  Crear
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Categoría -->
@@ -68,15 +71,12 @@
                 <label class="form-label">Categoría *</label>
                 <select class="form-select" [(ngModel)]="equipoCategoria" name="equipoCategoria">
                   <option value="">Seleccionar categoría</option>
-                  <option *ngFor="let cat of categoriasEquipos" [value]="cat.codigo">
+                  <option *ngFor="let cat of categoriasEquipos" [value]="cat.id">
                     {{ cat.nombre }}
                   </option>
                 </select>
               </div>
-              <button 
-                type="button" 
-                class="btn-nueva-categoria" 
-                (click)="toggleFormularioCategoria()"
+              <button type="button" class="btn-nueva-categoria" (click)="toggleFormularioCategoria()"
                 title="Añadir nueva categoría">
                 {{ mostrarFormularioCategoria ? '✕' : '+' }}
               </button>
@@ -86,37 +86,32 @@
             <div class="nueva-categoria-form" *ngIf="mostrarFormularioCategoria">
               <h4>Nueva Categoría de Equipo</h4>
               <div class="nueva-categoria-campos">
-                <input 
-                  type="text" 
-                  class="form-input" 
-                  [(ngModel)]="nuevaCategoriaCodigo" 
-                  name="nuevaCategoriaCodigo"
-                  placeholder="Código (Ej: VID)"
-                  maxlength="10">
-                <input 
-                  type="text" 
-                  class="form-input" 
-                  [(ngModel)]="nuevaCategoriaNombre" 
-                  name="nuevaCategoriaNombre"
-                  placeholder="Nombre (Ej: Vídeo)">
-                <button 
-                  type="button" 
-                  class="btn-crear-categoria" 
-                  (click)="crearCategoria()">
+                <input type="text" class="form-input" [(ngModel)]="nuevaCategoriaNombre" name="nuevaCategoriaNombre"
+                  placeholder="Nombre de la categoría (Ej: Vídeo)" style="grid-column: 1 / 3;">
+                <button type="button" class="btn-crear-categoria" (click)="crearCategoria()">
                   Crear
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- Marca -->
+          <div class="form-field">
+            <label class="form-label">Marca *</label>
+            <input type="text" class="form-input" [(ngModel)]="equipoMarca" name="equipoMarca" placeholder="Ej: Canon">
+          </div>
+
+          <!-- Modelo -->
+          <div class="form-field">
+            <label class="form-label">Modelo *</label>
+            <input type="text" class="form-input" [(ngModel)]="equipoModelo" name="equipoModelo"
+              placeholder="Ej: EOS 250D">
+          </div>
+
           <!-- Descripción -->
           <div class="form-field form-field-full">
             <label class="form-label">Descripción</label>
-            <textarea 
-              class="form-textarea" 
-              [(ngModel)]="equipoDescripcion" 
-              name="equipoDescripcion"
-              rows="3"
+            <textarea class="form-textarea" [(ngModel)]="equipoDescripcion" name="equipoDescripcion" rows="3"
               placeholder="Descripción opcional del equipo"></textarea>
           </div>
 
@@ -125,18 +120,14 @@
         <!-- Imagen -->
         <div class="form-field">
           <label class="form-label">Imagen del Equipo</label>
-          
+
           <div class="imagen-container" *ngIf="imagenPreview">
             <img [src]="imagenPreview" alt="Preview">
           </div>
 
-          <input 
-            type="file" 
-            id="inputImagenEquipo" 
-            accept="image/*" 
-            (change)="onImagenSeleccionada($event)"
+          <input type="file" id="inputImagenEquipo" accept="image/*" (change)="onImagenSeleccionada($event)"
             style="display: none;">
-          
+
           <label for="inputImagenEquipo" class="btn-seleccionar-archivo">
             📷 Seleccionar imagen
           </label>
@@ -157,54 +148,39 @@
 
           <div class="unidades-list">
             <div class="unidad-item" *ngFor="let unidad of unidades; let i = index">
-              
+
               <div class="item-numero">{{ i + 1 }}.</div>
 
               <div class="item-campos">
-                
+
                 <!-- Número de Serie -->
                 <div class="item-campo">
                   <label>N° Serie:</label>
-                  <input 
-                    type="text" 
-                    class="item-input" 
-                    [(ngModel)]="unidad.numero_serie"
-                    [name]="'unidad_serie_' + i"
+                  <input type="text" class="item-input" [(ngModel)]="unidad.numero_serie" [name]="'unidad_serie_' + i"
                     placeholder="Opcional">
                 </div>
 
                 <!-- Código de Barras -->
                 <div class="item-campo">
                   <label>Código de Barras: *</label>
-                  <input 
-                    type="text" 
-                    class="item-input" 
-                    [(ngModel)]="unidad.codigo_barra"
-                    [name]="'unidad_codigo_' + i"
+                  <input type="text" class="item-input" [(ngModel)]="unidad.codigo_barra" [name]="'unidad_codigo_' + i"
                     placeholder="Ej: EQ-CAM-001">
                 </div>
 
                 <!-- Estado -->
                 <div class="item-campo">
-                  <label>Estado:</label>
-                  <select 
-                    class="item-select" 
-                    [(ngModel)]="unidad.estado"
-                    [name]="'unidad_estado_' + i">
-                    <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
-                      {{ estado.texto }}
+                  <label>Estado Físico:</label>
+                  <select class="item-select" [(ngModel)]="unidad.estado_fisico" [name]="'unidad_estado_fisico_' + i">
+                    <option *ngFor="let est of estadosFisicosEquipos" [value]="est.valor">
+                      {{ est.texto }}
                     </option>
                   </select>
                 </div>
 
               </div>
 
-              <button 
-                type="button"
-                class="btn-eliminar-item" 
-                (click)="eliminarUnidad(i)"
-                [disabled]="unidades.length === 1"
-                title="Eliminar unidad">
+              <button type="button" class="btn-eliminar-item" (click)="eliminarUnidad(i)"
+                [disabled]="unidades.length === 1" title="Eliminar unidad">
                 🗑️
               </button>
 
@@ -226,45 +202,28 @@
           <!-- Título -->
           <div class="form-field form-field-full">
             <label class="form-label">Título *</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="libroTitulo" 
-              name="libroTitulo"
+            <input type="text" class="form-input" [(ngModel)]="libroTitulo" name="libroTitulo"
               placeholder="Ej: Habilidades de Comunicación">
           </div>
 
           <!-- Autor -->
           <div class="form-field">
             <label class="form-label">Autor</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="libroAutor" 
-              name="libroAutor"
+            <input type="text" class="form-input" [(ngModel)]="libroAutor" name="libroAutor"
               placeholder="Ej: Fernando de Manuel">
           </div>
 
           <!-- Editorial -->
           <div class="form-field">
             <label class="form-label">Editorial</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="libroEditorial" 
-              name="libroEditorial"
+            <input type="text" class="form-input" [(ngModel)]="libroEditorial" name="libroEditorial"
               placeholder="Ej: Marketing Editorial">
           </div>
 
           <!-- Número de Libro -->
           <div class="form-field">
             <label class="form-label">Número de Libro *</label>
-            <input 
-              type="text" 
-              class="form-input" 
-              [(ngModel)]="libroNumero" 
-              name="libroNumero"
-              placeholder="Ej: 00001">
+            <input type="text" class="form-input" [(ngModel)]="libroNumero" name="libroNumero" placeholder="Ej: 00001">
           </div>
 
           <!-- Categoría -->
@@ -274,15 +233,12 @@
                 <label class="form-label">Categoría *</label>
                 <select class="form-select" [(ngModel)]="libroCategoria" name="libroCategoria">
                   <option value="">Seleccionar categoría</option>
-                  <option *ngFor="let cat of categoriasLibros" [value]="cat.codigo">
+                  <option *ngFor="let cat of categoriasLibros" [value]="cat.id">
                     {{ cat.nombre }}
                   </option>
                 </select>
               </div>
-              <button 
-                type="button" 
-                class="btn-nueva-categoria" 
-                (click)="toggleFormularioCategoria()"
+              <button type="button" class="btn-nueva-categoria" (click)="toggleFormularioCategoria()"
                 title="Añadir nueva categoría">
                 {{ mostrarFormularioCategoria ? '✕' : '+' }}
               </button>
@@ -292,23 +248,9 @@
             <div class="nueva-categoria-form" *ngIf="mostrarFormularioCategoria">
               <h4>Nueva Categoría de Libro</h4>
               <div class="nueva-categoria-campos">
-                <input 
-                  type="text" 
-                  class="form-input" 
-                  [(ngModel)]="nuevaCategoriaCodigo" 
-                  name="nuevaCategoriaCodigo"
-                  placeholder="Código (Ej: MAT)"
-                  maxlength="10">
-                <input 
-                  type="text" 
-                  class="form-input" 
-                  [(ngModel)]="nuevaCategoriaNombre" 
-                  name="nuevaCategoriaNombre"
-                  placeholder="Nombre (Ej: Matemáticas)">
-                <button 
-                  type="button" 
-                  class="btn-crear-categoria" 
-                  (click)="crearCategoria()">
+                <input type="text" class="form-input" [(ngModel)]="nuevaCategoriaNombre" name="nuevaCategoriaNombre"
+                  placeholder="Nombre de la categoría (Ej: Marketing)" style="grid-column: 1 / 3;">
+                <button type="button" class="btn-crear-categoria" (click)="crearCategoria()">
                   Crear
                 </button>
               </div>
@@ -331,51 +273,36 @@
 
           <div class="ejemplares-list">
             <div class="ejemplar-item" *ngFor="let ejemplar of ejemplares; let i = index">
-              
+
               <div class="item-numero">{{ i + 1 }}.</div>
 
               <div class="item-campos">
-                
+
                 <!-- Código de Barras -->
                 <div class="item-campo">
                   <label>Código de Barras: *</label>
-                  <input 
-                    type="text" 
-                    class="item-input" 
-                    [(ngModel)]="ejemplar.codigo_barra"
-                    [name]="'ejemplar_codigo_' + i"
-                    placeholder="Ej: LIB-1-001">
+                  <input type="text" class="item-input" [(ngModel)]="ejemplar.codigo_barra"
+                    [name]="'ejemplar_codigo_' + i" placeholder="Ej: LIB-1-001">
                 </div>
 
                 <!-- Estantería -->
                 <div class="item-campo">
                   <label>Estantería:</label>
-                  <input 
-                    type="text" 
-                    class="item-input" 
-                    [(ngModel)]="ejemplar.estanteria"
-                    [name]="'ejemplar_estanteria_' + i"
-                    placeholder="Ej: 014">
+                  <input type="text" class="item-input" [(ngModel)]="ejemplar.estanteria"
+                    [name]="'ejemplar_estanteria_' + i" placeholder="Ej: 014">
                 </div>
 
                 <!-- Balda -->
                 <div class="item-campo">
                   <label>Balda:</label>
-                  <input 
-                    type="text" 
-                    class="item-input" 
-                    [(ngModel)]="ejemplar.balda"
-                    [name]="'ejemplar_balda_' + i"
+                  <input type="text" class="item-input" [(ngModel)]="ejemplar.balda" [name]="'ejemplar_balda_' + i"
                     placeholder="Ej: 6">
                 </div>
 
                 <!-- Estado -->
                 <div class="item-campo">
                   <label>Estado:</label>
-                  <select 
-                    class="item-select" 
-                    [(ngModel)]="ejemplar.estado"
-                    [name]="'ejemplar_estado_' + i">
+                  <select class="item-select" [(ngModel)]="ejemplar.estado" [name]="'ejemplar_estado_' + i">
                     <option *ngFor="let estado of estadosDisponibles" [value]="estado.valor">
                       {{ estado.texto }}
                     </option>
@@ -384,12 +311,8 @@
 
               </div>
 
-              <button 
-                type="button"
-                class="btn-eliminar-item" 
-                (click)="eliminarEjemplar(i)"
-                [disabled]="ejemplares.length === 1"
-                title="Eliminar ejemplar">
+              <button type="button" class="btn-eliminar-item" (click)="eliminarEjemplar(i)"
+                [disabled]="ejemplares.length === 1" title="Eliminar ejemplar">
                 🗑️
               </button>
 
@@ -409,17 +332,10 @@
 
     <!-- Footer con botones -->
     <div class="modal-footer">
-      <button 
-        type="button" 
-        class="btn-cancelar" 
-        (click)="cerrarModal()"
-        [disabled]="enviando">
+      <button type="button" class="btn-cancelar" (click)="cerrarModal()" [disabled]="enviando">
         Cancelar
       </button>
-      <button 
-        type="button" 
-        class="btn-guardar" 
-        (click)="guardarMaterial()"
+      <button type="button" class="btn-guardar" (click)="guardarMaterial()"
         [disabled]="!formularioValido() || enviando">
         {{ enviando ? 'Guardando...' : 'Guardar Material' }}
       </button>

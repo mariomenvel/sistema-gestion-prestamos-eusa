@@ -28,9 +28,16 @@
       <div class="filtro">
         <select class="select-filtro" [(ngModel)]="filtroCategoria" (change)="aplicarFiltros()">
           <option value="">Todas las categorías</option>
-          <option *ngFor="let cat of categorias" [value]="cat.id">
-            {{ cat.nombre }}
-          </option>
+          <ng-container *ngIf="tipoSeleccionado === 'equipos'">
+            <option *ngFor="let cat of categorias" [value]="cat.id">
+              {{ cat.nombre }}
+            </option>
+          </ng-container>
+          <ng-container *ngIf="tipoSeleccionado === 'libros'">
+            <option *ngFor="let gen of generos" [value]="gen.id">
+              {{ gen.nombre }} (Libro)
+            </option>
+          </ng-container>
         </select>
       </div>
 
@@ -183,7 +190,7 @@
 
                 <!-- Categoría -->
                 <div class="td td-categoria">
-                  {{ m.categoria?.nombre || 'Sin cat.' }}
+                  {{ getNombreCategoria(m) }}
                 </div>
 
                 <!-- Nombre -->
@@ -277,9 +284,9 @@
                       <!-- Categoría -->
                       <div class="form-field">
                         <label class="edicion-label">Categoría *</label>
-                        <select class="select-edicion" [(ngModel)]="equipoEnEdicion!.categoria_codigo">
-                          <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
-                            {{ getNombreCategoriaPorCodigo(catCodigo) }}
+                        <select class="select-edicion" [(ngModel)]="equipoEnEdicion!.categoria_id">
+                          <option *ngFor="let cat of categorias" [value]="cat.id">
+                            {{ cat.nombre }}
                           </option>
                         </select>
                       </div>
@@ -397,7 +404,7 @@
 
                 <!-- Categoría -->
                 <div class="td td-categoria">
-                  {{ m.categoria?.nombre || 'Sin cat.' }}
+                  {{ getNombreCategoria(m) }}
                 </div>
 
                 <!-- Título -->
@@ -468,10 +475,10 @@
 
                     <!-- Categoría -->
                     <div class="form-field">
-                      <label class="edicion-label">Categoría *</label>
-                      <select class="select-edicion" [(ngModel)]="libroEnEdicion!.categoria_codigo">
-                        <option *ngFor="let catCodigo of getCategoriasDisponibles()" [value]="catCodigo">
-                          {{ getNombreCategoriaPorCodigo(catCodigo) }}
+                      <label class="edicion-label">Género *</label>
+                      <select class="select-edicion" [(ngModel)]="libroEnEdicion!.genero_id">
+                        <option *ngFor="let gen of generos" [value]="gen.id">
+                          {{ gen.nombre }}
                         </option>
                       </select>
                     </div>

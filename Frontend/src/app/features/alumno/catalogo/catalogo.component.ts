@@ -48,10 +48,10 @@ export class CatalogoComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
 
-// ===== MODAL DE SOLICITUD ===== 
+  // ===== MODAL DE SOLICITUD ===== 
 
-mostrarModalSolicitud: boolean = false;
-materialSeleccionado: MaterialVista | null = null;
+  mostrarModalSolicitud: boolean = false;
+  materialSeleccionado: MaterialVista | null = null;
   // ===== CONSTRUCTOR =====
 
   constructor(
@@ -103,30 +103,30 @@ materialSeleccionado: MaterialVista | null = null;
     this.aplicarFiltros();
   }
 
-/**
- * Abre el modal de solicitud
- */
-solicitarPrestamo(material: MaterialVista): void {
-  this.materialSeleccionado = material;
-  this.mostrarModalSolicitud = true;
-}
+  /**
+   * Abre el modal de solicitud
+   */
+  solicitarPrestamo(material: MaterialVista): void {
+    this.materialSeleccionado = material;
+    this.mostrarModalSolicitud = true;
+  }
 
-/**
- * Cierra el modal de solicitud
- */
-cerrarModalSolicitud(): void {
-  this.mostrarModalSolicitud = false;
-  this.materialSeleccionado = null;
-}
+  /**
+   * Cierra el modal de solicitud
+   */
+  cerrarModalSolicitud(): void {
+    this.mostrarModalSolicitud = false;
+    this.materialSeleccionado = null;
+  }
 
-/**
- * Callback cuando se crea la solicitud exitosamente
- */
-onSolicitudCreada(): void {
-  this.cerrarModalSolicitud();
-  // Opcional: Recargar datos o mostrar mensaje
-  console.log('✅ Solicitud creada exitosamente');
-}
+  /**
+   * Callback cuando se crea la solicitud exitosamente
+   */
+  onSolicitudCreada(): void {
+    this.cerrarModalSolicitud();
+    // Opcional: Recargar datos o mostrar mensaje
+    console.log('✅ Solicitud creada exitosamente');
+  }
 
   /**
    * Obtiene las categorías según el filtro de tipo
@@ -187,18 +187,24 @@ onSolicitudCreada(): void {
   private extraerCategorias(): void {
     const categoriasMap = new Map<string, Categoria>();
 
-    // Extraer de libros
+    // Extraer de libros (Géneros)
     this.libros.forEach(libro => {
-       const categoria = (libro as any).categorias || libro.categoria;  // ← CAMBIO
-    if (categoria && !categoriasMap.has(categoria.codigo)) {
-      categoriasMap.set(categoria.codigo, categoria);
-    }
-  });
+      const genero = libro.genero;
+      if (genero && !categoriasMap.has(genero.nombre)) {
+        // Mapeamos el género a una Categoria para que la vista lo trate igual
+        categoriasMap.set(genero.nombre, {
+          id: genero.id,
+          nombre: genero.nombre,
+          tipo: 'libro',
+          activa: true
+        } as Categoria);
+      }
+    });
 
-    // Extraer de equipos
+    // Extraer de equipos (Categorías)
     this.equipos.forEach(equipo => {
-      if (equipo.categoria && !categoriasMap.has(equipo.categoria.codigo)) {
-        categoriasMap.set(equipo.categoria.codigo, equipo.categoria);
+      if (equipo.categoria && !categoriasMap.has(equipo.categoria.nombre)) {
+        categoriasMap.set(equipo.categoria.nombre, equipo.categoria);
       }
     });
 
@@ -220,13 +226,13 @@ onSolicitudCreada(): void {
     // Procesar libros
     this.libros.forEach(libro => {
       const tieneDisponibles = libro.ejemplares?.some(ej => ej.estado === 'disponible') || false;
-    const categoria = (libro as any).categorias || libro.categoria;  // ← CAMBIO
+      const nombreGenero = libro.genero?.nombre || 'Sin categoría';
 
       this.materiales.push({
         id: libro.id,
         tipo: 'libro',
         titulo: libro.titulo,
-        categoria: categoria?.nombre || 'Sin categoría',
+        categoria: nombreGenero,
         marcaModelo: `${libro.autor || 'Autor desconocido'} - ${libro.editorial || 'Editorial desconocida'}`,
         descripcion: `Libro número: ${libro.libro_numero}`,
         disponible: tieneDisponibles,
@@ -271,8 +277,9 @@ onSolicitudCreada(): void {
     // Filtro por categorías
     if (this.categoriasSeleccionadas.length > 0) {
       resultado = resultado.filter(m => {
-        const categoria = this.categorias.find(c => c.nombre === m.categoria);
-        return categoria && this.categoriasSeleccionadas.includes(categoria.codigo);
+        // En este componente, categoríasSeleccionadas parece guardar el código o el nombre.
+        // Vamos a verificar contra el nombre de la categoría asignado al material de vista.
+        return this.categoriasSeleccionadas.some(catNombre => catNombre === m.categoria);
       });
     }
 

@@ -52,37 +52,52 @@ function obtenerEquipoPorId(req, res) {
 }
 
 
-function crearEquipo(req, res) {
-  var categoriaId = req.body.categoria_id;
-  var marca = req.body.marca;
-  var modelo = req.body.modelo;
-  var descripcion = req.body.descripcion || null;
-  var fotoUrl = null;
+async function crearEquipo(req, res) {
+  try {
+    var categoriaId = req.body.categoria_id;
+    var nombreId = req.body.nombre_id;
+    var marca = req.body.marca;
+    var modelo = req.body.modelo;
+    var descripcion = req.body.descripcion || null;
+    var fotoUrl = null;
 
-  if (req.file) {
-    fotoUrl = '/uploads/equipos/' + req.file.filename;
-  }
+    if (req.file) {
+      fotoUrl = '/uploads/equipos/' + req.file.filename;
+    }
 
-  if (!categoriaId || !marca || !modelo) {
-    return res.status(400).json({
-      mensaje: 'categoria_id, marca y modelo son obligatorios'
+    if (!categoriaId || !marca || !modelo || !nombreId) {
+      return res.status(400).json({
+        mensaje: 'categoria_id, marca, modelo y nombre_id son obligatorios'
+      });
+    }
+
+    const equipo = await models.Equipo.create({
+      categoria_id: categoriaId,
+      nombre_id: nombreId,
+      marca: marca,
+      modelo: modelo,
+      descripcion: descripcion,
+      foto_url: fotoUrl
     });
-  }
 
-  models.Equipo.create({
-    categoria_id: categoriaId,
-    marca: marca,
-    modelo: modelo,
-    descripcion: descripcion,
-    foto_url: fotoUrl
-  })
-    .then(function (equipo) {
-      res.status(201).json(equipo);
-    })
-    .catch(function (error) {
-      console.error('Error al crear equipo:', error);
-      res.status(500).json({ mensaje: 'Error al crear el equipo' });
-    });
+    // Si vienen unidades, crearlas (opcional en la creación)
+    if (req.body.unidades && Array.isArray(req.body.unidades)) {
+      for (const u of req.body.unidades) {
+        await models.Unidad.create({
+          equipo_id: equipo.id,
+          numero_serie: u.numero_serie,
+          codigo_barra: u.codigo_barra,
+          estado_fisico: u.estado_fisico || 'funciona',
+          esta_prestado: false
+        });
+      }
+    }
+
+    res.status(201).json(equipo);
+  } catch (error) {
+    console.error('Error al crear equipo:', error);
+    res.status(500).json({ mensaje: 'Error al crear el equipo' });
+  }
 }
 
 
@@ -97,6 +112,7 @@ function actualizarEquipo(req, res) {
 
       return equipo.update({
         categoria_id: req.body.categoria_id ?? equipo.categoria_id,
+        nombre_id: req.body.nombre_id ?? equipo.nombre_id,
         marca: req.body.marca ?? equipo.marca,
         modelo: req.body.modelo ?? equipo.modelo,
         descripcion: req.body.descripcion ?? equipo.descripcion,
@@ -171,7 +187,7 @@ async function subirImagenEquipo(req, res) {
     const equipoCompleto = await models.Equipo.findByPk(id, {
       include: [
         { model: models.Categoria, as: 'categoria', attributes: ['id', 'nombre', 'activa'] },
-        { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado'] },
+        { model: models.Unidad, as: 'unidades', attributes: ['id', 'numero_serie', 'codigo_barra', 'estado_fisico', 'esta_prestado'] },
         { model: models.Nombre }
       ]
     });
@@ -296,7 +312,7 @@ function buscarEquiposDisponibles(req, res) {
  */
 function buscarUnidadPorCodigo(req, res) {
   var codigo = req.params.codigo;
-  
+
   models.Unidad.findOne({
     where: { codigo_barra: codigo },
     include: [{
@@ -304,33 +320,33 @@ function buscarUnidadPorCodigo(req, res) {
       as: 'equipo'
     }]
   })
-  .then(function(unidad) {
-    if (!unidad) {
-      return res.status(404).json({ mensaje: 'Unidad no encontrada' });
-    }
-    
-    var disponible = !unidad.esta_prestado && 
-      (unidad.estado_fisico === 'funciona' || unidad.estado_fisico === 'obsoleto' || !unidad.estado_fisico);
-    
-    res.json({
-      tipo: 'unidad',
-      id: unidad.id,
-      codigo_barra: unidad.codigo_barra,
-      estado_fisico: unidad.estado_fisico,
-      esta_prestado: unidad.esta_prestado,
-      disponible: disponible,
-      equipo: {
-        id: unidad.equipo ? unidad.equipo.id : null,
-        marca: unidad.equipo ? unidad.equipo.marca : '',
-        modelo: unidad.equipo ? unidad.equipo.modelo : '',
-        nombre: unidad.equipo ? (unidad.equipo.marca + ' ' + unidad.equipo.modelo) : 'Sin datos'
+    .then(function (unidad) {
+      if (!unidad) {
+        return res.status(404).json({ mensaje: 'Unidad no encontrada' });
       }
+
+      var disponible = !unidad.esta_prestado &&
+        (unidad.estado_fisico === 'funciona' || unidad.estado_fisico === 'obsoleto' || !unidad.estado_fisico);
+
+      res.json({
+        tipo: 'unidad',
+        id: unidad.id,
+        codigo_barra: unidad.codigo_barra,
+        estado_fisico: unidad.estado_fisico,
+        esta_prestado: unidad.esta_prestado,
+        disponible: disponible,
+        equipo: {
+          id: unidad.equipo ? unidad.equipo.id : null,
+          marca: unidad.equipo ? unidad.equipo.marca : '',
+          modelo: unidad.equipo ? unidad.equipo.modelo : '',
+          nombre: unidad.equipo ? (unidad.equipo.marca + ' ' + unidad.equipo.modelo) : 'Sin datos'
+        }
+      });
+    })
+    .catch(function (error) {
+      console.error('Error buscando unidad:', error);
+      res.status(500).json({ mensaje: 'Error al buscar unidad' });
     });
-  })
-  .catch(function(error) {
-    console.error('Error buscando unidad:', error);
-    res.status(500).json({ mensaje: 'Error al buscar unidad' });
-  });
 }
 
 module.exports = {
@@ -342,5 +358,5 @@ module.exports = {
   subirImagenEquipo: subirImagenEquipo,
   buscarPorCodigoBarras: buscarPorCodigoBarras,
   buscarEquiposDisponibles: buscarEquiposDisponibles,
-  buscarUnidadPorCodigo: buscarUnidadPorCodigo 
+  buscarUnidadPorCodigo: buscarUnidadPorCodigo
 };

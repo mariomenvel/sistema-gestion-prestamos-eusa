@@ -78,18 +78,18 @@ export class MaterialesService {
   /**
  * Subir imagen de un equipo
  */
-subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
-  const formData = new FormData();
-  formData.append('foto', archivo);
-  
-  // Obtener token del localStorage
-  const token = localStorage.getItem('token');
-  
-  // Crear headers con el token
-  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-  
-  return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData, headers);
-}
+  subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+
+    // Obtener token del localStorage
+    const token = localStorage.getItem('token');
+
+    // Crear headers con el token
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    return this.apiService.post<Equipo>(`/equipos/${id}/imagen`, formData, headers);
+  }
   aniadirEquipo(equipo: Equipo): Observable<Equipo> {
     return this.apiService.post<Equipo>('/equipos', equipo);
   }
@@ -126,18 +126,40 @@ subirImagenEquipo(id: number, archivo: File): Observable<Equipo> {
     return this.apiService.post<Libro>('/libros', datos);
   }
 
-  /**
-   * Crear una nueva categoría
-   */
+  // ===== CATEGORÍAS (Para Equipos) =====
+
+  getCategorias(): Observable<any[]> {
+    return this.apiService.get<any[]>('/categorias');
+  }
+
   crearCategoria(datos: any): Observable<any> {
     return this.apiService.post<any>('/categorias', datos);
   }
 
+  // ===== GÉNEROS (Para Libros) =====
+
+  getGeneros(): Observable<any[]> {
+    return this.apiService.get<any[]>('/generos');
+  }
+
+  crearGenero(datos: any): Observable<any> {
+    return this.apiService.post<any>('/generos', datos);
+  }
+
+  // ===== NOMBRES GENÉRICOS =====
+
   /**
-   * Obtener todas las categorías
+   * Obtener todos los nombres genéricos
    */
-  getCategorias(): Observable<any[]> {
-    return this.apiService.get<any[]>('/categorias');
+  getNombres(): Observable<any[]> {
+    return this.apiService.get<any[]>('/nombres');
+  }
+
+  /**
+   * Crear un nuevo nombre genérico
+   */
+  crearNombre(datos: any): Observable<any> {
+    return this.apiService.post<any>('/nombres', datos);
   }
   /**
  * Eliminar un ejemplar específico

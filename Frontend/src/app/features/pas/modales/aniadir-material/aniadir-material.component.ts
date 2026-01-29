@@ -16,7 +16,7 @@ export class AniadirMaterialComponent implements OnInit {
   @Output() materialCreado = new EventEmitter<void>();
 
   // ===== TIPO DE MATERIAL =====
-  
+
   tipoMaterial: 'libro' | 'equipo' = 'equipo';
 
   // ===== FORMULARIO EQUIPO =====
@@ -25,8 +25,9 @@ export class AniadirMaterialComponent implements OnInit {
   equipoMarca: string = '';
   equipoModelo: string = '';
   equipoCategoria: string = '';
+  equipoNombreId: number | '' = '';
   equipoDescripcion: string = '';
-  
+
   // Archivo de imagen
   archivoImagen: File | null = null;
   imagenPreview: string | null = null;
@@ -35,7 +36,8 @@ export class AniadirMaterialComponent implements OnInit {
   unidades: Array<{
     numero_serie: string;
     codigo_barra: string;
-    estado: string;
+    estado_fisico: string;
+    esta_prestado: boolean;
   }> = [];
 
   // ===== FORMULARIO LIBRO =====
@@ -57,8 +59,9 @@ export class AniadirMaterialComponent implements OnInit {
 
   // ===== CATEGORÍAS Y ESTADOS =====
 
-  categoriasLibros: Array<{ codigo: string; nombre: string }> = [];
-  categoriasEquipos: Array<{ codigo: string; nombre: string }> = [];
+  categoriasLibros: Array<{ id: number; nombre: string }> = [];
+  categoriasEquipos: Array<{ id: number; nombre: string }> = [];
+  nombresEquipos: Array<{ id: number; nombre: string }> = [];
 
   estadosDisponibles = [
     { valor: 'disponible', texto: 'Disponible' },
@@ -67,11 +70,25 @@ export class AniadirMaterialComponent implements OnInit {
     { valor: 'en_reparacion', texto: 'En reparación' }
   ];
 
+  estadosFisicosEquipos = [
+    { valor: 'funciona', texto: 'Funcional' },
+    { valor: 'en_reparacion', texto: 'En reparación' },
+    { valor: 'no_funciona', texto: 'No funciona' },
+    { valor: 'falla', texto: 'Con fallos' },
+    { valor: 'perdido_sustraido', texto: 'Perdido' },
+    { valor: 'obsoleto', texto: 'Obsoleto' }
+  ];
+
   // ===== NUEVA CATEGORÍA =====
 
   mostrarFormularioCategoria: boolean = false;
   nuevaCategoriaCodigo: string = '';
   nuevaCategoriaNombre: string = '';
+
+  // ===== NUEVO NOMBRE =====
+
+  mostrarFormularioNombre: boolean = false;
+  nuevoNombreTexto: string = '';
 
   // ===== ESTADO =====
 
@@ -86,39 +103,43 @@ export class AniadirMaterialComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarCategorias();
+    this.cargarNombres();
     this.agregarUnidadInicial();
   }
 
   // ===== MÉTODOS PÚBLICOS =====
 
-  /**
-   * Cargar categorías desde el backend
-   */
   cargarCategorias(): void {
+    // Cargar categorías de equipos
     this.materialesService.getCategorias().subscribe({
       next: (categorias: any[]) => {
-        console.log('📚 Categorías recibidas:', categorias);
-        
-        // Filtrar por tipo y solo activas
-        this.categoriasLibros = categorias
-          .filter(c => c.tipo === 'libro' && c.activa)
-          .map(c => ({ codigo: c.codigo, nombre: c.nombre }));
-        
-        this.categoriasEquipos = categorias
-          .filter(c => c.tipo === 'equipo' && c.activa)
-          .map(c => ({ codigo: c.codigo, nombre: c.nombre }));
+        console.log('📦 Categorías recibidas:', categorias);
+        this.categoriasEquipos = categorias.map(c => ({ id: c.id, nombre: c.nombre }));
+      },
+      error: (err: any) => console.error('Error al cargar categorías:', err)
+    });
+
+    // Cargar géneros de libros
+    this.materialesService.getGeneros().subscribe({
+      next: (generos: any[]) => {
+        console.log('📚 Géneros recibidos:', generos);
+        this.categoriasLibros = generos.map(g => ({ id: g.id, nombre: g.nombre }));
+      },
+      error: (err: any) => console.error('Error al cargar géneros:', err)
+    });
+  }
+
+  /**
+   * Cargar nombres genéricos desde el backend
+   */
+  cargarNombres(): void {
+    this.materialesService.getNombres().subscribe({
+      next: (nombres: any[]) => {
+        console.log('📦 Nombres recibidos:', nombres);
+        this.nombresEquipos = nombres.map(n => ({ id: n.id, nombre: n.nombre }));
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar categorías:', err);
-        // Fallback a datos hardcodeados
-        this.categoriasLibros = [
-          { codigo: '038', nombre: 'Marketing' },
-          { codigo: 'INF', nombre: 'Informática' }
-        ];
-        this.categoriasEquipos = [
-          { codigo: 'CAM', nombre: 'Cámaras' },
-          { codigo: 'AUD', nombre: 'Audio' }
-        ];
+        console.error('❌ Error al cargar nombres:', err);
       }
     });
   }
@@ -150,7 +171,8 @@ export class AniadirMaterialComponent implements OnInit {
     this.unidades.push({
       numero_serie: '',
       codigo_barra: '',
-      estado: 'disponible'
+      estado_fisico: 'funciona',
+      esta_prestado: false
     });
   }
 
@@ -224,6 +246,7 @@ export class AniadirMaterialComponent implements OnInit {
         this.equipoMarca.trim() &&
         this.equipoModelo.trim() &&
         this.equipoCategoria &&
+        this.equipoNombreId &&
         this.unidades.length > 0 &&
         this.unidades.every(u => u.codigo_barra.trim())
       );
@@ -264,7 +287,8 @@ export class AniadirMaterialComponent implements OnInit {
     const datosEquipo = {
       marca: this.equipoMarca,
       modelo: this.equipoModelo,
-      categoria_codigo: this.equipoCategoria,
+      categoria_id: this.equipoCategoria,
+      nombre_id: this.equipoNombreId,
       descripcion: this.equipoDescripcion,
       unidades: this.unidades
     };
@@ -274,7 +298,7 @@ export class AniadirMaterialComponent implements OnInit {
     this.materialesService.crearEquipo(datosEquipo).subscribe({
       next: (equipo: any) => {
         console.log('✅ Equipo creado:', equipo);
-        
+
         // Si hay imagen, subirla
         if (this.archivoImagen) {
           this.subirImagenEquipo(equipo.id);
@@ -322,7 +346,7 @@ export class AniadirMaterialComponent implements OnInit {
       autor: this.libroAutor,
       editorial: this.libroEditorial,
       libro_numero: this.libroNumero,
-      categoria_codigo: this.libroCategoria,
+      genero_id: this.libroCategoria,
       ejemplares: this.ejemplares
     };
 
@@ -366,6 +390,7 @@ export class AniadirMaterialComponent implements OnInit {
     this.equipoMarca = '';
     this.equipoModelo = '';
     this.equipoCategoria = '';
+    this.equipoNombreId = '';
     this.equipoDescripcion = '';
     this.unidades = [];
     this.archivoImagen = null;
@@ -397,35 +422,25 @@ export class AniadirMaterialComponent implements OnInit {
    * Crear nueva categoría
    */
   crearCategoria(): void {
-    if (!this.nuevaCategoriaCodigo.trim() || !this.nuevaCategoriaNombre.trim()) {
-      alert('Por favor completa el código y nombre de la categoría');
+    if (!this.nuevaCategoriaNombre.trim()) {
+      alert('Por favor introduce el nombre de la categoría');
       return;
     }
 
-    const tipoCategoria = this.tipoMaterial === 'libro' ? 'libro' : 'equipo';
+    if (this.tipoMaterial === 'libro') {
+      this.crearGenero();
+      return;
+    }
 
     const nuevaCategoria = {
-      codigo: this.nuevaCategoriaCodigo.toUpperCase(),
       nombre: this.nuevaCategoriaNombre,
-      tipo: tipoCategoria,
       activa: true
     };
 
-    console.log('📤 Creando categoría:', nuevaCategoria);
-
     this.materialesService.crearCategoria(nuevaCategoria).subscribe({
       next: (categoria: any) => {
-        console.log('✅ Categoría creada:', categoria);
-        
-        // Añadir a la lista correspondiente
-        if (tipoCategoria === 'libro') {
-          this.categoriasLibros.push({ codigo: categoria.codigo, nombre: categoria.nombre });
-          this.libroCategoria = categoria.codigo;
-        } else {
-          this.categoriasEquipos.push({ codigo: categoria.codigo, nombre: categoria.nombre });
-          this.equipoCategoria = categoria.codigo;
-        }
-        
+        this.categoriasEquipos.push({ id: categoria.id, nombre: categoria.nombre });
+        this.equipoCategoria = categoria.id;
         this.limpiarFormularioCategoria();
         this.mostrarFormularioCategoria = false;
         alert('Categoría creada correctamente');
@@ -433,6 +448,71 @@ export class AniadirMaterialComponent implements OnInit {
       error: (err: any) => {
         console.error('❌ Error al crear categoría:', err);
         alert('Error al crear la categoría');
+      }
+    });
+  }
+
+  /**
+   * Crear nuevo género (para libros)
+   */
+  crearGenero(): void {
+    const nuevoGenero = {
+      nombre: this.nuevaCategoriaNombre,
+      activo: true
+    };
+
+    this.materialesService.crearGenero(nuevoGenero).subscribe({
+      next: (genero: any) => {
+        this.categoriasLibros.push({ id: genero.id, nombre: genero.nombre });
+        this.libroCategoria = genero.id;
+        this.limpiarFormularioCategoria();
+        this.mostrarFormularioCategoria = false;
+        alert('Género creado correctamente');
+      },
+      error: (err: any) => {
+        console.error('❌ Error al crear género:', err);
+        alert('Error al crear el género');
+      }
+    });
+  }
+
+  /**
+   * Mostrar formulario para crear nombre
+   */
+  toggleFormularioNombre(): void {
+    this.mostrarFormularioNombre = !this.mostrarFormularioNombre;
+    if (!this.mostrarFormularioNombre) {
+      this.nuevoNombreTexto = '';
+    }
+  }
+
+  /**
+   * Crear nuevo nombre genérico
+   */
+  crearNombre(): void {
+    if (!this.nuevoNombreTexto.trim()) {
+      alert('Por favor introduce el nombre');
+      return;
+    }
+
+    const nuevoNombre = {
+      nombre: this.nuevoNombreTexto
+    };
+
+    console.log('📤 Creando nombre:', nuevoNombre);
+
+    this.materialesService.crearNombre(nuevoNombre).subscribe({
+      next: (nombre: any) => {
+        console.log('✅ Nombre creado:', nombre);
+        this.nombresEquipos.push({ id: nombre.id, nombre: nombre.nombre });
+        this.equipoNombreId = nombre.id;
+        this.nuevoNombreTexto = '';
+        this.mostrarFormularioNombre = false;
+        alert('Nombre genérico creado correctamente');
+      },
+      error: (err: any) => {
+        console.error('❌ Error al crear nombre:', err);
+        alert('Error al crear el nombre genérico');
       }
     });
   }
