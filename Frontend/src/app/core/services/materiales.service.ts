@@ -134,6 +134,20 @@ export class MaterialesService {
     return this.apiService.post<Libro>('/libros', datos);
   }
 
+  /**
+   * Añadir una nueva unidad a un equipo
+   */
+  aniadirUnidad(equipoId: number): Observable<Unidad> {
+    return this.apiService.post<Unidad>('/unidades', { equipo_id: equipoId });
+  }
+
+  /**
+   * Añadir un nuevo ejemplar a un libro
+   */
+  aniadirEjemplar(libroId: number): Observable<Ejemplar> {
+    return this.apiService.post<Ejemplar>('/ejemplares', { libro_id: libroId });
+  }
+
   // ===== CATEGORÍAS (Para Equipos) =====
 
   getCategorias(): Observable<any[]> {

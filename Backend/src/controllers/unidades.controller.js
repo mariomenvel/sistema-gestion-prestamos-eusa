@@ -61,13 +61,16 @@ function actualizarUnidad(req, res) {
 function eliminarUnidad(req, res) {
   var unidadId = req.params.id;
 
-  models.Prestamo.count({
-    where: { unidad_id: unidadId }
+  models.PrestamoItem.count({
+    where: {
+      unidad_id: unidadId,
+      devuelto: false
+    }
   })
-    .then(function (numPrestamos) {
-      if (numPrestamos > 0) {
+    .then(function (numPrestamosActivos) {
+      if (numPrestamosActivos > 0) {
         return res.status(400).json({
-          mensaje: 'No se puede eliminar una unidad con préstamos asociados'
+          mensaje: 'No se puede eliminar una unidad que está actualmente prestada'
         });
       }
 

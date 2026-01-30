@@ -6,15 +6,16 @@
 
     <!-- Header -->
     <div class="modal-header">
-      <h2 class="modal-title">Añadir Nuevo Material</h2>
+      <h2 class="modal-title">{{ mode === 'edit' ? 'Editar' : 'Añadir' }} {{ tipoMaterial === 'libro' ? 'Libro' :
+        'Equipo' }}</h2>
       <button class="btn-close" (click)="cerrarModal()" type="button">✕</button>
     </div>
 
     <!-- Body -->
     <div class="modal-body">
 
-      <!-- Selector de Tipo -->
-      <div class="tipo-selector">
+      <!-- Selector de Tipo (Solo en creación) -->
+      <div class="tipo-selector" *ngIf="mode === 'add'">
         <button type="button" class="btn-tipo-selector" [class.activo]="tipoMaterial === 'equipo'"
           (click)="cambiarTipo('equipo')">
           Equipo
@@ -137,8 +138,8 @@
         <!-- Separador -->
         <hr class="separador">
 
-        <!-- Unidades -->
-        <div class="unidades-section">
+        <!-- Unidades (Solo en creación) -->
+        <div class="unidades-section" *ngIf="mode === 'add'">
           <div class="section-header">
             <h3 class="section-title">Unidades del Equipo *</h3>
             <button type="button" class="btn-agregar-item" (click)="agregarUnidad()">
@@ -279,8 +280,8 @@
         <!-- Separador -->
         <hr class="separador">
 
-        <!-- Ejemplares -->
-        <div class="ejemplares-section">
+        <!-- Ejemplares (Solo en creación) -->
+        <div class="ejemplares-section" *ngIf="mode === 'add'">
           <div class="section-header">
             <h3 class="section-title">Ejemplares del Libro *</h3>
             <button type="button" class="btn-agregar-item" (click)="agregarEjemplar()">
@@ -354,7 +355,8 @@
       </button>
       <button type="button" class="btn-guardar" (click)="guardarMaterial()"
         [disabled]="!formularioValido() || enviando">
-        {{ enviando ? 'Guardando...' : 'Guardar Material' }}
+        {{ enviando ? (mode === 'edit' ? 'Actualizando...' : 'Guardando...') : (mode === 'edit' ? 'Guardar Cambios' :
+        'Guardar Material') }}
       </button>
     </div>
 

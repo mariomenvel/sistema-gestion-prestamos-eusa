@@ -7,12 +7,15 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 export class ModalComponent {
   @Input() mostrar: boolean = false;
-  @Input() tipo: 'exito' | 'error' | 'info' = 'info'; // exito, error, info
+  @Input() tipo: 'exito' | 'error' | 'info' | 'confirmacion' = 'info'; // exito, error, info, confirmacion
   @Input() titulo: string = '';
   @Input() mensaje: string = '';
   @Input() textoBtnPrincipal: string = 'Aceptar';
+  @Input() textoBtnSecundario: string = 'Cancelar';
+  @Input() esConfirmacion: boolean = false;
 
   @Output() cerrar = new EventEmitter<void>();
+  @Output() confirmar = new EventEmitter<void>();
 
   /**
    * Obtiene el ícono según el tipo de modal
@@ -23,10 +26,11 @@ export class ModalComponent {
         return '✓';
       case 'error':
         return '✕';
+      case 'confirmacion':
+        return '❓';
       case 'info':
-        return 'ℹ';
       default:
-        return '';
+        return 'ℹ';
     }
   }
 
@@ -35,5 +39,12 @@ export class ModalComponent {
    */
   cerrarModal(): void {
     this.cerrar.emit();
+  }
+
+  /**
+   * Confirma la acción
+   */
+  confirmarAccion(): void {
+    this.confirmar.emit();
   }
 }

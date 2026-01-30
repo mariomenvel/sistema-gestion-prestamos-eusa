@@ -1,7 +1,3 @@
-// ========================================
-// VARIABLES
-// ========================================
-
 $color-primary-blue: #0066CC;
 $color-info-blue-light: #E3F2FD;
 $color-success-green: #4CAF50;
@@ -10,7 +6,6 @@ $color-success-green-dark: #2E7D32;
 $color-danger-red: #F44336;
 $color-danger-red-light: #FFEBEE;
 $color-danger-red-dark: #C62828;
-
 $color-white: #FFFFFF;
 $color-bg-gray: #EEEEEE;
 $color-bg-light: #F5F5F5;
@@ -18,24 +13,14 @@ $color-border: #E0E0E0;
 $color-text-primary: #212121;
 $color-text-secondary: #6C757D;
 $color-text-disabled: #9E9E9E;
-
 $font-family: 'Inter', sans-serif;
-
-// ========================================
-// CONTENEDOR PRINCIPAL
-// ========================================
 
 .materiales {
   width: 100%;
   max-width: 1152px;
   margin: 0 auto;
-  padding-top: 24px;
-  padding-bottom: 40px;
+  padding: 24px 0 40px;
 }
-
-// ========================================
-// HEADER (Título + Botón Añadir)
-// ========================================
 
 .header {
   display: flex;
@@ -56,20 +41,16 @@ $font-family: 'Inter', sans-serif;
 .btn-anadir {
   width: 156px;
   height: 44px;
-
   background: $color-primary-blue;
   border: none;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 600;
   font-size: 16px;
   line-height: 19px;
   color: $color-white;
-
   cursor: pointer;
   transition: all 0.3s ease;
-
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
 
   &:hover {
@@ -82,10 +63,6 @@ $font-family: 'Inter', sans-serif;
     transform: translateY(0);
   }
 }
-
-// ========================================
-// FILTROS
-// ========================================
 
 .filtros-container {
   display: flex;
@@ -150,7 +127,7 @@ $font-family: 'Inter', sans-serif;
 
   &:focus {
     outline: none;
-    border-color: $color-primary-blue;
+    border-color: $color-primary-blue
   }
 }
 
@@ -172,10 +149,6 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// ========================================
-// BOTONES TIPO (Libros/Equipos)
-// ========================================
-
 .tipo-toggle {
   display: flex;
   gap: 0;
@@ -187,19 +160,15 @@ $font-family: 'Inter', sans-serif;
 
 .btn-tipo {
   padding: 0 24px;
-
   background: $color-white;
   border: none;
   border-right: 2px solid $color-primary-blue;
-
   font-family: $font-family;
   font-weight: 600;
   font-size: 14px;
   color: $color-primary-blue;
-
   cursor: pointer;
   transition: all 0.2s ease;
-
   display: flex;
   align-items: center;
   gap: 8px;
@@ -230,11 +199,9 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 44px;
   padding: 0 16px;
-
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 400;
   font-size: 16px;
@@ -260,18 +227,15 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 44px;
   padding: 0 16px;
-
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-
   cursor: pointer;
 
   &:focus {
@@ -280,32 +244,22 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// ========================================
-// TABLA
-// ========================================
-
 .table-container {
   background: $color-white;
   border: 2px solid $color-border;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-
   overflow: hidden;
   max-height: 600px;
 }
 
-// Header de la tabla
 .table-header {
   display: grid;
-  // Estos valores serán sobreescritos por .header-equipos o .header-libros
   grid-template-columns: 1fr;
   gap: 16px;
-
   background: $color-primary-blue;
   border-bottom: 2px solid darken($color-primary-blue, 10%);
-
   padding: 16px 24px;
-
   position: sticky;
   top: 0;
   z-index: 10;
@@ -319,7 +273,6 @@ $font-family: 'Inter', sans-serif;
   letter-spacing: -0.03em;
   color: $color-white;
 
-  // Centrar columnas específicas
   &.th-centrado {
     text-align: center;
   }
@@ -344,15 +297,13 @@ $font-family: 'Inter', sans-serif;
 
 .sort-icon {
   font-size: 10px;
-  color: rgba($color-white, 0.8);
+  color: rgba($color-white, 0.8)
 }
 
-// Body de la tabla
 .table-body {
   max-height: 552px;
   overflow-y: auto;
 
-  // Scrollbar personalizada
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -372,27 +323,22 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// Configuración de columnas para Equipos (9 columnas ahora)
 .header-equipos,
 .row-equipos {
-  grid-template-columns: 80px 1fr 1.2fr 1.2fr 1.2fr 1.5fr 60px 60px 110px !important;
+  grid-template-columns: 80px 1fr 1.2fr 1.2fr 1.2fr 1.5fr 60px 60px 140px !important;
 }
 
-// Configuración de columnas para Libros (8 columnas ahora)
 .header-libros,
 .row-libros {
-  grid-template-columns: 80px 1fr 2fr 1.2fr 1.2fr 60px 60px 110px !important;
+  grid-template-columns: 80px 1fr 2fr 1.2fr 1.2fr 60px 60px 140px !important;
 }
 
-// Fila de la tabla
 .table-row {
   display: grid;
   gap: 16px;
   align-items: center;
-
   padding: 12px 24px;
   border-bottom: 1px solid rgba($color-border, 0.5);
-
   transition: background 0.2s ease;
 
   &:hover {
@@ -413,10 +359,8 @@ $font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 13px;
   color: $color-text-primary;
-
   overflow: hidden;
   text-overflow: ellipsis;
-  // white-space: nowrap; // Quitamos esto para que la descripción pueda romper si es necesario
 
   &.td-foto {
     display: flex;
@@ -434,7 +378,6 @@ $font-family: 'Inter', sans-serif;
     }
   }
 
-  // Centrar columnas de conteo
   &.td-count-disp,
   &.td-count-total {
     display: flex;
@@ -477,31 +420,26 @@ $font-family: 'Inter', sans-serif;
 }
 
 .td-acciones {
+  grid-column: span 1;
   display: flex;
   gap: 8px;
   align-items: center;
+  justify-content: flex-end;
+  width: 100%;
 }
-
-// ========================================
-// BOTONES DE ACCIÓN
-// ========================================
 
 .btn-numero-unidades {
   width: 40px;
   height: 40px;
-
   background: $color-info-blue-light;
   border: 2px solid $color-primary-blue;
   border-radius: 50%;
-
   font-family: $font-family;
   font-weight: 700;
   font-size: 16px;
   color: $color-primary-blue;
-
   cursor: pointer;
   transition: all 0.2s ease;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -517,33 +455,82 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-.btn-editar {
-  background: none;
+.btn-accion-icono {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
-
-  font-size: 16px;
-  color: $color-primary-blue;
-
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+  i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    z-index: 2;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
   &:hover {
-    transform: scale(1.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+    i {
+      transform: scale(1.15);
+    }
+
+    &::after {
+      opacity: 0.15;
+    }
   }
 
   &:active {
-    transform: scale(1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  &.btn-ver {
+    background: linear-gradient(135deg, $color-primary-blue, #4a90e2);
+    color: white;
+
+    &.activo {
+      background: linear-gradient(135deg, #1e293b, #334155);
+    }
+  }
+
+  &.btn-editar-row {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+  }
+
+  &.btn-eliminar-row {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    color: white;
   }
 }
 
 .btn-eliminar {
   background: none;
   border: none;
-
   font-size: 18px;
   line-height: 22px;
   color: $color-danger-red;
-
   cursor: pointer;
   transition: transform 0.2s ease;
 
@@ -556,21 +543,14 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// ========================================
-// BADGES DE ESTADO
-// ========================================
-
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   min-width: 100px;
   height: 28px;
   padding: 0 12px;
-
   border-radius: 14px;
-
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
@@ -586,7 +566,7 @@ $font-family: 'Inter', sans-serif;
 .badge-no-disponible {
   background: $color-danger-red-light;
   border: 1px solid $color-danger-red;
-  color: $color-danger-red-dark;
+  color: $color-danger-red-dark
 }
 
 .badge-bloqueado {
@@ -623,20 +603,15 @@ $font-family: 'Inter', sans-serif;
 .badge-no-disponible {
   background: $color-danger-red-light;
   border: 1px solid $color-danger-red;
-  color: $color-danger-red-dark;
+  color: $color-danger-red-dark
 }
 
-// ========================================
 // SUBTABLA SIMPLE (sin encabezados)
-// ========================================
-
 .subtable-container-simple {
-  background: $color-bg-light;
+  background: #f8fafc;
   border-top: 2px solid $color-primary-blue;
   border-bottom: 2px solid $color-border;
-
-  padding: 20px 24px;
-
+  padding: 12px 24px;
   animation: slideDown 0.3s ease;
 }
 
@@ -656,18 +631,13 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// ========================================
 // DETALLE DEL EQUIPO (con imagen)
-// ========================================
-
 .equipo-detalle {
   display: flex;
   gap: 24px;
-
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 8px;
-
   padding: 20px;
   margin-bottom: 20px;
 }
@@ -690,31 +660,25 @@ $font-family: 'Inter', sans-serif;
 .imagen-placeholder {
   width: 150px;
   height: 150px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: $color-bg-light;
   border: 2px dashed $color-border;
   border-radius: 8px;
-
   font-size: 48px;
   opacity: 0.5;
 }
 
 .btn-cambiar-imagen {
   padding: 8px 16px;
-
   background: $color-white;
   border: 2px solid $color-primary-blue;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
   color: $color-primary-blue;
-
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -749,36 +713,64 @@ $font-family: 'Inter', sans-serif;
 .subtable-divider {
   height: 2px;
   background: $color-border;
-  margin: 16px 0;
+  margin: 24px 0
 }
 
-// ========================================
-// LISTA SIMPLE DE UNIDADES
-// ========================================
+.unidades-seccion {
+  background: $color-white;
+  border-radius: 8px;
+  border: 1px solid $color-border;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 
-.unidades-list {
+.seccion-header {
+  background: #f8f9fa;
+  padding: 12px 20px;
+  border-bottom: 1px solid $color-border;
+}
+
+.seccion-titulo {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 16px;
+  color: $color-text-primary;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  i {
+    color: $color-primary-blue;
+    font-size: 14px;
+  }
+}
+
+.unidades-list,
+.ejemplares-list {
   display: flex;
   flex-direction: column;
+  background: white;
   gap: 12px;
 }
 
-.unidad-row {
+.unidad-row,
+.ejemplar-row {
   display: grid;
-  grid-template-columns: 40px 1.2fr 1.2fr 1fr 1fr 1fr 40px;
-  gap: 16px;
+  grid-template-columns: 32px 1fr 1fr 1fr 1.2fr 40px;
+  gap: 12px;
   align-items: center;
-
-  background: $color-white;
-  border: 1px solid $color-border;
-  border-radius: 6px;
-
-  padding: 12px 16px;
-
+  padding: 8px 16px;
+  border-bottom: 1px solid #f1f5f9;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: $color-primary-blue;
-    box-shadow: 0 2px 8px rgba($color-primary-blue, 0.15);
+    background: #f8fafc;
+    box-shadow: inset 4px 0 0 $color-primary-blue;
+  }
+
+  &:last-child {
+    border-bottom: none;
   }
 }
 
@@ -809,15 +801,12 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 34px;
   padding: 0 10px;
-
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-size: 13px;
   color: $color-text-primary;
-
   transition: all 0.2s ease;
 
   &::placeholder {
@@ -840,16 +829,13 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 34px;
   padding: 0 8px;
-
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 600;
   font-size: 12px;
   color: $color-text-primary;
-
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -896,10 +882,8 @@ $font-family: 'Inter', sans-serif;
 .btn-eliminar-unidad {
   background: none;
   border: none;
-
   font-size: 18px;
   color: $color-danger-red;
-
   cursor: pointer;
   transition: transform 0.2s ease;
 
@@ -916,10 +900,8 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-
   min-height: 80px;
   padding: 20px;
-
   background: $color-white;
   border: 2px dashed $color-border;
   border-radius: 6px;
@@ -933,15 +915,10 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// ========================================
-// ESTADOS (Loading, Error, Empty)
-// ========================================
-
 .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-
   min-height: 400px;
   padding: 40px;
 
@@ -957,10 +934,6 @@ $font-family: 'Inter', sans-serif;
     color: $color-danger-red-dark;
   }
 }
-
-// ========================================
-// MODO EDICIÓN DE EQUIPO
-// ========================================
 
 .equipo-edicion {
   background: $color-white;
@@ -985,7 +958,7 @@ $font-family: 'Inter', sans-serif;
   margin-bottom: 24px;
 }
 
-// Sección de imagen
+
 .edicion-imagen-seccion {
   display: flex;
   flex-direction: column;
@@ -1007,16 +980,13 @@ $font-family: 'Inter', sans-serif;
 
 .btn-seleccionar-imagen {
   padding: 10px 16px;
-
   background: $color-white;
   border: 2px solid $color-primary-blue;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 500;
   font-size: 13px;
   color: $color-primary-blue;
-
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -1032,7 +1002,7 @@ $font-family: 'Inter', sans-serif;
   margin: 0;
 }
 
-// Sección de formulario
+
 .edicion-form-seccion {
   display: flex;
   flex-direction: column;
@@ -1056,15 +1026,12 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 40px;
   padding: 0 12px;
-
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-size: 14px;
   color: $color-text-primary;
-
   transition: all 0.2s ease;
 
   &:hover {
@@ -1082,15 +1049,12 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 40px;
   padding: 0 12px;
-
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-size: 14px;
   color: $color-text-primary;
-
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -1108,15 +1072,12 @@ $font-family: 'Inter', sans-serif;
 .textarea-edicion {
   width: 100%;
   padding: 10px 12px;
-
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-
   font-family: $font-family;
   font-size: 14px;
   color: $color-text-primary;
-
   resize: vertical;
   transition: all 0.2s ease;
 
@@ -1131,7 +1092,7 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// Botones de edición
+
 .edicion-botones {
   display: flex;
   justify-content: flex-end;
@@ -1142,16 +1103,13 @@ $font-family: 'Inter', sans-serif;
 
 .btn-cancelar-edicion {
   padding: 10px 24px;
-
   background: $color-white;
   border: 2px solid $color-text-disabled;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 600;
   font-size: 14px;
   color: $color-text-secondary;
-
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -1163,19 +1121,15 @@ $font-family: 'Inter', sans-serif;
 
 .btn-guardar-edicion {
   padding: 10px 24px;
-
   background: $color-primary-blue;
   border: none;
   border-radius: 4px;
-
   font-family: $font-family;
   font-weight: 600;
   font-size: 14px;
   color: $color-white;
-
   cursor: pointer;
   transition: all 0.2s ease;
-
   box-shadow: 0px 2px 8px rgba($color-primary-blue, 0.3);
 
   &:hover {
@@ -1189,42 +1143,29 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// Deshabilitar inputs mientras está en edición
 input:disabled,
 select:disabled,
 button:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: not-allowed
 }
-
-// ========================================
-// AJUSTES PARA TABLA DE LIBROS
-// ========================================
 
 .table-row-libro {
-  grid-template-columns: 0.8fr 2.5fr 1.5fr 1.2fr 1fr 0.8fr 1fr;
+  grid-template-columns: 0.8fr 2.5fr 1.5fr 1.2fr 1fr 0.8fr 1fr
 }
-
-// ========================================
-// BOTÓN NÚMERO DE EJEMPLARES
-// ========================================
 
 .btn-numero-ejemplares {
   width: 40px;
   height: 40px;
-
   background: $color-info-blue-light;
   border: 2px solid $color-primary-blue;
   border-radius: 50%;
-
   font-family: $font-family;
   font-weight: 700;
   font-size: 16px;
   color: $color-primary-blue;
-
   cursor: pointer;
   transition: all 0.2s ease;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1239,10 +1180,6 @@ button:disabled {
     transform: scale(0.95);
   }
 }
-
-// ========================================
-// EDICIÓN DE LIBRO
-// ========================================
 
 .libro-edicion {
   background: $color-white;
@@ -1259,9 +1196,6 @@ button:disabled {
   margin-bottom: 24px;
 }
 
-// ========================================
-// DETALLE DEL LIBRO
-// ========================================
 
 .libro-detalle {
   background: $color-white;
@@ -1292,28 +1226,15 @@ button:disabled {
   }
 }
 
-// ========================================
-// LISTA DE EJEMPLARES
-// ========================================
-
-.ejemplares-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .ejemplar-row {
   display: grid;
   grid-template-columns: 40px 1.5fr 1fr 1fr 1.2fr 40px;
   gap: 16px;
   align-items: center;
-
   background: $color-white;
   border: 1px solid $color-border;
   border-radius: 6px;
-
   padding: 12px 16px;
-
   transition: all 0.2s ease;
 
   &:hover {
@@ -1329,29 +1250,31 @@ button:disabled {
   color: $color-text-secondary;
 }
 
-.ejemplar-campo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-block;
 
-  label {
-    font-family: $font-family;
-    font-weight: 500;
-    font-size: 11px;
-    line-height: 13px;
-    letter-spacing: -0.03em;
-    color: $color-text-secondary;
-    text-transform: uppercase;
+  &.prestado-si {
+    background: rgba($color-danger-red, 0.1);
+    color: $color-danger-red;
+  }
+
+  &.prestado-no {
+    background: rgba($color-success-green, 0.1);
+    color: $color-success-green-dark;
   }
 }
 
 .btn-eliminar-ejemplar {
   background: none;
   border: none;
-
   font-size: 18px;
   color: $color-danger-red;
-
   cursor: pointer;
   transition: transform 0.2s ease;
 
@@ -1364,44 +1287,231 @@ button:disabled {
   }
 }
 
-.sin-ejemplares {
+.material-detail-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba($color-primary-blue, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.detail-grid {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.detail-image-wrapper {
+  width: 140px;
+  height: 180px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  background: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  min-height: 80px;
-  padding: 20px;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-  background: $color-white;
-  border: 2px dashed $color-border;
-  border-radius: 6px;
-
-  p {
-    font-family: $font-family;
-    font-size: 13px;
-    color: $color-text-disabled;
-    text-align: center;
-    margin: 0;
+  .premium-detail-placeholder {
+    font-size: 32px;
+    color: #cbd5e0;
   }
 }
 
-// ========================================
-// RESPONSIVE
-// ========================================
+.detail-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-@media (max-width: 1200px) {
+.detail-header-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba($color-primary-blue, 0.08);
+  color: $color-primary-blue;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+}
+
+.detail-badges-wrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.detail-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4a5568;
+  margin: 0;
+
+  &.empty {
+    font-style: italic;
+    color: #a0aec0;
+  }
+}
+
+.book-authors-editor {
+  display: flex;
+  gap: 24px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #4a5568;
+
+    strong {
+      color: #1a202c;
+    }
+  }
+}
+
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.meta-value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+
+  &.strong {
+    color: $color-primary-blue;
+    font-weight: 700;
+  }
+}
+
+.aniadir-unidad-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: rgba($color-primary-blue, 0.01);
+  border-radius: 0 0 8px 8px;
+  border-top: 1px dashed rgba($color-primary-blue, 0.1);
+}
+
+.btn-aniadir-simple {
+  background: linear-gradient(135deg, $color-primary-blue, #6366f1);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba($color-primary-blue, 0.3);
+
+  i {
+    font-size: 18px;
+  }
+
+  &:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 25px rgba($color-primary-blue, 0.4);
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: #cbd5e0;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-eliminar-unidad,
+.btn-eliminar-ejemplar {
+  width: 32px;
+  height: 32px;
+  background: rgba($color-danger-red, 0.05);
+  color: $color-danger-red;
+  border: 1px solid rgba($color-danger-red, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+
+  &:hover {
+    background: $color-danger-red;
+    color: white;
+    transform: scale(1.1);
+  }
+}
+
+@media(max-width:1200px) {
   .filtros {
-    flex-wrap: wrap;
+    flex-wrap: wrap
   }
 
   .table-header,
   .table-row {
-    grid-template-columns: 0.8fr 1.8fr 1fr 1fr 1fr 0.6fr 0.8fr;
+    grid-template-columns: 0.8fr 1.8fr 1fr 1fr 1fr 0.6fr 0.8fr
   }
 
   .unidad-row {
     grid-template-columns: 30px 1fr 1fr 1fr 30px;
-    gap: 12px;
+    gap: 12px
   }
 }
 

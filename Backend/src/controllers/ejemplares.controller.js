@@ -68,13 +68,16 @@ function actualizarEjemplar(req, res) {
 function eliminarEjemplar(req, res) {
   var ejemplarId = req.params.id;
 
-  models.Prestamo.count({
-    where: { ejemplar_id: ejemplarId }
+  models.PrestamoItem.count({
+    where: {
+      ejemplar_id: ejemplarId,
+      devuelto: false
+    }
   })
-    .then(function (numPrestamos) {
-      if (numPrestamos > 0) {
+    .then(function (numPrestamosActivos) {
+      if (numPrestamosActivos > 0) {
         return res.status(400).json({
-          mensaje: 'No se puede eliminar un ejemplar con préstamos asociados'
+          mensaje: 'No se puede eliminar un ejemplar que está actualmente prestado'
         });
       }
 

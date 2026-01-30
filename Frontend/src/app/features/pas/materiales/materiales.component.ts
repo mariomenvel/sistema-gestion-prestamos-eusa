@@ -81,9 +81,25 @@ export class MaterialesComponent implements OnInit {
   categorias: any[] = []; // Para equipos
   generos: any[] = [];    // Para libros (En UI se ven como categorías)
 
-  // ===== MODAL AÑADIR MATERIAL =====
+  // ===== MODAL AÑADIR/EDITAR MATERIAL =====
 
   modalAnadirAbierto: boolean = false;
+  modalMode: 'add' | 'edit' = 'add';
+  materialAEditar: any = null;
+
+  // ===== MODAL DE CONFIRMACIÓN/NOTIFICACIÓN (NUEVO) =====
+  modalData = {
+    mostrar: false,
+    tipo: 'info' as 'exito' | 'error' | 'info' | 'confirmacion',
+    titulo: '',
+    mensaje: '',
+    esConfirmacion: false,
+    textoBtnPrincipal: 'Aceptar',
+    accion: () => { }
+  };
+
+  // ===== CARGANDO UNIDADES/EJEMPLARES =====
+  isAniadiendoUnidad: boolean = false;
 
   // ===== CONSTRUCTOR =====
 
@@ -141,6 +157,8 @@ export class MaterialesComponent implements OnInit {
    * Abre modal para añadir material
    */
   abrirModalAnadirMaterial(): void {
+    this.modalMode = 'add';
+    this.materialAEditar = null;
     this.modalAnadirAbierto = true;
   }
 
@@ -149,6 +167,28 @@ export class MaterialesComponent implements OnInit {
    */
   cerrarModalAnadir(): void {
     this.modalAnadirAbierto = false;
+  }
+
+  /**
+   * Muestra el modal de confirmación o notificación
+   */
+  mostrarModal(config: Partial<typeof this.modalData>): void {
+    this.modalData = {
+      mostrar: true,
+      tipo: config.tipo || 'info',
+      titulo: config.titulo || '',
+      mensaje: config.mensaje || '',
+      esConfirmacion: config.tipo === 'confirmacion',
+      textoBtnPrincipal: config.textoBtnPrincipal || (config.tipo === 'confirmacion' ? 'Confirmar' : 'Aceptar'),
+      accion: config.accion || (() => { })
+    };
+  }
+
+  /**
+   * Cierra el modal de confirmación
+   */
+  cerrarModalConfirmacion(): void {
+    this.modalData.mostrar = false;
   }
 
   /**
@@ -190,35 +230,36 @@ export class MaterialesComponent implements OnInit {
       ? (material as Libro).titulo
       : `${(material as Equipo).marca} ${(material as Equipo).modelo}`;
 
-    if (!confirm(`¿Eliminar el material "${nombre}"?`)) {
-      return;
-    }
-
-    if (tipo === 'libro') {
-      this.materialesService.eliminarLibro(material.id).subscribe({
-        next: () => {
-          console.log('✅ Libro eliminado');
-          alert('Libro eliminado correctamente');
-          this.cargarMateriales();
-        },
-        error: (err: any) => {
-          console.error('❌ Error al eliminar libro:', err);
-          alert('Error al eliminar el libro');
+    this.mostrarModal({
+      tipo: 'confirmacion',
+      titulo: tipo === 'libro' ? 'Eliminar Libro' : 'Eliminar Equipo',
+      mensaje: `¿Estás seguro de que deseas eliminar permanentemente "${nombre}"? Esta acción no se puede deshacer.`,
+      accion: () => {
+        if (tipo === 'libro') {
+          this.materialesService.eliminarLibro(material.id).subscribe({
+            next: () => {
+              this.mostrarModal({ tipo: 'exito', titulo: 'Eliminado', mensaje: 'Libro eliminado correctamente' });
+              this.cargarMateriales();
+            },
+            error: (err: any) => {
+              console.error('❌ Error al eliminar libro:', err);
+              this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo eliminar el libro' });
+            }
+          });
+        } else {
+          this.materialesService.eliminarEquipo(material.id).subscribe({
+            next: () => {
+              this.mostrarModal({ tipo: 'exito', titulo: 'Eliminado', mensaje: 'Equipo eliminado correctamente' });
+              this.cargarMateriales();
+            },
+            error: (err: any) => {
+              console.error('❌ Error al eliminar equipo:', err);
+              this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo eliminar el equipo' });
+            }
+          });
         }
-      });
-    } else {
-      this.materialesService.eliminarEquipo(material.id).subscribe({
-        next: () => {
-          console.log('✅ Equipo eliminado');
-          alert('Equipo eliminado correctamente');
-          this.cargarMateriales();
-        },
-        error: (err: any) => {
-          console.error('❌ Error al eliminar equipo:', err);
-          alert('Error al eliminar el equipo');
-        }
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -395,27 +436,21 @@ export class MaterialesComponent implements OnInit {
   }
 
   /**
-   * Activar modo edición de equipo
+   * Activar modo edición de equipo (ahora usa modal)
    */
   editarEquipo(equipo: Equipo): void {
-    // Si ya hay un equipo en edición, preguntar si desea guardar
-    if (this.equipoEnEdicion && this.equipoEnEdicion.id !== equipo.id) {
-      if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
-        return;
-      }
-    }
-
-    // Activar edición y expandir fila
-    this.equipoEnEdicion = { ...equipo }; // Copia del equipo
-    this.filasExpandidas.add(equipo.id);
-    this.archivoImagenTemporal = null;
+    this.modalMode = 'edit';
+    this.materialAEditar = equipo;
+    this.modalAnadirAbierto = true;
   }
 
   /**
-   * Verifica si un equipo está en modo edición
+   * Activar modo edición de libro (ahora usa modal)
    */
-  isEquipoEnEdicion(equipo: Equipo): boolean {
-    return this.equipoEnEdicion?.id === equipo.id;
+  editarLibro(libro: Libro): void {
+    this.modalMode = 'edit';
+    this.materialAEditar = libro;
+    this.modalAnadirAbierto = true;
   }
 
   /**
@@ -450,13 +485,13 @@ export class MaterialesComponent implements OnInit {
         } else {
           // Actualizar en la lista local
           this.actualizarEquipoEnLista(equipoActualizado);
-          alert('Equipo actualizado correctamente');
+          this.mostrarModal({ tipo: 'exito', titulo: 'Guardado', mensaje: 'Equipo actualizado correctamente' });
           this.cancelarEdicion();
         }
       },
       error: (err: any) => {
         console.error('❌ Error al actualizar equipo:', err);
-        alert('Error al actualizar el equipo');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo actualizar el equipo' });
       }
     });
   }
@@ -471,12 +506,12 @@ export class MaterialesComponent implements OnInit {
       next: (equipoActualizado: any) => {
         console.log('✅ Imagen subida:', equipoActualizado);
         this.actualizarEquipoEnLista(equipoActualizado);
-        alert('Equipo e imagen actualizados correctamente');
+        this.mostrarModal({ tipo: 'exito', titulo: 'Guardado', mensaje: 'Equipo e imagen actualizados correctamente' });
         this.cancelarEdicion();
       },
       error: (err: any) => {
         console.error('❌ Error al subir imagen:', err);
-        alert('Equipo actualizado, pero hubo un error al subir la imagen');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'Equipo actualizado, pero hubo un error al subir la imagen' });
         this.cancelarEdicion();
       }
     });
@@ -504,13 +539,13 @@ export class MaterialesComponent implements OnInit {
 
       // Validar que sea una imagen
       if (!archivo.type.startsWith('image/')) {
-        alert('Por favor selecciona un archivo de imagen válido');
+        this.mostrarModal({ tipo: 'error', titulo: 'Archivo no válido', mensaje: 'Por favor selecciona un archivo de imagen válido' });
         return;
       }
 
       // Validar tamaño (máximo 5MB)
       if (archivo.size > 5 * 1024 * 1024) {
-        alert('La imagen no puede superar los 5MB');
+        this.mostrarModal({ tipo: 'error', titulo: 'Imagen muy grande', mensaje: 'La imagen no puede superar los 5MB' });
         return;
       }
 
@@ -546,7 +581,7 @@ export class MaterialesComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error al guardar unidad:', err);
-        alert('Error al guardar los cambios');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo guardar los cambios en la unidad' });
       }
     });
   }
@@ -555,40 +590,49 @@ export class MaterialesComponent implements OnInit {
    * Eliminar una unidad específica
    */
   eliminarUnidad(unidad: any): void {
-    if (!confirm(`¿Eliminar la unidad con código de barras "${unidad.codigo_barra}"?`)) {
-      return;
-    }
+    this.mostrarModal({
+      tipo: 'confirmacion',
+      titulo: 'Eliminar Unidad',
+      mensaje: `¿Estás seguro de que deseas eliminar permanentemente la unidad con código de barras "${unidad.codigo_barra}"?`,
+      accion: () => {
+        this.materialesService.eliminarUnidad(unidad.id).subscribe({
+          next: () => {
+            console.log('✅ Unidad eliminada');
+            this.cargarMateriales(); // Recargar para sincronizar conteos
+          },
+          error: (err) => {
+            console.error('❌ Error al eliminar unidad:', err);
+            this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo eliminar la unidad' });
+          }
+        });
+      }
+    });
+  }
 
-    this.materialesService.eliminarUnidad(unidad.id).subscribe({
-      next: () => {
-        console.log('✅ Unidad eliminada');
-        alert('Unidad eliminada correctamente');
-        this.cargarMateriales();
+  /**
+   * Añade una nueva unidad a un equipo
+   */
+  aniadirUnidad(equipo: Equipo): void {
+    this.isAniadiendoUnidad = true;
+    this.materialesService.aniadirUnidad(equipo.id).subscribe({
+      next: (nuevaUnidad) => {
+        console.log('✅ Unidad añadida:', nuevaUnidad);
+        if (!equipo.unidades) equipo.unidades = [];
+        equipo.unidades.push(nuevaUnidad as any);
+        this.isAniadiendoUnidad = false;
+        // No alert to be less intrusive, or maybe just a small toast if available
       },
       error: (err) => {
-        console.error('❌ Error al eliminar unidad:', err);
-        alert('Error al eliminar la unidad');
+        console.error('❌ Error al añadir unidad:', err);
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo añadir la unidad' });
+        this.isAniadiendoUnidad = false;
       }
     });
   }
 
   // ===== MÉTODOS DE LIBROS =====
 
-  /**
-   * Activar modo edición de libro
-   */
-  editarLibro(libro: Libro): void {
-    // Si ya hay un libro en edición, preguntar si desea guardar
-    if (this.libroEnEdicion && this.libroEnEdicion.id !== libro.id) {
-      if (!confirm('Tienes cambios sin guardar. ¿Deseas continuar?')) {
-        return;
-      }
-    }
-
-    // Activar edición y expandir fila
-    this.libroEnEdicion = { ...libro }; // Copia del libro
-    this.filasExpandidas.add(libro.id);
-  }
+  // MÉTODOS DE EDICIÓN DE LIBRO ELIMINADOS (Ahora se usa editarLibro con modal)
 
   /**
    * Verifica si un libro está en modo edición
@@ -630,13 +674,13 @@ export class MaterialesComponent implements OnInit {
           this.subirImagenLibro(libroActualizado.id, this.archivoImagenTemporal);
         } else {
           this.actualizarLibroEnLista(libroActualizado);
-          alert('Libro actualizado correctamente');
+          this.mostrarModal({ tipo: 'exito', titulo: 'Guardado', mensaje: 'Libro actualizado correctamente' });
           this.cancelarEdicionLibro();
         }
       },
       error: (err: any) => {
         console.error('❌ Error al actualizar libro:', err);
-        alert('Error al actualizar el libro');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo actualizar el libro' });
       }
     });
   }
@@ -651,12 +695,12 @@ export class MaterialesComponent implements OnInit {
       next: (libroActualizado: any) => {
         console.log('✅ Portada subida:', libroActualizado);
         this.actualizarLibroEnLista(libroActualizado);
-        alert('Libro y portada actualizados correctamente');
+        this.mostrarModal({ tipo: 'exito', titulo: 'Guardado', mensaje: 'Libro y portada actualizados correctamente' });
         this.cancelarEdicionLibro();
       },
       error: (err: any) => {
         console.error('❌ Error al subir portada:', err);
-        alert('Libro actualizado, pero hubo un error al subir la portada');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'Libro actualizado, pero hubo un error al subir la portada' });
         this.cancelarEdicionLibro();
       }
     });
@@ -692,7 +736,7 @@ export class MaterialesComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error al guardar ejemplar:', err);
-        alert('Error al guardar los cambios');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo guardar los cambios en el ejemplar' });
       }
     });
   }
@@ -701,19 +745,41 @@ export class MaterialesComponent implements OnInit {
    * Eliminar un ejemplar específico
    */
   eliminarEjemplar(ejemplar: any): void {
-    if (!confirm(`¿Eliminar el ejemplar con código de barras "${ejemplar.codigo_barra}"?`)) {
-      return;
-    }
+    this.mostrarModal({
+      tipo: 'confirmacion',
+      titulo: 'Eliminar Ejemplar',
+      mensaje: `¿Estás seguro de que deseas eliminar permanentemente el ejemplar con código de barras "${ejemplar.codigo_barra}"?`,
+      accion: () => {
+        this.materialesService.eliminarEjemplar(ejemplar.id).subscribe({
+          next: () => {
+            console.log('✅ Ejemplar eliminado');
+            this.cargarMateriales(); // Recargar para sincronizar conteos
+          },
+          error: (err) => {
+            console.error('❌ Error al eliminar ejemplar:', err);
+            this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo eliminar el ejemplar' });
+          }
+        });
+      }
+    });
+  }
 
-    this.materialesService.eliminarEjemplar(ejemplar.id).subscribe({
-      next: () => {
-        console.log('✅ Ejemplar eliminado');
-        alert('Ejemplar eliminado correctamente');
-        this.cargarMateriales();
+  /**
+   * Añade un nuevo ejemplar a un libro
+   */
+  aniadirEjemplar(libro: Libro): void {
+    this.isAniadiendoUnidad = true;
+    this.materialesService.aniadirEjemplar(libro.id).subscribe({
+      next: (nuevoEjemplar) => {
+        console.log('✅ Ejemplar añadido:', nuevoEjemplar);
+        if (!libro.ejemplares) libro.ejemplares = [];
+        libro.ejemplares.push(nuevoEjemplar as any);
+        this.isAniadiendoUnidad = false;
       },
       error: (err) => {
-        console.error('❌ Error al eliminar ejemplar:', err);
-        alert('Error al eliminar el ejemplar');
+        console.error('❌ Error al añadir ejemplar:', err);
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'No se pudo añadir el ejemplar' });
+        this.isAniadiendoUnidad = false;
       }
     });
   }
@@ -723,7 +789,7 @@ export class MaterialesComponent implements OnInit {
   /**
    * Carga libros y equipos desde el backend
    */
-  private cargarMateriales(): void {
+  cargarMateriales(): void {
     this.isLoading = true;
     this.errorMessage = '';
 

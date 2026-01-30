@@ -1,16 +1,9 @@
 <!-- Overlay -->
 <div class="modal-overlay" *ngIf="mostrar" (click)="cerrarModal()">
   <!-- Modal Card -->
-  <div 
-    class="modal-card"
-    [ngClass]="'modal-' + tipo"
-    (click)="$event.stopPropagation()"
-  >
+  <div class="modal-card" [ngClass]="'modal-' + tipo" (click)="$event.stopPropagation()">
     <!-- Ícono -->
-    <div 
-      class="modal-icono"
-      [ngClass]="tipo + '-icono'"
-    >
+    <div class="modal-icono" [ngClass]="tipo + '-icono'">
       {{ getIcono() }}
     </div>
 
@@ -24,13 +17,14 @@
       {{ mensaje }}
     </p>
 
-    <!-- Botón -->
-    <button 
-      class="modal-btn"
-      [ngClass]="'btn-' + tipo"
-      (click)="cerrarModal()"
-    >
-      {{ textoBtnPrincipal }}
-    </button>
+    <!-- Acciones -->
+    <div class="modal-acciones" [class.confirmacion-layout]="esConfirmacion">
+      <button *ngIf="esConfirmacion" class="modal-btn btn-cancelar" (click)="cerrarModal()">
+        {{ textoBtnSecundario }}
+      </button>
+      <button class="modal-btn" [ngClass]="'btn-' + tipo" (click)="esConfirmacion ? confirmarAccion() : cerrarModal()">
+        {{ textoBtnPrincipal }}
+      </button>
+    </div>
   </div>
 </div>

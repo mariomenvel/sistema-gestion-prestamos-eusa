@@ -1,17 +1,20 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { MaterialesService } from '../../../../core/services/materiales.service';
 
 /**
- * Modal para añadir nuevo material (Libro o Equipo)
+ * Modal para añadir o editar material (Libro o Equipo)
  */
 @Component({
   selector: 'app-aniadir-material',
   templateUrl: './aniadir-material.component.html',
   styleUrls: ['./aniadir-material.component.scss']
 })
-export class AniadirMaterialComponent implements OnInit {
+export class AniadirMaterialComponent implements OnInit, OnChanges {
 
   @Input() isOpen: boolean = false;
+  @Input() mode: 'add' | 'edit' = 'add';
+  @Input() editData: any = null;
+
   @Output() close = new EventEmitter<void>();
   @Output() materialCreado = new EventEmitter<void>();
 
@@ -105,6 +108,48 @@ export class AniadirMaterialComponent implements OnInit {
     this.cargarCategorias();
     this.cargarNombres();
     this.agregarUnidadInicial();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && this.isOpen) {
+      if (this.mode === 'edit' && this.editData) {
+        this.cargarDatosParaEdicion();
+      } else {
+        this.limpiarFormulario();
+      }
+    }
+  }
+
+  /**
+   * Carga los datos del material a editar en el formulario
+   */
+  cargarDatosParaEdicion(): void {
+    if (!this.editData) return;
+
+    // Detectar si es libro o equipo basándose en las propiedades
+    const esLibro = 'titulo' in this.editData;
+    this.tipoMaterial = esLibro ? 'libro' : 'equipo';
+
+    if (this.tipoMaterial === 'equipo') {
+      this.equipoMarca = this.editData.marca || '';
+      this.equipoModelo = this.editData.modelo || '';
+      this.equipoCategoria = this.editData.categoria_id || '';
+      this.equipoNombreId = this.editData.nombre_id || '';
+      this.equipoDescripcion = this.editData.descripcion || '';
+      this.imagenPreview = this.editData.foto_url || null;
+      // Las unidades no las cargamos en el modal de edición principal porque
+      // se gestionan desde la fila expandida de forma más eficiente.
+      this.unidades = [];
+    } else {
+      this.libroTitulo = this.editData.titulo || '';
+      this.libroAutor = this.editData.autor || '';
+      this.libroEditorial = this.editData.editorial || '';
+      this.libroNumero = this.editData.libro_numero || '';
+      this.libroCategoria = this.editData.genero_id || '';
+      this.imagenPreview = this.editData.foto_url || null;
+      // Los ejemplares se gestionan desde la fila expandida.
+      this.ejemplares = [];
+    }
   }
 
   // ===== MÉTODOS PÚBLICOS =====
@@ -242,22 +287,31 @@ export class AniadirMaterialComponent implements OnInit {
    */
   formularioValido(): boolean {
     if (this.tipoMaterial === 'equipo') {
-      return !!(
+      const infoBasicaOk = !!(
         this.equipoMarca.trim() &&
         this.equipoModelo.trim() &&
         this.equipoCategoria &&
-        this.equipoNombreId &&
-        this.unidades.length > 0 &&
-        this.unidades.every(u => u.codigo_barra.trim())
+        this.equipoNombreId
       );
+
+      // En modo edición no obligamos a tener unidades en el modal
+      if (this.mode === 'edit') return infoBasicaOk;
+
+      return infoBasicaOk &&
+        this.unidades.length > 0 &&
+        this.unidades.every(u => u.codigo_barra.trim());
     } else {
-      return !!(
+      const infoBasicaOk = !!(
         this.libroTitulo.trim() &&
         this.libroNumero.trim() &&
-        this.libroCategoria &&
-        this.ejemplares.length > 0 &&
-        this.ejemplares.every(e => e.codigo_barra.trim())
+        this.libroCategoria
       );
+
+      if (this.mode === 'edit') return infoBasicaOk;
+
+      return infoBasicaOk &&
+        this.ejemplares.length > 0 &&
+        this.ejemplares.every(e => e.codigo_barra.trim());
     }
   }
 
@@ -273,11 +327,80 @@ export class AniadirMaterialComponent implements OnInit {
     this.enviando = true;
     this.error = '';
 
-    if (this.tipoMaterial === 'equipo') {
-      this.guardarEquipo();
+    if (this.mode === 'edit') {
+      this.actualizarMaterial();
     } else {
-      this.guardarLibro();
+      if (this.tipoMaterial === 'equipo') {
+        this.guardarEquipo();
+      } else {
+        this.guardarLibro();
+      }
     }
+  }
+
+  /**
+   * Actualizar material existente
+   */
+  private actualizarMaterial(): void {
+    if (this.tipoMaterial === 'equipo') {
+      this.actualizarEquipo();
+    } else {
+      this.actualizarLibro();
+    }
+  }
+
+  private actualizarEquipo(): void {
+    const datosEquipo = {
+      marca: this.equipoMarca,
+      modelo: this.equipoModelo,
+      categoria_id: Number(this.equipoCategoria),
+      nombre_id: Number(this.equipoNombreId),
+      descripcion: this.equipoDescripcion
+    };
+
+    this.materialesService.actualizarEquipo(this.editData.id, datosEquipo as any).subscribe({
+      next: (equipo: any) => {
+        if (this.archivoImagen) {
+          this.subirImagenEquipo(equipo.id);
+        } else {
+          this.finalizarEdicion();
+        }
+      },
+      error: (err: any) => {
+        this.error = 'Error al actualizar el equipo';
+        this.enviando = false;
+      }
+    });
+  }
+
+  private actualizarLibro(): void {
+    const datosLibro = {
+      titulo: this.libroTitulo,
+      autor: this.libroAutor,
+      editorial: this.libroEditorial,
+      libro_numero: this.libroNumero,
+      genero_id: Number(this.libroCategoria)
+    };
+
+    this.materialesService.actualizarLibro(this.editData.id, datosLibro as any).subscribe({
+      next: (libro: any) => {
+        if (this.archivoImagen) {
+          this.subirImagenLibro(libro.id);
+        } else {
+          this.finalizarEdicion();
+        }
+      },
+      error: (err: any) => {
+        this.error = 'Error al actualizar el libro';
+        this.enviando = false;
+      }
+    });
+  }
+
+  private finalizarEdicion(): void {
+    alert('Material actualizado correctamente');
+    this.materialCreado.emit();
+    this.cerrarModal();
   }
 
   /**

@@ -177,200 +177,82 @@
 
       <!-- FILAS DE EQUIPOS -->
       <ng-container *ngIf="tipoSeleccionado === 'equipos'">
-        <div class="table-body">
-          <ng-container *ngFor="let m of materialesFiltrados">
+        <ng-container *ngFor="let m of materialesFiltrados">
+          <ng-container *ngIf="'unidades' in m">
             <!-- FILA DE EQUIPO -->
-            <ng-container *ngIf="'unidades' in m">
-              <div class="table-row row-equipos" [class.expanded]="isFilaExpandida(m.id)">
-                <!-- Foto -->
-                <div class="td td-foto">
-                  <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Foto material"
-                    class="thumb-material">
-                  <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📷</div>
-                </div>
-
-                <!-- Categoría -->
-                <div class="td td-categoria">
-                  {{ getNombreCategoria(m) }}
-                </div>
-
-                <!-- Nombre -->
-                <div class="td td-nombre clickable" (click)="toggleFila(m.id)">
-                  {{ $any(m).Nombre?.nombre || 'Sin nombre' }}
-                </div>
-
-                <!-- Marca -->
-                <div class="td td-marca">
-                  {{ $any(m).marca }}
-                </div>
-
-                <!-- Modelo -->
-                <div class="td td-modelo">
-                  {{ $any(m).modelo }}
-                </div>
-
-                <!-- Descripción -->
-                <div class="td td-descripcion" [title]="$any(m).descripcion">
-                  {{ $any(m).descripcion || '---' }}
-                </div>
-
-                <!-- Disponibles -->
-                <div class="td td-count-disp">
-                  <span class="count-pill disp">{{ getUnidadesDisponiblesCount($any(m)) }}</span>
-                </div>
-
-                <!-- Totales -->
-                <div class="td td-count-total">
-                  <span class="count-pill total">{{ $any(m).unidades?.length || 0 }}</span>
-                </div>
-
-                <!-- Acciones -->
-                <div class="td td-acciones">
-                  <button class="btn-editar" (click)="editarEquipo($any(m))" title="Editar equipo"></button>
-                  <button class="btn-eliminar" (click)="eliminarMaterial(m, 'equipo')" title="Eliminar equipo">
-                    🗑️
-                  </button>
-                </div>
+            <div class="table-row row-equipos" [class.expanded]="isFilaExpandida(m.id)">
+              <div class="td td-foto">
+                <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Foto material"
+                  class="thumb-material">
+                <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📷</div>
               </div>
+              <div class="td td-categoria">
+                {{ getNombreCategoria(m) }}
+              </div>
+              <div class="td td-nombre clickable" (click)="toggleFila(m.id)">
+                {{ $any(m).Nombre?.nombre || 'Sin nombre' }}
+              </div>
+              <div class="td td-marca">
+                {{ $any(m).marca }}
+              </div>
+              <div class="td td-modelo">
+                {{ $any(m).modelo }}
+              </div>
+              <div class="td td-descripcion" [title]="$any(m).descripcion">
+                {{ $any(m).descripcion || '---' }}
+              </div>
+              <div class="td td-count-disp">
+                <span class="count-pill disp">{{ getUnidadesDisponiblesCount($any(m)) }}</span>
+              </div>
+              <div class="td td-count-total">
+                <span class="count-pill total">{{ $any(m).unidades?.length || 0 }}</span>
+              </div>
+              <div class="td td-acciones">
+                <button class="btn-accion-icono btn-ver" [class.activo]="isFilaExpandida(m.id)"
+                  (click)="toggleFila(m.id)" title="Ver unidades/detalles">
+                  <i class="fas" [ngClass]="isFilaExpandida(m.id) ? 'fa-chevron-up' : 'fa-eye'"></i>
+                </button>
+                <button class="btn-accion-icono btn-editar-row" (click)="editarEquipo($any(m))" title="Editar equipo">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-accion-icono btn-eliminar-row" (click)="eliminarMaterial(m, 'equipo')"
+                  title="Eliminar equipo">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
 
-              <!-- SUBTABLA DE UNIDADES (desplegable simplificado) -->
-              <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
+            <!-- EXPANSIÓN DE EQUIPO -->
+            <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
 
-                <!-- MODO EDICIÓN -->
-                <div class="equipo-edicion" *ngIf="isEquipoEnEdicion($any(m))">
-
-                  <h3 class="edicion-titulo">Editar Equipo</h3>
-
-                  <div class="edicion-grid">
-
-                    <!-- Columna Izquierda: Imagen -->
-                    <div class="edicion-imagen-seccion">
-                      <label class="edicion-label">Imagen del equipo</label>
-
-                      <div class="imagen-upload">
-                        <img *ngIf="equipoEnEdicion!.foto_url" [src]="getImageUrl(equipoEnEdicion!.foto_url)"
-                          [alt]="equipoEnEdicion!.marca + ' ' + equipoEnEdicion!.modelo">
-                        <div *ngIf="!equipoEnEdicion!.foto_url" class="imagen-placeholder">
-                          📷
-                        </div>
-                      </div>
-
-                      <input type="file" id="inputImagen" accept="image/*"
-                        (change)="onArchivoImagenSeleccionado($event)" style="display: none;">
-
-                      <label for="inputImagen" class="btn-seleccionar-imagen">
-                        Seleccionar imagen
-                      </label>
-
-                      <p class="imagen-info">Formatos: JPG, PNG, SVG</p>
-                    </div>
-
-                    <!-- Columna Derecha: Formulario -->
-                    <div class="edicion-form-seccion">
-
-                      <!-- Marca -->
-                      <div class="form-field">
-                        <label class="edicion-label">Marca *</label>
-                        <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.marca"
-                          placeholder="Ej: Canon">
-                      </div>
-
-                      <!-- Modelo -->
-                      <div class="form-field">
-                        <label class="edicion-label">Modelo *</label>
-                        <input type="text" class="input-edicion" [(ngModel)]="equipoEnEdicion!.modelo"
-                          placeholder="Ej: EOS 250D">
-                      </div>
-
-                      <!-- Categoría -->
-                      <div class="form-field">
-                        <label class="edicion-label">Categoría *</label>
-                        <select class="select-edicion" [(ngModel)]="equipoEnEdicion!.categoria_id">
-                          <option *ngFor="let cat of categorias" [value]="cat.id">
-                            {{ cat.nombre }}
-                          </option>
-                        </select>
-                      </div>
-
-                      <!-- Descripción -->
-                      <div class="form-field">
-                        <label class="edicion-label">Descripción</label>
-                        <textarea class="textarea-edicion" [(ngModel)]="equipoEnEdicion!.descripcion"
-                          placeholder="Descripción opcional del equipo" rows="3"></textarea>
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  <!-- Botones de acción -->
-                  <div class="edicion-botones">
-                    <button class="btn-cancelar-edicion" (click)="cancelarEdicion()">
-                      Cancelar
-                    </button>
-                    <button class="btn-guardar-edicion" (click)="guardarEquipo()">
-                      Guardar Cambios
-                    </button>
-                  </div>
-
+              <!-- GESTIÓN DE UNIDADES -->
+              <div class="unidades-seccion">
+                <div class="seccion-header">
+                  <h3 class="seccion-titulo"><i class="fas fa-boxes"></i> Gestión de Unidades</h3>
                 </div>
-
-                <!-- MODO VISTA (normal) -->
-                <div class="equipo-detalle" *ngIf="!isEquipoEnEdicion($any(m))">
-                  <div class="equipo-imagen">
-                    <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)"
-                      [alt]="$any(m).marca + ' ' + $any(m).modelo">
-                    <div *ngIf="!$any(m).foto_url" class="imagen-placeholder">
-                    </div>
-                  </div>
-
-                  <div class="equipo-info">
-                    <h4>{{ $any(m).marca }} {{ $any(m).modelo }}</h4>
-                    <p><strong>Categoría:</strong> {{ getNombreCategoria(m) }}</p>
-                    <p *ngIf="$any(m).descripcion"><strong>Descripción:</strong> {{ $any(m).descripcion }}</p>
-                  </div>
-                </div>
-
-                <!-- Separador -->
-                <div class="subtable-divider"></div>
-
-                <!-- Lista simple de unidades -->
                 <div class="unidades-list">
-
-                  <!-- Fila de unidad simple -->
                   <div class="unidad-row" *ngFor="let unidad of $any(m).unidades; let i = index">
-
                     <div class="unidad-numero">{{ i + 1 }}.</div>
-
-                    <!-- Número de Serie (editable) -->
                     <div class="unidad-campo">
                       <label>N° Serie:</label>
-                      <input type="text" class="input-simple" [(ngModel)]="unidad.numero_serie"
-                        placeholder="Sin número de serie" (blur)="guardarCambiosUnidad(unidad)"
-                        [disabled]="isEquipoEnEdicion($any(m))">
+                      <input type="text" class="input-simple" [(ngModel)]="unidad.numero_serie" placeholder="Sin serie"
+                        (blur)="guardarCambiosUnidad(unidad)">
                     </div>
-
-                    <!-- Código de Barras (editable) -->
                     <div class="unidad-campo">
                       <label>Código:</label>
                       <input type="text" class="input-simple" [(ngModel)]="unidad.codigo_barra"
-                        (blur)="guardarCambiosUnidad(unidad)" [disabled]="isEquipoEnEdicion($any(m))">
+                        (blur)="guardarCambiosUnidad(unidad)">
                     </div>
-
-                    <!-- Estado Préstamo (Badge) -->
                     <div class="unidad-campo">
                       <label>Préstamo:</label>
                       <span class="badge" [ngClass]="getPrestadoBadgeClass(unidad.esta_prestado)">
                         {{ getPrestadoTexto(unidad.esta_prestado) }}
                       </span>
                     </div>
-
-                    <!-- Estado Físico (Select con Badge context) -->
                     <div class="unidad-campo">
                       <label>Estado Físico:</label>
                       <select class="select-simple" [(ngModel)]="unidad.estado_fisico"
-                        (change)="guardarCambiosUnidad(unidad)" [disabled]="isEquipoEnEdicion($any(m))"
-                        [ngClass]="getFisicoBadgeClass(unidad.estado_fisico)">
+                        (change)="guardarCambiosUnidad(unidad)" [ngClass]="getFisicoBadgeClass(unidad.estado_fisico)">
                         <option value="funciona">Funcional</option>
                         <option value="en_reparacion">En reparación</option>
                         <option value="no_funciona">No funciona</option>
@@ -378,206 +260,126 @@
                         <option value="perdido_sustraido">Perdido</option>
                       </select>
                     </div>
-
-                    <!-- Botón Eliminar -->
-                    <button class="btn-eliminar-unidad" (click)="eliminarUnidad(unidad)" title="Eliminar unidad"
-                      [disabled]="isEquipoEnEdicion($any(m))">
-                      🗑️
+                    <button class="btn-eliminar-unidad" (click)="eliminarUnidad(unidad)"
+                      title="Eliminar unidad">🗑️</button>
+                  </div>
+                  <div class="aniadir-unidad-container">
+                    <button class="btn-aniadir-simple" (click)="aniadirUnidad($any(m))" [disabled]="isAniadiendoUnidad">
+                      <i class="fas fa-plus"></i> Añadir Unidad
                     </button>
                   </div>
                 </div>
               </div>
-            </ng-container>
+            </div>
           </ng-container>
-        </div>
+        </ng-container>
       </ng-container>
 
       <!-- FILAS DE LIBROS -->
       <ng-container *ngIf="tipoSeleccionado === 'libros'">
-        <div class="table-body">
-          <ng-container *ngFor="let m of materialesFiltrados">
+        <ng-container *ngFor="let m of materialesFiltrados">
+          <ng-container *ngIf="'ejemplares' in m">
             <!-- FILA DE LIBRO -->
-            <ng-container *ngIf="'ejemplares' in m">
-              <div class="table-row row-libros" [class.expanded]="isFilaExpandida(m.id)">
-                <!-- Foto (Placeholder o similar) -->
-                <div class="td td-foto">
-                  <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Portada"
-                    class="thumb-material">
-                  <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📚</div>
-                </div>
-
-                <!-- Categoría -->
-                <div class="td td-categoria">
-                  {{ getNombreCategoria(m) }}
-                </div>
-
-                <!-- Título -->
-                <div class="td td-titulo clickable" [title]="$any(m).titulo" (click)="toggleFila(m.id)">
-                  {{ $any(m).titulo }}
-                </div>
-
-                <!-- Autor -->
-                <div class="td td-autor">
-                  {{ $any(m).autor || '---' }}
-                </div>
-
-                <!-- Editorial -->
-                <div class="td td-editorial">
-                  {{ $any(m).editorial || '---' }}
-                </div>
-
-                <!-- Disponibles -->
-                <div class="td td-count-disp">
-                  <span class="count-pill disp">{{ getEjemplaresDisponiblesCount($any(m)) }}</span>
-                </div>
-
-                <!-- Totales -->
-                <div class="td td-count-total">
-                  <span class="count-pill total">{{ $any(m).ejemplares?.length || 0 }}</span>
-                </div>
-
-                <!-- Acciones -->
-                <div class="td td-acciones">
-                  <button class="btn-editar" (click)="$any(m).titulo ? editarLibro($any(m)) : null"
-                    title="Editar"></button>
-                  <button class="btn-eliminar" (click)="eliminarMaterial(m, 'libro')" title="Eliminar">
-                    🗑️
-                  </button>
-                </div>
+            <div class="table-row row-libros" [class.expanded]="isFilaExpandida(m.id)">
+              <div class="td td-foto">
+                <img *ngIf="$any(m).foto_url" [src]="getImageUrl($any(m).foto_url)" alt="Portada"
+                  class="thumb-material">
+                <div *ngIf="!$any(m).foto_url" class="thumb-placeholder">📚</div>
               </div>
+              <div class="td td-categoria">
+                {{ getNombreCategoria(m) }}
+              </div>
+              <div class="td td-titulo clickable" [title]="$any(m).titulo" (click)="toggleFila(m.id)">
+                {{ $any(m).titulo }}
+              </div>
+              <div class="td td-autor">
+                {{ $any(m).autor || '---' }}
+              </div>
+              <div class="td td-editorial">
+                {{ $any(m).editorial || '---' }}
+              </div>
+              <div class="td td-count-disp">
+                <span class="count-pill disp">{{ getEjemplaresDisponiblesCount($any(m)) }}</span>
+              </div>
+              <div class="td td-count-total">
+                <span class="count-pill total">{{ $any(m).ejemplares?.length || 0 }}</span>
+              </div>
+              <div class="td td-acciones">
+                <button class="btn-accion-icono btn-ver" [class.activo]="isFilaExpandida(m.id)"
+                  (click)="toggleFila(m.id)" title="Ver ejemplares/detalles">
+                  <i class="fas" [ngClass]="isFilaExpandida(m.id) ? 'fa-chevron-up' : 'fa-eye'"></i>
+                </button>
+                <button class="btn-accion-icono btn-editar-row" (click)="$any(m).titulo ? editarLibro($any(m)) : null"
+                  title="Editar libro">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-accion-icono btn-eliminar-row" (click)="eliminarMaterial(m, 'libro')"
+                  title="Eliminar libro">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
 
-              <!-- SUBTABLA DE EJEMPLARES (desplegable simplificado) -->
-              <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
+            <!-- EXPANSIÓN DE LIBRO -->
+            <div class="subtable-container-simple" *ngIf="isFilaExpandida(m.id)">
 
-                <!-- MODO EDICIÓN -->
-                <div class="libro-edicion" *ngIf="isLibroEnEdicion($any(m))">
-
-                  <h3 class="edicion-titulo">Editar Libro</h3>
-
-                  <div class="edicion-form-libro">
-
-                    <!-- Título -->
-                    <div class="form-field">
-                      <label class="edicion-label">Título *</label>
-                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.titulo"
-                        placeholder="Título del libro">
-                    </div>
-
-                    <!-- Autor -->
-                    <div class="form-field">
-                      <label class="edicion-label">Autor</label>
-                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.autor"
-                        placeholder="Nombre del autor">
-                    </div>
-
-                    <!-- Editorial -->
-                    <div class="form-field">
-                      <label class="edicion-label">Editorial</label>
-                      <input type="text" class="input-edicion" [(ngModel)]="libroEnEdicion!.editorial"
-                        placeholder="Editorial">
-                    </div>
-
-                    <!-- Categoría -->
-                    <div class="form-field">
-                      <label class="edicion-label">Género *</label>
-                      <select class="select-edicion" [(ngModel)]="libroEnEdicion!.genero_id">
-                        <option *ngFor="let gen of generos" [value]="gen.id">
-                          {{ gen.nombre }}
-                        </option>
-                      </select>
-                    </div>
-
-                  </div>
-
-                  <!-- Botones de acción -->
-                  <div class="edicion-botones">
-                    <button class="btn-cancelar-edicion" (click)="cancelarEdicionLibro()">
-                      Cancelar
-                    </button>
-                    <button class="btn-guardar-edicion" (click)="guardarLibro()">
-                      Guardar Cambios
-                    </button>
-                  </div>
-
+              <!-- GESTIÓN DE EJEMPLARES -->
+              <div class="unidades-seccion">
+                <div class="seccion-header">
+                  <h3 class="seccion-titulo"><i class="fas fa-book-open"></i> Gestión de Ejemplares</h3>
                 </div>
-
-                <!-- MODO VISTA (normal) -->
-                <div class="libro-detalle" *ngIf="!isLibroEnEdicion($any(m))">
-                  <div class="libro-info-completa">
-                    <h4>{{ $any(m).titulo }}</h4>
-                    <p><strong>Autor:</strong> {{ $any(m).autor || 'No especificado' }}</p>
-                    <p><strong>Editorial:</strong> {{ $any(m).editorial || 'No especificado' }}</p>
-                    <p><strong>Categoría:</strong> {{ getNombreCategoria(m) }}</p>
-                    <p><strong>Código:</strong> {{ $any(m).libro_numero }}</p>
-                  </div>
-                </div>
-
-                <!-- Separador -->
-                <div class="subtable-divider"></div>
-
-                <!-- Lista simple de ejemplares -->
                 <div class="ejemplares-list">
-
-                  <!-- Fila de ejemplar simple -->
                   <div class="ejemplar-row" *ngFor="let ejemplar of $any(m).ejemplares; let i = index">
-
                     <div class="ejemplar-numero">{{ i + 1 }}.</div>
-
-                    <!-- Código de Barras (editable) -->
                     <div class="ejemplar-campo">
-                      <label>Código de Barras:</label>
+                      <label>Barras:</label>
                       <input type="text" class="input-simple" [(ngModel)]="ejemplar.codigo_barra"
-                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                        (blur)="guardarCambiosEjemplar(ejemplar)">
                     </div>
-
-                    <!-- Estantería (editable) -->
                     <div class="ejemplar-campo">
                       <label>Estantería:</label>
-                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.estanteria" placeholder="Ej: 014"
-                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.estanteria"
+                        (blur)="guardarCambiosEjemplar(ejemplar)">
                     </div>
-
-                    <!-- Balda (editable) -->
                     <div class="ejemplar-campo">
                       <label>Balda:</label>
-                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.balda" placeholder="Ej: 6"
-                        (blur)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.balda"
+                        (blur)="guardarCambiosEjemplar(ejemplar)">
                     </div>
-
-                    <!-- Estado (select) -->
                     <div class="ejemplar-campo">
                       <label>Estado:</label>
                       <select class="select-simple" [(ngModel)]="ejemplar.estado"
-                        (change)="guardarCambiosEjemplar(ejemplar)" [disabled]="isLibroEnEdicion($any(m))">
-                        <option *ngFor="let est of estadosDisponibles" [value]="est.valor">
-                          {{ est.texto }}
-                        </option>
+                        (change)="guardarCambiosEjemplar(ejemplar)">
+                        <option *ngFor="let est of estadosDisponibles" [value]="est.valor">{{ est.texto }}</option>
                       </select>
                     </div>
-
-                    <!-- Botón Eliminar -->
-                    <button class="btn-eliminar-ejemplar" (click)="eliminarEjemplar(ejemplar)" title="Eliminar ejemplar"
-                      [disabled]="isLibroEnEdicion($any(m))">
-                      🗑️
-                    </button>
+                    <button class="btn-eliminar-ejemplar" (click)="eliminarEjemplar(ejemplar)"
+                      title="Eliminar ejemplar">🗑️</button>
                   </div>
                 </div>
-
+                <div class="aniadir-unidad-container">
+                  <button class="btn-aniadir-simple" (click)="aniadirEjemplar($any(m))" [disabled]="isAniadiendoUnidad">
+                    <i class="fas fa-plus"></i> Añadir Ejemplar
+                  </button>
+                </div>
               </div>
-
-            </ng-container>
+            </div>
           </ng-container>
-
-        </div>
-
+        </ng-container>
       </ng-container>
+    </div> <!-- .table-body -->
+  </div> <!-- .table-container -->
 
-    </div>
+  <!-- Modal Añadir/Editar Material -->
+  <app-aniadir-material [isOpen]="modalAnadirAbierto" [mode]="modalMode" [editData]="materialAEditar"
+    (close)="cerrarModalAnadir()" (materialCreado)="cargarMateriales()">
+  </app-aniadir-material>
 
-    <!-- Modal Añadir Material -->
-    <app-aniadir-material [isOpen]="modalAnadirAbierto" (close)="cerrarModalAnadir()"
-      (materialCreado)="onMaterialCreado()">
-    </app-aniadir-material>
+  <!-- Modal de Confirmación y Notificación -->
+  <app-modal [mostrar]="modalData.mostrar" [tipo]="modalData.tipo" [titulo]="modalData.titulo"
+    [mensaje]="modalData.mensaje" [esConfirmacion]="modalData.esConfirmacion"
+    [textoBtnPrincipal]="modalData.textoBtnPrincipal" (cerrar)="cerrarModalConfirmacion()"
+    (confirmar)="modalData.accion(); cerrarModalConfirmacion()">
+  </app-modal>
 
-  </div>
-</div>
+</div> <!-- .materiales -->
