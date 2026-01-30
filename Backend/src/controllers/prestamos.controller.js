@@ -125,7 +125,9 @@ function devolverPrestamo(req, res) {
               .then(function (e) {
                 if (e) {
                   e.estado = 'disponible';
-                  return e.save({ transaction: t });
+                  return e.save({ transaction: t }).then(function() {
+          return e; 
+        });
                 }
               });
           }

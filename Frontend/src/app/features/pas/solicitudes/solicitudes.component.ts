@@ -165,15 +165,39 @@ export class SolicitudesComponent implements OnInit {
   /**
    * Obtiene el código de barras de un item
    */
-  getCodigoItem(item: any): string {
-    if (item.Ejemplar) {
-      return item.Ejemplar.codigo_barra || '-';
-    }
-    if (item.Unidad) {
-      return item.Unidad.codigo_barra || '-';
-    }
-    return '-';
+getCodigoItem(item: any): string {
+  console.log('🔍 Item completo:', item);
+  
+  // Para solicitudes, la estructura puede ser diferente
+  // Intentar varias posibilidades:
+  
+  // Opción 1: item.Ejemplar.codigo_barra
+  if (item.Ejemplar && item.Ejemplar.codigo_barra) {
+    return item.Ejemplar.codigo_barra;
   }
+  
+  // Opción 2: item.Unidad.codigo_barra
+  if (item.Unidad && item.Unidad.codigo_barra) {
+    return item.Unidad.codigo_barra;
+  }
+  
+  // Opción 3: item.codigo_barra directamente
+  if (item.codigo_barra) {
+    return item.codigo_barra;
+  }
+  
+  // Opción 4: Si es libro, buscar en item.ejemplar_id (minúscula)
+  if (item.Libro && item.ejemplar_id) {
+    return `EJ-${item.ejemplar_id}`;
+  }
+  
+  // Opción 5: Si es equipo, buscar en item.unidad_id (minúscula)
+  if (item.Equipo && item.unidad_id) {
+    return `UN-${item.unidad_id}`;
+  }
+  
+  return '-';
+}
 
   /**
    * Abre el modal de perfil del usuario
@@ -313,15 +337,26 @@ export class SolicitudesComponent implements OnInit {
           this.cargarSolicitudes();
         }, 500);
       },
-      error: (err: any) => {
-        this.aprobandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
-        console.error('❌ Error al aprobar solicitud:', err);
-        let mensajeError = 'Error al aprobar la solicitud';
-        if (err.error && err.error.mensaje) {
-          mensajeError = err.error.mensaje;
-        }
-        this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
-      }
+     error: (err: any) => {
+  this.aprobandoSolicitud = false;
+  console.error('❌ Error al aprobar solicitud:', err);
+  
+  // Intentar obtener el mensaje de error más específico
+  let mensajeError = 'Error al aprobar la solicitud';
+  
+  if (err.message) {
+    // Si el error tiene message directamente
+    mensajeError = err.message;
+  } else if (err.error && err.error.mensaje) {
+    // Si viene en err.error.mensaje
+    mensajeError = err.error.mensaje;
+  } else if (err.error && typeof err.error === 'string') {
+    // Por si el error es un string directamente
+    mensajeError = err.error;
+  }
+  
+  this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
+}
     });
   }
 
@@ -510,40 +545,48 @@ export class SolicitudesComponent implements OnInit {
     return 'Usuario desconocido';
   }
 
-  getNombreMaterial(solicitud: Solicitud): string {
-    const items = (solicitud as any).items;
-    if (!items || items.length === 0) {
-      return 'Material desconocido';
-    }
+ /**
+ * Obtiene el nombre de un item (maneja estructuras de solicitudes y préstamos)
+ */
+getNombreItem(item: any): string {
+  // Estructura de SOLICITUDES: item.Libro o item.Equipo
+  if (item.Libro) {
+    return item.Libro.titulo || 'Libro sin título';
+  }
+  if (item.Equipo) {
+    return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
+  }
+  
+  // Estructura de PRÉSTAMOS: item.Ejemplar.Libro o item.Unidad.equipo
+  if (item.Ejemplar && item.Ejemplar.Libro) {
+    return item.Ejemplar.Libro.titulo || 'Libro sin título';
+  }
+  if (item.Unidad && item.Unidad.equipo) {
+    const marca = item.Unidad.equipo.marca || '';
+    const modelo = item.Unidad.equipo.modelo || '';
+    return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
+  }
+  
+  return 'Material desconocido';
+}
 
-    const primerItem = items[0];
-
-    if (primerItem.Libro) {
-      return primerItem.Libro.titulo || 'Libro sin título';
-    }
-
-    if (primerItem.Equipo) {
-      const marca = primerItem.Equipo.marca || '';
-      const modelo = primerItem.Equipo.modelo || '';
-      return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
-    }
-
+/**
+ * Obtiene el nombre del primer material de una solicitud
+ */
+getNombreMaterial(solicitud: Solicitud): string {
+  const items = (solicitud as any).items;
+  if (!items || items.length === 0) {
     return 'Material desconocido';
   }
+  
+  // Reutilizar getNombreItem
+  return this.getNombreItem(items[0]);
+}
 
   getItemsSolicitud(solicitud: Solicitud): any[] {
     return (solicitud as any).items || [];
   }
 
-  getNombreItem(item: any): string {
-    if (item.Libro) {
-      return item.Libro.titulo || 'Libro sin título';
-    }
-    if (item.Equipo) {
-      return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
-    }
-    return 'Material desconocido';
-  }
 
   getTipoItem(item: any): string {
     if (item.Libro) return 'Libro';
@@ -583,7 +626,7 @@ export class SolicitudesComponent implements OnInit {
       return '0 items';
     }
     const cantidad = items.length;
-    const plural = cantidad === 1 ? 'item' : 'items';
+    const plural = cantidad === 1 ? 'material' : 'materiales';
     return `${cantidad} ${plural}`;
   }
 

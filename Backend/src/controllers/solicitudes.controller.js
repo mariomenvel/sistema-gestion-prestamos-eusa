@@ -313,17 +313,16 @@ function aprobarSolicitud(req, res) {
               var promesasItems = [];
 
               // 2. Procesar UNIDADES
-              // 2. Procesar UNIDADES
               unidadesIds.forEach(function (uId) {
                 var p = models.Unidad.findByPk(uId, { transaction: t })
                   .then(function (unidad) {
                     if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + uId);
                     if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + uId);
 
-                    if (['funciona', 'obsoleto'].indexOf(unidad.estado_fisico) === -1) {
+                    // Solo rechazar si está rota, en reparación o perdida
+                    if (['no_funciona', 'en_reparacion', 'falla', 'perdido_sustraido'].indexOf(unidad.estado_fisico) !== -1) {
                       throw new Error('UNIDAD_NO_APTA');
                     }
-
                     unidad.esta_prestado = true;
                     return unidad.save({ transaction: t });
                   })

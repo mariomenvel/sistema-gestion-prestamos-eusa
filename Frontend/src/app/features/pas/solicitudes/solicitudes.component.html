@@ -446,42 +446,36 @@
 <div class="modal-overlay" *ngIf="mostrarModalDetallesMateriales" (click)="cerrarModalDetallesMateriales()">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
+    <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalDetallesMateriales()">✕</button>
 
-    <h2 class="modal-title">Materiales de la Solicitud</h2>
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Materiales de la Solicitud</h2>
+    </div>
 
-    <div class="info-solicitud" *ngIf="solicitudDetallesMateriales">
-      <div class="info-row">
-        <div class="info-item">
-          <span class="info-label">Alumno:</span>
-          <span class="info-value">{{ getNombreUsuario(solicitudDetallesMateriales) }}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Tipo:</span>
-          <span class="info-value">{{ getTipoTexto(solicitudDetallesMateriales.tipo) }}</span>
+    <!-- Info del alumno -->
+    <div class="modal-alumno" *ngIf="solicitudDetallesMateriales">
+      <span class="alumno-label">Alumno:</span>
+      <span class="alumno-nombre">{{ getNombreUsuario(solicitudDetallesMateriales) }}</span>
+    </div>
+
+    <!-- Lista de materiales -->
+    <div class="materiales-lista">
+      <div class="material-item" *ngFor="let item of materialesDetalles; let i = index">
+        <div class="material-numero">{{ i + 1 }}</div>
+        <div class="material-info">
+          <div class="material-nombre">{{ getNombreItem(item) }}</div>
+          <div class="material-detalles">
+            <span class="material-tipo">{{ getTipoItem(item) }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="materiales-detalle">
-      <div class="material-detalle-item" *ngFor="let item of materialesDetalles">
-        <div class="material-detalle-header">
-          <span class="material-tipo-badge" [class.libro]="getTipoItem(item) === 'Libro'"
-            [class.equipo]="getTipoItem(item) === 'Equipo'">
-            {{ getTipoItem(item) }}
-          </span>
-          <span class="material-detalle-nombre">{{ getNombreItem(item) }}</span>
-        </div>
-        <div class="material-detalle-codigo">
-          <strong>Código:</strong> {{ getCodigoItem(item) }}
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancelar" (click)="cerrarModalDetallesMateriales()">
-        Cerrar
-      </button>
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cerrar-modal" (click)="cerrarModalDetallesMateriales()">Cerrar</button>
     </div>
 
   </div>
