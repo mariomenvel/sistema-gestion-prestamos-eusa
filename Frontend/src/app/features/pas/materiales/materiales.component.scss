@@ -752,14 +752,16 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-.unidad-numero {
+.unidad-numero,
+.ejemplar-numero {
   font-family: $font-family;
   font-weight: 600;
   font-size: 14px;
   color: $color-text-secondary;
 }
 
-.unidad-campo {
+.unidad-campo,
+.ejemplar-campo {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -828,13 +830,7 @@ $font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 
-
-  &.badge-disponible {
-    background-color: #E8F5E9;
-    color: #2e7d32;
-    border-color: #4caf50;
-  }
-
+  &.badge-disponible,
   &.badge-funcional {
     background-color: #E8F5E9;
     color: #2E7D32;
@@ -874,7 +870,8 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-.btn-eliminar-unidad {
+.btn-eliminar-unidad,
+.btn-eliminar-ejemplar {
   background: none;
   border: none;
   font-size: 18px;
