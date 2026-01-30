@@ -178,7 +178,7 @@
       <!-- FILAS DE EQUIPOS -->
       <ng-container *ngIf="tipoSeleccionado === 'equipos'">
         <ng-container *ngFor="let m of materialesFiltrados">
-          <ng-container *ngIf="'unidades' in m">
+          <ng-container *ngIf="$any(m).unidades">
             <!-- FILA DE EQUIPO -->
             <div class="table-row row-equipos" [class.expanded]="isFilaExpandida(m.id)">
               <div class="td td-foto">
@@ -278,7 +278,7 @@
       <!-- FILAS DE LIBROS -->
       <ng-container *ngIf="tipoSeleccionado === 'libros'">
         <ng-container *ngFor="let m of materialesFiltrados">
-          <ng-container *ngIf="'ejemplares' in m">
+          <ng-container *ngIf="$any(m).ejemplares">
             <!-- FILA DE LIBRO -->
             <div class="table-row row-libros" [class.expanded]="isFilaExpandida(m.id)">
               <div class="td td-foto">
