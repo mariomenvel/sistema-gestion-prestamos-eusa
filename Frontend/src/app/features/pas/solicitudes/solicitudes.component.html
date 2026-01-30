@@ -485,55 +485,72 @@
 <div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
+    <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalPerfil()">✕</button>
 
-    <h2 class="modal-title">Perfil del Usuario</h2>
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Perfil del Alumno</h2>
+    </div>
 
-    <div class="perfil-info" *ngIf="usuarioPerfilSeleccionado">
-
-      <div class="perfil-row">
-        <div class="perfil-item">
-          <span class="perfil-label">Nombre completo:</span>
-          <span class="perfil-value">
-            {{ usuarioPerfilSeleccionado.nombre }} {{ usuarioPerfilSeleccionado.apellidos }}
-          </span>
+    <!-- Info del usuario -->
+    <div class="perfil-contenido" *ngIf="usuarioPerfilSeleccionado">
+      
+      <!-- Card: Información Personal -->
+      <div class="perfil-card">
+        <div class="perfil-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Información Personal</span>
+        </div>
+        <div class="perfil-card-body">
+          <div class="perfil-field">
+            <span class="perfil-label">Nombre completo</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.nombre }} {{ usuarioPerfilSeleccionado.apellidos }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Email</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.email }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Teléfono</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.telefono || 'No especificado' }}</span>
+          </div>
         </div>
       </div>
 
-      <div class="perfil-row">
-        <div class="perfil-item">
-          <span class="perfil-label">Email:</span>
-          <span class="perfil-value">{{ usuarioPerfilSeleccionado.email }}</span>
+      <!-- Card: Datos Académicos -->
+      <div class="perfil-card">
+        <div class="perfil-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+          <span>Datos Académicos</span>
         </div>
-      </div>
-
-      <div class="perfil-row">
-        <div class="perfil-item">
-          <span class="perfil-label">Teléfono:</span>
-          <span class="perfil-value">{{ usuarioPerfilSeleccionado.telefono || '-' }}</span>
-        </div>
-      </div>
-
-      <div class="perfil-row">
-        <div class="perfil-item">
-          <span class="perfil-label">Código de tarjeta:</span>
-          <span class="perfil-value">{{ usuarioPerfilSeleccionado.codigo_tarjeta || '-' }}</span>
-        </div>
-      </div>
-
-      <div class="perfil-row">
-        <div class="perfil-item">
-          <span class="perfil-label">Estado:</span>
-          <span class="perfil-value">{{ usuarioPerfilSeleccionado.estado_perfil || '-' }}</span>
+        <div class="perfil-card-body">
+          <div class="perfil-field">
+            <span class="perfil-label">Código de tarjeta</span>
+            <span class="perfil-value perfil-codigo">{{ usuarioPerfilSeleccionado.codigo_tarjeta || 'Sin asignar' }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Estado del perfil</span>
+            <span class="perfil-badge" [class.activo]="usuarioPerfilSeleccionado.estado_perfil === 'activo'"
+                  [class.bloqueado]="usuarioPerfilSeleccionado.estado_perfil === 'bloqueado'"
+                  [class.inactivo]="usuarioPerfilSeleccionado.estado_perfil === 'inactivo'">
+              {{ usuarioPerfilSeleccionado.estado_perfil || 'Desconocido' }}
+            </span>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <div class="modal-actions">
-      <button class="btn-cancelar" (click)="cerrarModalPerfil()">
-        Cerrar
-      </button>
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cerrar-modal" (click)="cerrarModalPerfil()">Cerrar</button>
     </div>
 
   </div>
