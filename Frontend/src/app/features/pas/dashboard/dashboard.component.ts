@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PrestamosService } from '../../../core/services/prestamos.service';
-import { DashboardService } from '../../../core/services/dashboard.service'; 
-import { Prestamo } from '../../../core/models/prestamo.model';
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
+import { DashboardService } from '../../../core/services/dashboard.service';
+import { Solicitud } from '../../../core/models/solicitud.model';
 
 /**
  * Componente Dashboard PAS
@@ -30,20 +30,17 @@ export class DashboardComponent implements OnInit {
 
   // ===== DATOS - SOLICITUDES PENDIENTES =====
   
-  /**
-   * Array de solicitudes pendientes para mostrar en la tabla
-   */
-  prestamosActivosData: Prestamo[] = [];
+  solicitudesPendientesData: Solicitud[] = [];
 
   // ===== ESTADO =====
   
-  isLoadingPrestamos: boolean = false;
-  errorMessagePrestamos: string = '';
+  isLoadingSolicitudes: boolean = false;
+  errorMessageSolicitudes: string = '';
 
   // ===== CONSTRUCTOR =====
   
   constructor(
-    private prestamosService: PrestamosService,
+    private solicitudesService: SolicitudesService,
     private dashboardService: DashboardService,
     private router: Router
   ) { }
@@ -62,18 +59,28 @@ export class DashboardComponent implements OnInit {
   verTodasSolicitudes(): void {
     this.router.navigate(['/pas/solicitudes']);
   }
-  /**
- * Navega a la página de préstamo presencial
- */
-realizarPrestamoPresencial(): void {
-  this.router.navigate(['/pas/prestamo-presencial']);
-}
 
   /**
-   * Obtiene el nombre completo del alumno desde el objeto Préstamo
+   * Navega a la página de préstamo presencial
    */
-  getNombreAlumno(prestamo: Prestamo): string {
-    const usuario = (prestamo as any).Usuario;
+  realizarPrestamoPresencial(): void {
+    this.router.navigate(['/pas/prestamo-presencial']);
+  }
+
+  /**
+   * Abre la página de solicitudes con la solicitud específica
+   */
+  gestionarSolicitud(solicitud: Solicitud): void {
+    this.router.navigate(['/pas/solicitudes'], { 
+      queryParams: { solicitudId: solicitud.id }
+    });
+  }
+
+  /**
+   * Obtiene el nombre completo del alumno
+   */
+  getNombreAlumno(solicitud: Solicitud): string {
+    const usuario = (solicitud as any).Usuario || solicitud.usuario;
     if (usuario && usuario.nombre) {
       const apellidos = usuario.apellidos ? ` ${usuario.apellidos}` : '';
       return `${usuario.nombre}${apellidos}`;
@@ -82,36 +89,48 @@ realizarPrestamoPresencial(): void {
   }
 
   /**
-   * Obtiene el nombre del material (libro o equipo) desde el Préstamo
+   * Obtiene el nombre del material
    */
-  getNombreMaterial(prestamo: Prestamo): string {
-    const items = (prestamo as any).items;
+  getNombreMaterial(solicitud: Solicitud): string {
+    const items = (solicitud as any).items;
     
     if (!items || items.length === 0) {
-      return 'Material desconocido';
+      return 'Sin materiales';
     }
 
     const primerItem = items[0];
 
-    // Si es un ejemplar (libro)
-    if (primerItem.Ejemplar && primerItem.Ejemplar.libro) {
-      return primerItem.Ejemplar.libro.titulo;
+    // Para solicitudes: item.Libro o item.Equipo
+    if (primerItem.Libro) {
+      return primerItem.Libro.titulo || 'Libro sin título';
     }
 
-    // Si es una unidad (equipo)
-    if (primerItem.Unidad && primerItem.Unidad.equipo) {
-      const equipo = primerItem.Unidad.equipo;
-      return `${equipo.marca} ${equipo.modelo}`;
+    if (primerItem.Equipo) {
+      const marca = primerItem.Equipo.marca || '';
+      const modelo = primerItem.Equipo.modelo || '';
+      return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
     }
 
     return 'Material desconocido';
   }
 
   /**
+   * Obtiene el contador de materiales
+   */
+  getContadorMateriales(solicitud: Solicitud): string {
+    const items = (solicitud as any).items;
+    if (!items || items.length === 0) {
+      return '0 materiales';
+    }
+    const cantidad = items.length;
+    return cantidad === 1 ? '1 material' : `${cantidad} materiales`;
+  }
+
+  /**
    * Obtiene el texto del tipo de solicitud
    */
   getTipoTexto(tipo: string): string {
-    return tipo === 'a' ? 'Tipo A' : 'Tipo B';
+    return tipo === 'prof_trabajo' ? 'Tipo A' : 'Tipo B';
   }
 
   /**
@@ -137,28 +156,28 @@ realizarPrestamoPresencial(): void {
    */
   getEstadoClass(estado: string): string {
     switch (estado) {
-      case 'activo':
-        return 'badge-activo';
-      case 'vencido':
-        return 'badge-vencido';
-      case 'cerrado':
-        return 'badge-completado';
+      case 'pendiente':
+        return 'badge-pendiente';
+      case 'aprobada':
+        return 'badge-aprobada';
+      case 'rechazada':
+        return 'badge-rechazada';
       default:
         return '';
     }
   }
 
   /**
-   * Obtiene el texto del estado para mostrar
+   * Obtiene el texto del estado
    */
   getEstadoTexto(estado: string): string {
     switch (estado) {
-      case 'activo':
-        return 'Activo';
-      case 'vencido':
-        return 'Vencido';
-      case 'cerrado':
-        return 'Completado';
+      case 'pendiente':
+        return 'Pendiente';
+      case 'aprobada':
+        return 'Aprobada';
+      case 'rechazada':
+        return 'Rechazada';
       default:
         return estado;
     }
@@ -170,31 +189,28 @@ realizarPrestamoPresencial(): void {
    * Carga todos los datos del dashboard
    */
   private cargarDatos(): void {
-    // A. CARGAR SOLICITUDES PENDIENTES
-    this.cargarSolicitudesPendientes();
-
-    // B. CARGAR LOS CONTADORES (CARDS)
+    this.cargarSolicitudesPendientesTabla();
     this.cargarMetricas();
   }
 
   /**
    * Carga las solicitudes pendientes para la tabla
    */
-  private cargarSolicitudesPendientes(): void {
-    this.isLoadingPrestamos = true;
-    this.errorMessagePrestamos = '';
+  private cargarSolicitudesPendientesTabla(): void {
+    this.isLoadingSolicitudes = true;
+    this.errorMessageSolicitudes = '';
 
-    // Llamar al endpoint de solicitudes pendientes
-    this.prestamosService.getPrestamosActivos().subscribe({
-      next: (solicitudes: Prestamo[]) => {
-        console.log('📋 Solicitudes pendientes recibidas:', solicitudes);
-        this.prestamosActivosData = solicitudes;
-        this.isLoadingPrestamos = false;
+    this.solicitudesService.getAllSolicitudes().subscribe({
+      next: (solicitudes: Solicitud[]) => {
+        console.log('📋 Solicitudes recibidas:', solicitudes);
+        // Filtrar solo las pendientes
+        this.solicitudesPendientesData = solicitudes.filter(s => s.estado === 'pendiente');
+        this.isLoadingSolicitudes = false;
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar solicitudes pendientes:', err);
-        this.errorMessagePrestamos = 'Error al cargar solicitudes pendientes';
-        this.isLoadingPrestamos = false;
+        console.error('❌ Error al cargar solicitudes:', err);
+        this.errorMessageSolicitudes = 'Error al cargar solicitudes pendientes';
+        this.isLoadingSolicitudes = false;
       }
     });
   }
@@ -213,7 +229,6 @@ realizarPrestamoPresencial(): void {
       },
       error: (err: any) => {
         console.error('❌ Error al cargar métricas:', err);
-        // Las métricas no son críticas, permitir que siga funcionando
       }
     });
   }
