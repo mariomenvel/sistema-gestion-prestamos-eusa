@@ -577,7 +577,6 @@ export class MaterialesComponent implements OnInit {
     }).subscribe({
       next: (unidadActualizada) => {
         console.log('✅ Unidad guardada:', unidadActualizada);
-        // No mostramos alert para no ser intrusivos
       },
       error: (err) => {
         console.error('❌ Error al guardar unidad:', err);
@@ -585,6 +584,7 @@ export class MaterialesComponent implements OnInit {
       }
     });
   }
+
 
   /**
    * Eliminar una unidad específica
@@ -726,13 +726,13 @@ export class MaterialesComponent implements OnInit {
 
     this.materialesService.actualizarEjemplar(ejemplar.id, {
       codigo_barra: ejemplar.codigo_barra,
+      c122003: ejemplar.c122003,
       estanteria: ejemplar.estanteria,
       balda: ejemplar.balda,
-      estado: ejemplar.estado
+      estado: ejemplar.estado as any
     }).subscribe({
       next: (ejemplarActualizado) => {
         console.log('✅ Ejemplar guardado:', ejemplarActualizado);
-        // No mostramos alert para no ser intrusivos
       },
       error: (err) => {
         console.error('❌ Error al guardar ejemplar:', err);

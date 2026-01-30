@@ -557,7 +557,9 @@ $font-family: 'Inter', sans-serif;
   line-height: 15px;
 }
 
-.badge-disponible {
+.badge-disponible,
+.badge-en-almacen,
+.badge-funcional {
   background: $color-success-green-light;
   border: 1px solid $color-success-green;
   color: $color-success-green-dark;
@@ -566,10 +568,11 @@ $font-family: 'Inter', sans-serif;
 .badge-no-disponible {
   background: $color-danger-red-light;
   border: 1px solid $color-danger-red;
-  color: $color-danger-red-dark
+  color: $color-danger-red-dark;
 }
 
-.badge-bloqueado {
+.badge-bloqueado,
+.badge-prestado {
   background: #FFF3E0;
   border: 1px solid #F57C00;
   color: #E65100;
@@ -581,32 +584,7 @@ $font-family: 'Inter', sans-serif;
   color: #01579B;
 }
 
-// NUEVOS BADGES PARA UNIDADES
-.badge-prestado {
-  background: #FFF3E0;
-  border: 1px solid #F57C00;
-  color: #E65100;
-}
 
-.badge-en-almacen {
-  background: $color-success-green-light;
-  border: 1px solid $color-success-green;
-  color: $color-success-green-dark;
-}
-
-.badge-funcional {
-  background: $color-success-green-light;
-  border: 1px solid $color-success-green;
-  color: $color-success-green-dark;
-}
-
-.badge-no-disponible {
-  background: $color-danger-red-light;
-  border: 1px solid $color-danger-red;
-  color: $color-danger-red-dark
-}
-
-// SUBTABLA SIMPLE (sin encabezados)
 .subtable-container-simple {
   background: #f8fafc;
   border-top: 2px solid $color-primary-blue;
@@ -631,7 +609,7 @@ $font-family: 'Inter', sans-serif;
   }
 }
 
-// DETALLE DEL EQUIPO (con imagen)
+
 .equipo-detalle {
   display: flex;
   gap: 24px;
@@ -823,6 +801,17 @@ $font-family: 'Inter', sans-serif;
     border-color: $color-primary-blue;
     box-shadow: 0 0 0 2px rgba($color-primary-blue, 0.1);
   }
+
+  &.small {
+    padding: 0 4px;
+    font-size: 11px;
+    height: 30px;
+  }
+}
+
+.ubicacion-inputs {
+  display: flex;
+  gap: 4px;
 }
 
 .select-simple {
@@ -839,7 +828,13 @@ $font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  // Colores dinámicos basados en la clase del select
+
+  &.badge-disponible {
+    background-color: #E8F5E9;
+    color: #2e7d32;
+    border-color: #4caf50;
+  }
+
   &.badge-funcional {
     background-color: #E8F5E9;
     color: #2E7D32;

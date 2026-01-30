@@ -295,7 +295,7 @@
               <div class="td td-autor">
                 {{ $any(m).autor || '---' }}
               </div>
-              <div class="td td-editorial">
+              <div class="td td-editorial" [title]="$any(m).editorial">
                 {{ $any(m).editorial || '---' }}
               </div>
               <div class="td td-count-disp">
@@ -337,19 +337,23 @@
                         (blur)="guardarCambiosEjemplar(ejemplar)">
                     </div>
                     <div class="ejemplar-campo">
-                      <label>Estantería:</label>
-                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.estanteria"
+                      <label>ID Registro (C122):</label>
+                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.c122003" placeholder="---"
                         (blur)="guardarCambiosEjemplar(ejemplar)">
                     </div>
                     <div class="ejemplar-campo">
-                      <label>Balda:</label>
-                      <input type="text" class="input-simple" [(ngModel)]="ejemplar.balda"
-                        (blur)="guardarCambiosEjemplar(ejemplar)">
+                      <label>Ubicación:</label>
+                      <div class="ubicacion-inputs">
+                        <input type="text" class="input-simple small" [(ngModel)]="ejemplar.estanteria"
+                          placeholder="Est." (blur)="guardarCambiosEjemplar(ejemplar)">
+                        <input type="text" class="input-simple small" [(ngModel)]="ejemplar.balda" placeholder="Balda"
+                          (blur)="guardarCambiosEjemplar(ejemplar)">
+                      </div>
                     </div>
                     <div class="ejemplar-campo">
                       <label>Estado:</label>
                       <select class="select-simple" [(ngModel)]="ejemplar.estado"
-                        (change)="guardarCambiosEjemplar(ejemplar)">
+                        (change)="guardarCambiosEjemplar(ejemplar)" [ngClass]="getClaseBadge(ejemplar.estado)">
                         <option *ngFor="let est of estadosDisponibles" [value]="est.valor">{{ est.texto }}</option>
                       </select>
                     </div>
