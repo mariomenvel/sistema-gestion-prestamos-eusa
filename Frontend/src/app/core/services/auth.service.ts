@@ -92,6 +92,10 @@ export class AuthService {
     return this._token();
   }
 
+  registrar(datos: any): Observable<any> {
+  return this.http.post(`${this.API_URL}/auth/registro`, datos);
+}
+
   // MÉTODOS PRIVADOS 
   //Actualiza la memoria (Signals _token y _currentUser). Guarda el token y el objeto de usuario (serializado con JSON.stringify) en el localStorage.
   private setSession(token: string, user: Usuario) {

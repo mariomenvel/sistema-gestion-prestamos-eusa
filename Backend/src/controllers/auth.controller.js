@@ -87,7 +87,88 @@ function login(req, res) {
       res.status(500).json({ mensaje: "Error interno del servidor" });
     });
 }
+function registro(req, res) {
+  var datos = req.body;
+
+  // Validar campos requeridos
+  var camposRequeridos = ['nombre', 'apellidos', 'email', 'telefono', 'tipo_estudios', 'grado', 'curso', 'fecha_inicio_est', 'fecha_fin_prev', 'password'];
+  
+  for (var i = 0; i < camposRequeridos.length; i++) {
+    if (!datos[camposRequeridos[i]]) {
+      return res.status(400).json({ mensaje: 'Todos los campos son obligatorios: ' + camposRequeridos[i] });
+    }
+  }
+
+  // eliminar espacios y guiones del teléfono
+  if (datos.telefono) {
+    datos.telefono = datos.telefono.replace(/[\s\-]/g, '');  // Elimina espacios y guiones
+  }
+
+  // Validar formato de email
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(datos.email)) {
+    return res.status(400).json({ mensaje: 'Email inválido' });
+  }
+
+  //Validar dominio del email
+  var emailLowerCase = datos.email.toLowerCase();
+  var dominiosPermitidos = ['@eusa.es', '@campuscamara.es'];
+  var dominioValido = dominiosPermitidos.some(function(dominio) {
+    return emailLowerCase.endsWith(dominio);
+  });
+   if (!dominioValido) {
+    return res.status(400).json({ 
+      mensaje: 'Solo se permiten emails con dominio @eusa.es o @campuscamara.es' 
+    });
+  }
+
+  // Verificar si el email ya existe
+  models.Usuario.findOne({ where: { email: datos.email } })
+    .then(function (usuarioExistente) {
+      if (usuarioExistente) {
+        return res.status(409).json({ mensaje: 'El email ya está registrado' });
+      }
+
+      // Hashear contraseña
+      return bcrypt.hash(datos.password, 10)
+        .then(function (passwordHash) {
+          // Crear usuario
+          return models.Usuario.create({
+            nombre: datos.nombre,
+            apellidos: datos.apellidos,
+            email: datos.email,
+            telefono: datos.telefono,
+            tipo_estudios: datos.tipo_estudios,
+            grado: datos.grado,
+            curso: datos.curso,
+            fecha_inicio_est: datos.fecha_inicio_est,
+            fecha_fin_prev: datos.fecha_fin_prev,
+            password_hash: passwordHash,
+            rol: 'alumno',  // Por defecto todos los registros son alumnos
+            estado_perfil: 'activo'
+          });
+        })
+        .then(function (nuevoUsuario) {
+          console.log('✅ Usuario registrado:', nuevoUsuario.email);
+          
+          return res.status(201).json({
+            mensaje: 'Usuario registrado correctamente',
+            usuario: {
+              id: nuevoUsuario.id,
+              email: nuevoUsuario.email,
+              nombre: nuevoUsuario.nombre,
+              apellidos: nuevoUsuario.apellidos
+            }
+          });
+        });
+    })
+    .catch(function (error) {
+      console.error('❌ Error en registro:', error);
+      res.status(500).json({ mensaje: 'Error al registrar usuario' });
+    });
+}
 
 module.exports = {
-  login: login
+  login: login,
+  registro: registro
 };

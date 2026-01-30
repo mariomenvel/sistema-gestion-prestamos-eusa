@@ -7,6 +7,7 @@ import { roleGuard } from './core/guards/role.guard';
 
 // ===== COMPONENTES DE AUTH =====
 import { LoginComponent } from './features/auth/login/login.component';
+import { RegistroComponent } from './features/auth/registro/registro.component';
 
 // ===== COMPONENTES DE ALUMNO =====
 import { DashboardComponent as AlumnoDashboardComponent } from './features/alumno/dashboard/dashboard.component';
@@ -39,6 +40,11 @@ const routes: Routes = [
     path: '',
     redirectTo: '/auth/login',
     pathMatch: 'full'
+  },
+
+  {
+    path: 'registro',
+    component: RegistroComponent
   },
 
   // RUTAS DE AUTENTICACIÓN (sin guards)

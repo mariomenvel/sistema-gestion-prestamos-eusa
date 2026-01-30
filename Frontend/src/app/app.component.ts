@@ -16,7 +16,7 @@ import { filter } from 'rxjs/operators';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  
+
   /**
    * Título de la aplicación.
    */
@@ -29,7 +29,6 @@ export class AppComponent {
   showLayout: boolean = true;
 
   // ===== CONSTRUCTOR =====
-  
   constructor(private router: Router) {
     // Suscribirse a los eventos de navegación
     this.router.events
@@ -38,8 +37,11 @@ export class AppComponent {
         filter(event => event instanceof NavigationEnd)
       )
       .subscribe((event: any) => {
-        // Verificar si la URL actual es una ruta de autenticación
-        this.showLayout = !event.url.includes('/auth');
+        // Rutas públicas donde NO se muestra el layout
+        const rutasPublicas = ['/login', '/registro'];
+
+        // Ocultar layout si la URL es login o registro
+        this.showLayout = !rutasPublicas.includes(event.url);
       });
   }
 }

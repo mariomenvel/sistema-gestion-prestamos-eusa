@@ -10,6 +10,8 @@ import { AppComponent } from './app.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
 // Auth Components
 import { LoginComponent } from './features/auth/login/login.component';
+import { RegistroComponent } from './features/auth/registro/registro.component';  // ← CORREGIDO
+
 
 // Alumno Components
 import { DashboardComponent as AlumnoDashboardComponent } from './features/alumno/dashboard/dashboard.component';
@@ -35,11 +37,14 @@ import { SidebarComponent } from './shared/components/sidebar/sidebar.component'
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/prestamo-presencial.component';
+
 @NgModule({
   declarations: [
     AppComponent,
     // Auth
     LoginComponent,
+    RegistroComponent,
+    
     // Alumno
     AlumnoDashboardComponent,
     CatalogoComponent,
@@ -60,7 +65,8 @@ import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/
     HeaderComponent,
     SidebarComponent,
     ModalComponent,
-    PrestamoPresencialComponent
+    PrestamoPresencialComponent,
+    RegistroComponent
   ],
   imports: [
     BrowserModule,

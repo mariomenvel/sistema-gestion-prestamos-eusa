@@ -1,0 +1,175 @@
+<div class="login-wrapper">
+    <div class="login-container">
+
+        <!-- Logo -->
+        <div class="login-logo">
+            <img src="assets/images/logo-eusa.png" alt="Logo EUSA">
+        </div>
+
+        <!-- Título -->
+        <div class="login-header">
+            <h1 class="login-title">Sistema Biblioteca</h1>
+            <p class="login-subtitle">Crear Cuenta</p>
+        </div>
+
+        <!-- Formulario -->
+        <form [formGroup]="registroForm" (ngSubmit)="registrarse()" class="login-form">
+
+            <!-- Nombre -->
+            <div class="form-group">
+                <label class="form-label">Nombre *</label>
+                <input type="text" class="form-input" formControlName="nombre" placeholder="Juan" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('nombre')?.invalid && registroForm.get('nombre')?.touched">
+                    El nombre es obligatorio
+                </span>
+            </div>
+
+            <!-- Apellidos -->
+            <div class="form-group">
+                <label class="form-label">Apellidos *</label>
+                <input type="text" class="form-input" formControlName="apellidos" placeholder="Sánchez Pérez" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('apellidos')?.invalid && registroForm.get('apellidos')?.touched">
+                    Los apellidos son obligatorios
+                </span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label">Email Corporativo *</label>
+                <input type="email" class="form-input" formControlName="email"
+                    placeholder="correo@eusa.es o correo@campuscamara.es" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
+                    <span *ngIf="registroForm.get('email')?.errors?.['required']">El email es obligatorio</span>
+                    <span *ngIf="registroForm.get('email')?.errors?.['email']">Email inválido</span>
+                    <span *ngIf="registroForm.get('email')?.errors?.['dominioInvalido']">Solo se permiten dominios
+                        @eusa.es o @campuscamara.es</span>
+                </span>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+                <label class="form-label">Teléfono *</label>
+                <input type="tel" class="form-input" formControlName="telefono"
+                    placeholder="+34 612345678 o 612345678" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('telefono')?.invalid && registroForm.get('telefono')?.touched">
+                    <span *ngIf="registroForm.get('telefono')?.errors?.['required']">El teléfono es obligatorio</span>
+                    <span *ngIf="registroForm.get('telefono')?.errors?.['pattern']">Formato inválido (ej: +34
+                        612345678)</span>
+                </span>
+            </div>
+
+            <!-- Tipo de Estudios -->
+            <div class="form-group">
+                <label class="form-label">Tipo de Estudios *</label>
+                <select class="form-input" formControlName="tipo_estudios">
+                    <option value="">Selecciona...</option>
+                    <option value="grado_uni">Grado Universitario</option>
+                    <option value="grado_sup">Grado Superior</option>
+                    <option value="master">Máster</option>
+                </select>
+                <span class="error-message"
+                    *ngIf="registroForm.get('tipo_estudios')?.invalid && registroForm.get('tipo_estudios')?.touched">
+                    Selecciona tu tipo de estudios
+                </span>
+            </div>
+
+            <!-- Grado -->
+            <div class="form-group">
+                <label class="form-label">Grado *</label>
+                <input type="text" class="form-input" formControlName="grado"
+                    placeholder="Ej: Desarrollo de Aplicaciones Web" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('grado')?.invalid && registroForm.get('grado')?.touched">
+                    El grado es obligatorio
+                </span>
+            </div>
+
+            <!-- Curso -->
+            <div class="form-group">
+                <label class="form-label">Curso *</label>
+                <select class="form-input" formControlName="curso">
+                    <option value="">Selecciona...</option>
+                    <option value="1">1º</option>
+                    <option value="2">2º</option>
+                    <option value="3">3º</option>
+                    <option value="4">4º</option>
+                </select>
+                <span class="error-message"
+                    *ngIf="registroForm.get('curso')?.invalid && registroForm.get('curso')?.touched">
+                    Selecciona tu curso
+                </span>
+            </div>
+
+            <!-- Fecha Inicio Estudios -->
+            <div class="form-group">
+                <label class="form-label">Fecha Inicio Estudios *</label>
+                <input type="date" class="form-input" formControlName="fecha_inicio_est" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('fecha_inicio_est')?.invalid && registroForm.get('fecha_inicio_est')?.touched">
+                    La fecha de inicio es obligatoria
+                </span>
+            </div>
+
+            <!-- Fecha Fin Prevista -->
+            <div class="form-group">
+                <label class="form-label">Fecha Fin Prevista *</label>
+                <input type="date" class="form-input" formControlName="fecha_fin_prev" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('fecha_fin_prev')?.invalid && registroForm.get('fecha_fin_prev')?.touched">
+                    <span *ngIf="registroForm.get('fecha_fin_prev')?.errors?.['required']">La fecha fin prevista es
+                        obligatoria</span>
+                    <span *ngIf="registroForm.get('fecha_fin_prev')?.errors?.['fechaFinInvalida']">Debe ser posterior a
+                        la fecha de inicio</span>
+                </span>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-group">
+                <label class="form-label">Contraseña *</label>
+                <input type="password" class="form-input" formControlName="password" placeholder="············" />
+                <span class="error-message"
+                    *ngIf="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
+                    <span *ngIf="registroForm.get('password')?.errors?.['required']">La contraseña es obligatoria</span>
+                    <span *ngIf="registroForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+                    <span *ngIf="registroForm.get('password')?.errors?.['pattern']">Debe contener letras y
+                        números</span>
+                </span>
+            </div>
+
+            <!-- Confirmar Contraseña -->
+            <div class="form-group">
+                <label class="form-label">Confirmar Contraseña *</label>
+                <input type="password" class="form-input" formControlName="confirmarPassword"
+                    placeholder="············" />
+                <span class="error-message"
+                    *ngIf="registroForm.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched">
+                    Las contraseñas no coinciden
+                </span>
+            </div>
+
+            <!-- Mensaje de error general -->
+            <div class="error-message" *ngIf="errorMessage">
+                {{ errorMessage }}
+            </div>
+
+            <!-- Botón Registrarse -->
+            <button type="submit" class="login-button" [disabled]="registroForm.invalid || registrando">
+                {{ registrando ? 'Registrando...' : 'Registrarse' }}
+            </button>
+
+            <!-- Link a Login -->
+            <div class="login-footer">
+                <p>
+                    ¿Ya tienes una cuenta?
+                    <a routerLink="/login" class="login-link">Inicia Sesión</a>
+                </p>
+            </div>
+
+        </form>
+
+    </div>
+</div>

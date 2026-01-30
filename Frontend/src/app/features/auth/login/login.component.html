@@ -1,32 +1,26 @@
 <!-- Contenedor principal con gradiente -->
 <div class="login-container">
-  
+
   <!-- Card blanco centrado -->
   <div class="login-card">
-    
+
     <!-- Logo -->
     <div class="logo">
       <img src="assets/images/logo-eusa.png" alt="Logo EUSA" class="logo-image">
     </div>
-    
+
     <!-- Títulos -->
     <h1 class="title">Gestión de Préstamos</h1>
     <p class="subtitle">Servicio Técnico</p>
 
     <!-- Formulario -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      
+
       <!-- Input Email -->
       <div class="input-group">
         <label for="email" class="input-label">Email Corporativo</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="input-field"
-          placeholder="correo@campuscamara.es"
-          [class.input-error]="email.invalid && email.touched"
-        >
+        <input id="email" type="email" formControlName="email" class="input-field" placeholder="correo@campuscamara.es"
+          [class.input-error]="email.invalid && email.touched">
         <div class="error-message" *ngIf="email.invalid && email.touched">
           <span *ngIf="email.errors?.['required']">El email es obligatorio</span>
           <span *ngIf="email.errors?.['email']">Formato de email inválido</span>
@@ -36,14 +30,8 @@
       <!-- Input Contraseña -->
       <div class="input-group">
         <label for="password" class="input-label">Contraseña</label>
-        <input
-          id="password"
-          [type]="showPassword ? 'text' : 'password'"
-          formControlName="password"
-          class="input-field"
-          placeholder="•••••••••••"
-          [class.input-error]="password.invalid && password.touched"
-        >
+        <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" class="input-field"
+          placeholder="•••••••••••" [class.input-error]="password.invalid && password.touched">
         <div class="error-message" *ngIf="password.invalid && password.touched">
           <span *ngIf="password.errors?.['required']">La contraseña es obligatoria</span>
           <span *ngIf="password.errors?.['minlength']">Mínimo 6 caracteres</span>
@@ -56,17 +44,15 @@
       </div>
 
       <!-- Botón Submit -->
-      <button 
-        type="submit" 
-        class="btn-primary"
-        [disabled]="isLoading"
-      >
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
         {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
       </button>
 
-      <!-- Link olvidaste contraseña -->
-      <div class="forgot-password">
-        <a href="#" class="link-forgot" (click)="$event.preventDefault()">¿Olvidaste la contraseña?</a>
+      <div class="login-footer">
+        <p>
+          ¿No tienes una cuenta?
+          <a routerLink="/registro" class="forgot-link">Regístrate</a>
+        </p>
       </div>
     </form>
 
