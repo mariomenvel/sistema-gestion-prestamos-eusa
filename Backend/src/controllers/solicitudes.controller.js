@@ -175,249 +175,272 @@ function aprobarSolicitud(req, res) {
   // Todos los items a prestar (originales seleccionados + adicionales)
   var itemsAPrestar = req.body.items_adicionales || [];
 
-  db.sequelize.transaction(function (t) {
-    return models.Solicitud.findByPk(solicitudId, {
-      transaction: t,
-      include: [
-        {
-          model: models.SolicitudItem,
-          as: 'items'
-        }
-      ]
-    })
-      .then(function (solicitud) {
-        if (!solicitud) throw new Error('NO_ENCONTRADA');
-        if (solicitud.estado !== 'pendiente') throw new Error('NO_PENDIENTE');
-
-        // Validar fecha según tipo
-        if (solicitud.tipo === 'prof_trabajo' && !fechaDevolucionBody) {
-          throw new Error('TIPO_A_SIN_FECHA');
-        }
-
-        // Determinar fecha a usar
-        var ahora = new Date();
-        var fechaAUsar;
-
-        if (solicitud.tipo === 'prof_trabajo') {
-          fechaAUsar = new Date(fechaDevolucionBody);
-
-          if (isNaN(fechaAUsar.getTime())) {
-            throw new Error('FECHA_INVALIDA');
-          }
-
-          if (fechaAUsar <= ahora) {
-            throw new Error('FECHA_PASADA');
-          }
-        } else {
-          fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
-        }
-
-        // Validar que hay al menos un item a prestar
-        if (!itemsAPrestar || itemsAPrestar.length === 0) {
-          throw new Error('SIN_ITEMS_SELECCIONADOS');
-        }
-
-        // Procesar todos los items enviados desde el frontend
-        var promesasItems = itemsAPrestar.map(function (item) {
-          // Si viene ejemplar_id específico
-          if (item.ejemplar_id) {
-            return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
-              .then(function (ejemplar) {
-                if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
-                if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
-                return { tipo: 'ejemplar', id: ejemplar.id };
-              });
-          }
-
-          // Si viene unidad_id específica
-          if (item.unidad_id) {
-            return models.Unidad.findByPk(item.unidad_id, { transaction: t })
-              .then(function (unidad) {
-                if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
-                if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
-                return { tipo: 'unidad', id: unidad.id };
-              });
-          }
-
-          return Promise.resolve(null);
+  var promesasValidacion = itemsAPrestar.map(function (item) {
+    if (item.ejemplar_id) {
+      return models.Ejemplar.findByPk(item.ejemplar_id)
+        .then(function (ejemplar) {
+          if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
+          if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
+          return true;
         });
-
-        return Promise.all(promesasItems).then(function (itemsEncontrados) {
-          var unidadesIds = [];
-          var ejemplaresIds = [];
-
-          itemsEncontrados.forEach(function (item) {
-            if (item && item.tipo === 'unidad') {
-              unidadesIds.push(item.id);
-            } else if (item && item.tipo === 'ejemplar') {
-              ejemplaresIds.push(item.id);
-            }
-          });
-
-          if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
-            throw new Error('SIN_ITEMS_DISPONIBLES');
-          }
-
-          return {
-            solicitud: solicitud,
-            unidadesIds: unidadesIds,
-            ejemplaresIds: ejemplaresIds,
-            fechaAUsar: fechaAUsar,
-            ahora: ahora,
-            pasId: pasId
-          };
+    }
+    if (item.unidad_id) {
+      return models.Unidad.findByPk(item.unidad_id)
+        .then(function (unidad) {
+          if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
+          if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
+          return true;
         });
-      })
-      .then(function (data) {
-        var solicitud = data.solicitud;
-        var unidadesIds = data.unidadesIds;
-        var ejemplaresIds = data.ejemplaresIds;
-        var fechaAUsar = data.fechaAUsar;
-        var ahora = data.ahora;
-        var pasId = data.pasId;
+    }
+    return Promise.resolve(true);
+  });
 
-        // 1. Crear CABECERA Préstamo
-        return models.Prestamo.create({
-          usuario_id: solicitud.usuario_id,
-          solicitud_id: solicitud.id,
-          tipo: (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b',
-          estado: 'activo',
-          fecha_inicio: ahora,
-          fecha_devolucion_prevista: fechaAUsar,
-          profesor_solicitante_id: null
-        }, { transaction: t })
-          .then(function (prestamo) {
+  return Promise.all(promesasValidacion).then(function () {
 
-            var promesasItems = [];
-
-            // 2. Procesar UNIDADES
-            unidadesIds.forEach(function (uId) {
-              var p = models.Unidad.findByPk(uId, { transaction: t })
-                .then(function (unidad) {
-                  if (!unidad) throw new Error('UNIDAD_NO_EXISTE');
-                  if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA');
-
-                  if (['funciona', 'obsoleto'].indexOf(unidad.estado_fisico) === -1) {
-                    throw new Error('UNIDAD_NO_APTA');
-                  }
-
-                  unidad.esta_prestado = true;
-                  return unidad.save({ transaction: t });
-                })
-                .then(function () {
-                  return models.PrestamoItem.create({
-                    prestamo_id: prestamo.id,
-                    unidad_id: uId,
-                    devuelto: false
-                  }, { transaction: t });
-                });
-              promesasItems.push(p);
-            });
-
-            // 3. Procesar EJEMPLARES
-            ejemplaresIds.forEach(function (eId) {
-              var p = models.Ejemplar.findByPk(eId, { transaction: t })
-                .then(function (ejemplar) {
-                  if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
-                  if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_NO_DISPONIBLE');
-
-                  ejemplar.estado = 'no_disponible';
-                  return ejemplar.save({ transaction: t });
-                })
-                .then(function () {
-                  return models.PrestamoItem.create({
-                    prestamo_id: prestamo.id,
-                    ejemplar_id: eId,
-                    devuelto: false
-                  }, { transaction: t });
-                });
-              promesasItems.push(p);
-            });
-
-            return Promise.all(promesasItems).then(function () {
-              // 4. Actualizar Solicitud
-              solicitud.estado = 'aprobada';
-              solicitud.gestionado_por_id = pasId;
-              solicitud.resuelta_en = ahora;
-              return solicitud.save({ transaction: t });
-            }).then(function () {
-              // Retornar el ID del préstamo para usarlo después
-              return prestamo.id;
-            });
-          });
-      });
-  })
-    .then(function (prestamoId) {
-      // Obtener idioma del body
-      var idioma = req.body.idioma || 'es';
-      
-      console.log('✅ Préstamo creado correctamente - ID:', prestamoId);
-      
-      // Obtener el préstamo completo con sus items y materiales
-      return models.Prestamo.findOne({
-        where: { solicitud_id: solicitudId },
+    return db.sequelize.transaction(function (t) {
+      return models.Solicitud.findByPk(solicitudId, {
+        transaction: t,
         include: [
           {
-            model: models.PrestamoItem,
-            as: 'items',
-            include: [
-              {
-                model: models.Ejemplar,
-                include: [{ model: models.Libro, as: 'libro'}]
-              },
-              {
-                model: models.Unidad,
-                include: [{ model: models.Equipo, as: 'equipo' }]
-              }
-            ]
+            model: models.SolicitudItem,
+            as: 'items'
           }
         ]
       })
-      .then(function(prestamoCompleto) {
-        if (!prestamoCompleto) {
-          return res.json({ mensaje: 'Préstamo generado correctamente' });
-        }
-        
-        // Obtener usuario
-        return models.Usuario.findByPk(prestamoCompleto.usuario_id)
-          .then(function(usuario) {
-            if (!usuario || !usuario.email) {
-              console.warn('⚠️ Usuario sin email');
+        .then(function (solicitud) {
+          if (!solicitud) throw new Error('NO_ENCONTRADA');
+          if (solicitud.estado !== 'pendiente') throw new Error('NO_PENDIENTE');
+
+          // Validar fecha según tipo
+          if (solicitud.tipo === 'prof_trabajo' && !fechaDevolucionBody) {
+            throw new Error('TIPO_A_SIN_FECHA');
+          }
+
+          // Determinar fecha a usar
+          var ahora = new Date();
+          var fechaAUsar;
+
+          if (solicitud.tipo === 'prof_trabajo') {
+            fechaAUsar = new Date(fechaDevolucionBody);
+
+            if (isNaN(fechaAUsar.getTime())) {
+              throw new Error('FECHA_INVALIDA');
+            }
+
+            if (fechaAUsar <= ahora) {
+              throw new Error('FECHA_PASADA');
+            }
+          } else {
+            fechaAUsar = DateUtils.calcularSiguienteDiaLectivo(ahora);
+          }
+
+          // Validar que hay al menos un item a prestar
+          if (!itemsAPrestar || itemsAPrestar.length === 0) {
+            throw new Error('SIN_ITEMS_SELECCIONADOS');
+          }
+
+          // Procesar todos los items enviados desde el frontend
+          var promesasItems = itemsAPrestar.map(function (item) {
+            // Si viene ejemplar_id específico
+            if (item.ejemplar_id) {
+              return models.Ejemplar.findByPk(item.ejemplar_id, { transaction: t })
+                .then(function (ejemplar) {
+                  if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE_' + item.ejemplar_id);
+                  if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_YA_PRESTADO_' + item.ejemplar_id);
+                  return { tipo: 'ejemplar', id: ejemplar.id };
+                });
+            }
+
+            // Si viene unidad_id específica
+            if (item.unidad_id) {
+              return models.Unidad.findByPk(item.unidad_id, { transaction: t })
+                .then(function (unidad) {
+                  if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + item.unidad_id);
+                  if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + item.unidad_id);
+                  return { tipo: 'unidad', id: unidad.id };
+                });
+            }
+
+            return Promise.resolve(null);
+          });
+
+          return Promise.all(promesasItems).then(function (itemsEncontrados) {
+            var unidadesIds = [];
+            var ejemplaresIds = [];
+
+            itemsEncontrados.forEach(function (item) {
+              if (item && item.tipo === 'unidad') {
+                unidadesIds.push(item.id);
+              } else if (item && item.tipo === 'ejemplar') {
+                ejemplaresIds.push(item.id);
+              }
+            });
+
+            if (unidadesIds.length === 0 && ejemplaresIds.length === 0) {
+              throw new Error('SIN_ITEMS_DISPONIBLES');
+            }
+
+            return {
+              solicitud: solicitud,
+              unidadesIds: unidadesIds,
+              ejemplaresIds: ejemplaresIds,
+              fechaAUsar: fechaAUsar,
+              ahora: ahora,
+              pasId: pasId
+            };
+          });
+        })
+        .then(function (data) {
+          var solicitud = data.solicitud;
+          var unidadesIds = data.unidadesIds;
+          var ejemplaresIds = data.ejemplaresIds;
+          var fechaAUsar = data.fechaAUsar;
+          var ahora = data.ahora;
+          var pasId = data.pasId;
+
+          // 1. Crear CABECERA Préstamo
+          return models.Prestamo.create({
+            usuario_id: solicitud.usuario_id,
+            solicitud_id: solicitud.id,
+            tipo: (solicitud.tipo === 'prof_trabajo') ? 'a' : 'b',
+            estado: 'activo',
+            fecha_inicio: ahora,
+            fecha_devolucion_prevista: fechaAUsar,
+            profesor_solicitante_id: null
+          }, { transaction: t })
+            .then(function (prestamo) {
+
+              var promesasItems = [];
+
+              // 2. Procesar UNIDADES
+              unidadesIds.forEach(function (uId) {
+                var p = models.Unidad.findByPk(uId, { transaction: t })
+                  .then(function (unidad) {
+                    if (!unidad) throw new Error('UNIDAD_NO_EXISTE_' + uId);
+                    if (unidad.esta_prestado) throw new Error('UNIDAD_YA_PRESTADA_' + uId);
+
+                    // Solo rechazar si está rota, en reparación o perdida
+                    if (['no_funciona', 'en_reparacion', 'falla', 'perdido_sustraido'].indexOf(unidad.estado_fisico) !== -1) {
+                      throw new Error('UNIDAD_NO_APTA');
+                    }
+                    unidad.esta_prestado = true;
+                    return unidad.save({ transaction: t });
+                  })
+                  .then(function () {
+                    return models.PrestamoItem.create({
+                      prestamo_id: prestamo.id,
+                      unidad_id: uId,
+                      devuelto: false
+                    }, { transaction: t });
+                  });
+                promesasItems.push(p);
+              });
+
+              // 3. Procesar EJEMPLARES
+              ejemplaresIds.forEach(function (eId) {
+                var p = models.Ejemplar.findByPk(eId, { transaction: t })
+                  .then(function (ejemplar) {
+                    if (!ejemplar) throw new Error('EJEMPLAR_NO_EXISTE');
+                    if (ejemplar.estado !== 'disponible') throw new Error('EJEMPLAR_NO_DISPONIBLE');
+
+                    ejemplar.estado = 'no_disponible';
+                    return ejemplar.save({ transaction: t });
+                  })
+                  .then(function () {
+                    return models.PrestamoItem.create({
+                      prestamo_id: prestamo.id,
+                      ejemplar_id: eId,
+                      devuelto: false
+                    }, { transaction: t });
+                  });
+                promesasItems.push(p);
+              });
+
+              return Promise.all(promesasItems).then(function () {
+                // 4. Actualizar Solicitud
+                solicitud.estado = 'aprobada';
+                solicitud.gestionado_por_id = pasId;
+                solicitud.resuelta_en = ahora;
+                return solicitud.save({ transaction: t });
+              }).then(function () {
+                // Retornar el ID del préstamo para usarlo después
+                return prestamo.id;
+              });
+            });
+        });
+    })
+      .then(function (prestamoId) {
+        // Obtener idioma del body
+        var idioma = req.body.idioma || 'es';
+
+        console.log('✅ Préstamo creado correctamente - ID:', prestamoId);
+
+        // Obtener el préstamo completo con sus items y materiales
+        return models.Prestamo.findOne({
+          where: { solicitud_id: solicitudId },
+          include: [
+            {
+              model: models.PrestamoItem,
+              as: 'items',
+              include: [
+                {
+                  model: models.Ejemplar,
+                  include: [{ model: models.Libro, as: 'libro' }]
+                },
+                {
+                  model: models.Unidad,
+                  include: [{ model: models.Equipo, as: 'equipo' }]
+                }
+              ]
+            }
+          ]
+        })
+          .then(function (prestamoCompleto) {
+            if (!prestamoCompleto) {
               return res.json({ mensaje: 'Préstamo generado correctamente' });
             }
-            
-            console.log('📧 Enviando email a:', usuario.email);
-            console.log('📦 Items en préstamo:', prestamoCompleto.items ? prestamoCompleto.items.length : 0);
-            
-            // Enviar email
-            return notificacionesHelper.enviarEmailAprobacion(usuario, prestamoCompleto, idioma)
-              .then(function(infoEmail) {
-                console.log('✅ Email enviado:', infoEmail);
-                
-                // Crear notificación
-                return notificacionesHelper.crearNotificacion({
-                  usuario_id: usuario.id,
-                  tipo: 'estado_solicitud',
-                  prestamo_id: prestamoCompleto.id,
-                  solicitud_id: prestamoCompleto.solicitud_id,
-                  payload: {
-                    accion: 'aprobada',
-                    idioma: idioma,
-                    email_enviado: true
-                  }
-                });
-              })
-              .then(function() {
-                console.log('✅ Notificación registrada');
-                res.json({ mensaje: 'Préstamo generado correctamente' });
-              })
-              .catch(function(err) {
-                console.error('❌ Error en email:', err);
-                res.json({ mensaje: 'Préstamo generado correctamente' });
+
+            // Obtener usuario
+            return models.Usuario.findByPk(prestamoCompleto.usuario_id)
+              .then(function (usuario) {
+                if (!usuario || !usuario.email) {
+                  console.warn('⚠️ Usuario sin email');
+                  return res.json({ mensaje: 'Préstamo generado correctamente' });
+                }
+
+                console.log('📧 Enviando email a:', usuario.email);
+                console.log('📦 Items en préstamo:', prestamoCompleto.items ? prestamoCompleto.items.length : 0);
+
+                // Enviar email
+                return notificacionesHelper.enviarEmailAprobacion(usuario, prestamoCompleto, idioma)
+                  .then(function (infoEmail) {
+                    console.log('✅ Email enviado:', infoEmail);
+
+                    // Crear notificación
+                    return notificacionesHelper.crearNotificacion({
+                      usuario_id: usuario.id,
+                      tipo: 'estado_solicitud',
+                      prestamo_id: prestamoCompleto.id,
+                      solicitud_id: prestamoCompleto.solicitud_id,
+                      payload: {
+                        accion: 'aprobada',
+                        idioma: idioma,
+                        email_enviado: true
+                      }
+                    });
+                  })
+                  .then(function () {
+                    console.log('✅ Notificación registrada');
+                    res.json({ mensaje: 'Préstamo generado correctamente' });
+                  })
+                  .catch(function (err) {
+                    console.error('❌ Error en email:', err);
+                    res.json({ mensaje: 'Préstamo generado correctamente' });
+                  });
               });
           });
       });
-    })
+  })
     .catch(function (error) {
       // Errores específicos
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
@@ -493,80 +516,80 @@ function rechazarSolicitud(req, res) {
 
       return solicitud.save();
     })
-   .then(function (solicitudGuardada) {
-  // Obtener idioma del body
-  var idiomaEmail = req.body.idioma || 'es';
-  
-  console.log('✅ Solicitud rechazada - Enviando email en idioma:', idiomaEmail);
-  
-  // Obtener usuario para enviar email
-  return models.Usuario.findByPk(solicitudGuardada.usuario_id)
-    .then(function(usuario) {
-      if (!usuario || !usuario.email) {
-        console.warn('⚠️ Usuario sin email, no se enviará notificación');
-        return res.json({
-          mensaje: 'Solicitud rechazada correctamente',
-          solicitud: solicitudGuardada
-        });
-      }
-      
-      // Si hay motivo_id, buscar la plantilla
-      if (motivoId) {
-        return models.MotivoRechazo.findByPk(motivoId)
-          .then(function(plantilla) {
-            if (!plantilla) {
-              console.error('❌ Plantilla de rechazo no encontrada:', motivoId);
-              return res.json({
-                mensaje: 'Solicitud rechazada correctamente',
-                solicitud: solicitudGuardada
+    .then(function (solicitudGuardada) {
+      // Obtener idioma del body
+      var idiomaEmail = req.body.idioma || 'es';
+
+      console.log('✅ Solicitud rechazada - Enviando email en idioma:', idiomaEmail);
+
+      // Obtener usuario para enviar email
+      return models.Usuario.findByPk(solicitudGuardada.usuario_id)
+        .then(function (usuario) {
+          if (!usuario || !usuario.email) {
+            console.warn('⚠️ Usuario sin email, no se enviará notificación');
+            return res.json({
+              mensaje: 'Solicitud rechazada correctamente',
+              solicitud: solicitudGuardada
+            });
+          }
+
+          // Si hay motivo_id, buscar la plantilla
+          if (motivoId) {
+            return models.MotivoRechazo.findByPk(motivoId)
+              .then(function (plantilla) {
+                if (!plantilla) {
+                  console.error('❌ Plantilla de rechazo no encontrada:', motivoId);
+                  return res.json({
+                    mensaje: 'Solicitud rechazada correctamente',
+                    solicitud: solicitudGuardada
+                  });
+                }
+
+                console.log('📧 Enviando email de rechazo a:', usuario.email, '- Plantilla:', plantilla.clave);
+
+                return notificacionesHelper.enviarEmailRechazo(usuario, solicitudGuardada, plantilla, idiomaEmail)
+                  .then(function (infoEmail) {
+                    console.log('✅ Email enviado:', infoEmail);
+
+                    // Crear notificación
+                    return notificacionesHelper.crearNotificacion({
+                      usuario_id: usuario.id,
+                      tipo: 'estado_solicitud',
+                      solicitud_id: solicitudGuardada.id,
+                      payload: {
+                        accion: 'rechazada',
+                        idioma: idiomaEmail,
+                        motivo_id: motivoId,
+                        plantilla_clave: plantilla.clave,
+                        email_enviado: true
+                      }
+                    });
+                  })
+                  .then(function () {
+                    console.log('✅ Notificación registrada en BD');
+                    res.json({
+                      mensaje: 'Solicitud rechazada correctamente',
+                      solicitud: solicitudGuardada
+                    });
+                  });
               });
-            }
-            
-            console.log('📧 Enviando email de rechazo a:', usuario.email, '- Plantilla:', plantilla.clave);
-            
-            return notificacionesHelper.enviarEmailRechazo(usuario, solicitudGuardada, plantilla, idiomaEmail)
-              .then(function(infoEmail) {
-                console.log('✅ Email enviado:', infoEmail);
-                
-                // Crear notificación
-                return notificacionesHelper.crearNotificacion({
-                  usuario_id: usuario.id,
-                  tipo: 'estado_solicitud',
-                  solicitud_id: solicitudGuardada.id,
-                  payload: {
-                    accion: 'rechazada',
-                    idioma: idiomaEmail,
-                    motivo_id: motivoId,
-                    plantilla_clave: plantilla.clave,
-                    email_enviado: true
-                  }
-                });
-              })
-              .then(function() {
-                console.log('✅ Notificación registrada en BD');
-                res.json({
-                  mensaje: 'Solicitud rechazada correctamente',
-                  solicitud: solicitudGuardada
-                });
-              });
+          } else {
+            console.warn('⚠️ No se proporcionó motivo_id, no se enviará email');
+            res.json({
+              mensaje: 'Solicitud rechazada correctamente',
+              solicitud: solicitudGuardada
+            });
+          }
+        })
+        .catch(function (emailError) {
+          console.error('❌ Error enviando email de rechazo:', emailError);
+          // No fallar la respuesta si el email falla
+          res.json({
+            mensaje: 'Solicitud rechazada correctamente',
+            solicitud: solicitudGuardada
           });
-      } else {
-        console.warn('⚠️ No se proporcionó motivo_id, no se enviará email');
-        res.json({
-          mensaje: 'Solicitud rechazada correctamente',
-          solicitud: solicitudGuardada
         });
-      }
     })
-    .catch(function(emailError) {
-      console.error('❌ Error enviando email de rechazo:', emailError);
-      // No fallar la respuesta si el email falla
-      res.json({
-        mensaje: 'Solicitud rechazada correctamente',
-        solicitud: solicitudGuardada
-      });
-    });
-})
     .catch(function (error) {
       if (error.message === 'NO_ENCONTRADA') return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
       if (error.message === 'NO_PENDIENTE') return res.status(400).json({ mensaje: 'Solo se pueden rechazar solicitudes pendientes' });
@@ -783,22 +806,24 @@ function validarLimiteTrimestral(usuarioId) {
     .then(function (configs) {
       // Mapear configs a objeto
       var cfg = {};
-      configs.forEach(c => cfg[c.clave] = c.valor); // "15-12", etc.
+      configs.forEach(function (c) { cfg[c.clave] = c.valor; });
 
       var rango = DateUtils.obtenerRangoTrimestreActual(cfg);
-      if (!rango) return true; // Si falla algo, permitimos por defecto (fail-open)
+      if (!rango) return true; // Si falla algo, permitimos por defecto
 
-      return models.Solicitud.count({
+      // CAMBIO: Contar PRÉSTAMOS tipo 'b' (uso propio) en el trimestre actual
+      return models.Prestamo.count({
         where: {
           usuario_id: usuarioId,
-          tipo: 'uso_propio',
-          creada_en: {
+          tipo: 'b', // Tipo B = Uso Propio
+          fecha_inicio: {
             [Sequelize.Op.gte]: rango.inicio,
             [Sequelize.Op.lte]: rango.fin
-          },
-          estado: { [Sequelize.Op.ne]: 'cancelada' } // Ignorar canceladas?
+          }
+          // No filtrar por estado - todos los préstamos cuentan (activos, cerrados, vencidos)
         }
       }).then(function (count) {
+        console.log('📊 Préstamos tipo B del usuario', usuarioId, 'este trimestre:', count, '/ 5');
         return count < 5;
       });
     });

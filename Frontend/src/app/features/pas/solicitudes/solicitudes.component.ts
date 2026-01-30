@@ -45,11 +45,13 @@ export class SolicitudesComponent implements OnInit {
   solicitudSeleccionada: Solicitud | null = null;
 
   // Datos del modal aprobar
+  aprobandoSolicitud: boolean = false;
   fechaDevolucion: string = '';
   idiomaEmailAprobacion: string = 'es'; // 'es' o 'en'
 
 
   // Datos del modal rechazar
+  rechazandoSolicitud: boolean = false;
   motivoRechazo: string = '';
   idiomaEmailRechazo: string = 'es';
   motivosRechazo: any[] = [];
@@ -77,6 +79,15 @@ export class SolicitudesComponent implements OnInit {
   // ===== GESTIÓN DE ITEMS DE LA SOLICITUD =====
   itemsSolicitudConDisponibilidad: ItemDisponibilidad[] = [];
   cargandoDisponibilidad: boolean = false;
+
+  // ===== MODAL DETALLES MATERIALES ===== 
+  mostrarModalDetallesMateriales: boolean = false;
+  materialesDetalles: any[] = [];
+  solicitudDetallesMateriales: Solicitud | null = null;
+
+  // ===== MODAL PERFIL USUARIO =====
+  mostrarModalPerfil: boolean = false;
+  usuarioPerfilSeleccionado: any = null;
 
   // ===== CONSTRUCTOR =====
 
@@ -122,6 +133,99 @@ export class SolicitudesComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+
+  /**
+   * Abre el modal con los detalles de los materiales de una solicitud
+   */
+  verMaterialesSolicitud(solicitud: Solicitud, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const items = this.getItemsSolicitud(solicitud);
+
+    if (!items || items.length === 0) {
+      return;
+    }
+
+    this.solicitudDetallesMateriales = solicitud;
+    this.materialesDetalles = items;
+    this.mostrarModalDetallesMateriales = true;
+  }
+
+  /**
+   * Cierra el modal de detalles de materiales
+   */
+  cerrarModalDetallesMateriales(): void {
+    this.mostrarModalDetallesMateriales = false;
+    this.materialesDetalles = [];
+    this.solicitudDetallesMateriales = null;
+  }
+
+  /**
+   * Obtiene el código de barras de un item
+   */
+getCodigoItem(item: any): string {
+  console.log('🔍 Item completo:', item);
+  
+  // Para solicitudes, la estructura puede ser diferente
+  // Intentar varias posibilidades:
+  
+  // Opción 1: item.Ejemplar.codigo_barra
+  if (item.Ejemplar && item.Ejemplar.codigo_barra) {
+    return item.Ejemplar.codigo_barra;
+  }
+  
+  // Opción 2: item.Unidad.codigo_barra
+  if (item.Unidad && item.Unidad.codigo_barra) {
+    return item.Unidad.codigo_barra;
+  }
+  
+  // Opción 3: item.codigo_barra directamente
+  if (item.codigo_barra) {
+    return item.codigo_barra;
+  }
+  
+  // Opción 4: Si es libro, buscar en item.ejemplar_id (minúscula)
+  if (item.Libro && item.ejemplar_id) {
+    return `EJ-${item.ejemplar_id}`;
+  }
+  
+  // Opción 5: Si es equipo, buscar en item.unidad_id (minúscula)
+  if (item.Equipo && item.unidad_id) {
+    return `UN-${item.unidad_id}`;
+  }
+  
+  return '-';
+}
+
+  /**
+   * Abre el modal de perfil del usuario
+   */
+  abrirPerfilAlumno(solicitud: Solicitud, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const usuario = (solicitud as any).Usuario || solicitud.usuario;
+
+    if (!usuario || !usuario.id) {
+      console.warn('⚠️ No se pudo obtener el usuario');
+      return;
+    }
+
+    this.usuarioPerfilSeleccionado = usuario;
+    this.mostrarModalPerfil = true;
+  }
+
+  /**
+   * Cierra el modal de perfil
+   */
+  cerrarModalPerfil(): void {
+    this.mostrarModalPerfil = false;
+    this.usuarioPerfilSeleccionado = null;
+  }
+
   /**
    * Cambia la columna de ordenación o la dirección
    */
@@ -145,6 +249,7 @@ export class SolicitudesComponent implements OnInit {
     this.limpiarBusquedaMaterial();
     this.itemsSolicitudConDisponibilidad = [];
     this.idiomaEmailAprobacion = 'es';
+    this.aprobandoSolicitud = false;
     this.mostrarModalAprobar = true;
 
     // Cargar disponibilidad de los items
@@ -152,6 +257,11 @@ export class SolicitudesComponent implements OnInit {
   }
 
   confirmarAprobacion(): void {
+    //  PROTECCIÓN CONTRA DOBLE CLIC
+    if (this.aprobandoSolicitud) {
+      return;
+    }
+
     if (!this.solicitudSeleccionada) {
       return;
     }
@@ -210,8 +320,12 @@ export class SolicitudesComponent implements OnInit {
 
     console.log('📤 Enviando aprobación:', datosAprobacion);
 
+    // ACTIVAR PROTECCIÓN
+    this.aprobandoSolicitud = true;
+
     this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
       next: () => {
+        this.aprobandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
         console.log('✅ Solicitud aprobada');
         this.mostrarNotificacion(
           'exito',
@@ -223,19 +337,32 @@ export class SolicitudesComponent implements OnInit {
           this.cargarSolicitudes();
         }, 500);
       },
-      error: (err: any) => {
-        console.error('❌ Error al aprobar solicitud:', err);
-        let mensajeError = 'Error al aprobar la solicitud';
-        if (err.error && err.error.mensaje) {
-          mensajeError = err.error.mensaje;
-        }
-        this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
-      }
+     error: (err: any) => {
+  this.aprobandoSolicitud = false;
+  console.error('❌ Error al aprobar solicitud:', err);
+  
+  // Intentar obtener el mensaje de error más específico
+  let mensajeError = 'Error al aprobar la solicitud';
+  
+  if (err.message) {
+    // Si el error tiene message directamente
+    mensajeError = err.message;
+  } else if (err.error && err.error.mensaje) {
+    // Si viene en err.error.mensaje
+    mensajeError = err.error.mensaje;
+  } else if (err.error && typeof err.error === 'string') {
+    // Por si el error es un string directamente
+    mensajeError = err.error;
+  }
+  
+  this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
+}
     });
   }
 
   cerrarModalAprobar(): void {
     this.mostrarModalAprobar = false;
+    this.aprobandoSolicitud = false;
     this.solicitudSeleccionada = null;
     this.fechaDevolucion = '';
     this.itemsAdicionales = [];
@@ -354,6 +481,7 @@ export class SolicitudesComponent implements OnInit {
 
   abrirModalRechazar(solicitud: Solicitud): void {
     this.solicitudSeleccionada = solicitud;
+    this.rechazandoSolicitud = false;
     this.idiomaEmailRechazo = 'es';
     this.motivoSeleccionado = null;
     this.mostrarModalRechazar = true;
@@ -363,6 +491,11 @@ export class SolicitudesComponent implements OnInit {
   }
 
   confirmarRechazo(): void {
+    // PROTECCIÓN CONTRA DOBLE CLIC
+    if (this.rechazandoSolicitud) {
+      return;
+    }
+
     if (!this.solicitudSeleccionada) return;
 
     if (!this.motivoSeleccionado) {
@@ -375,12 +508,18 @@ export class SolicitudesComponent implements OnInit {
       idioma: this.idiomaEmailRechazo
     };
 
+    // ACTIVAR PROTECCIÓN
+    this.rechazandoSolicitud = true;
+
     this.solicitudesService.rechazarSolicitud(this.solicitudSeleccionada.id, datosRechazo).subscribe({
       next: () => {
-this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email al alumno');        this.mostrarModalRechazar = false;
+        this.rechazandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
+        this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email al alumno');
+        this.mostrarModalRechazar = false;
         this.cargarSolicitudes();
       },
       error: (err) => {
+        this.rechazandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
         console.error('❌ Error al rechazar:', err);
         this.mostrarNotificacion('error', 'Error', err.message || 'No se pudo rechazar la solicitud');
       }
@@ -406,40 +545,48 @@ this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email
     return 'Usuario desconocido';
   }
 
-  getNombreMaterial(solicitud: Solicitud): string {
-    const items = (solicitud as any).items;
-    if (!items || items.length === 0) {
-      return 'Material desconocido';
-    }
+ /**
+ * Obtiene el nombre de un item (maneja estructuras de solicitudes y préstamos)
+ */
+getNombreItem(item: any): string {
+  // Estructura de SOLICITUDES: item.Libro o item.Equipo
+  if (item.Libro) {
+    return item.Libro.titulo || 'Libro sin título';
+  }
+  if (item.Equipo) {
+    return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
+  }
+  
+  // Estructura de PRÉSTAMOS: item.Ejemplar.Libro o item.Unidad.equipo
+  if (item.Ejemplar && item.Ejemplar.Libro) {
+    return item.Ejemplar.Libro.titulo || 'Libro sin título';
+  }
+  if (item.Unidad && item.Unidad.equipo) {
+    const marca = item.Unidad.equipo.marca || '';
+    const modelo = item.Unidad.equipo.modelo || '';
+    return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
+  }
+  
+  return 'Material desconocido';
+}
 
-    const primerItem = items[0];
-
-    if (primerItem.Libro) {
-      return primerItem.Libro.titulo || 'Libro sin título';
-    }
-
-    if (primerItem.Equipo) {
-      const marca = primerItem.Equipo.marca || '';
-      const modelo = primerItem.Equipo.modelo || '';
-      return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
-    }
-
+/**
+ * Obtiene el nombre del primer material de una solicitud
+ */
+getNombreMaterial(solicitud: Solicitud): string {
+  const items = (solicitud as any).items;
+  if (!items || items.length === 0) {
     return 'Material desconocido';
   }
+  
+  // Reutilizar getNombreItem
+  return this.getNombreItem(items[0]);
+}
 
   getItemsSolicitud(solicitud: Solicitud): any[] {
     return (solicitud as any).items || [];
   }
 
-  getNombreItem(item: any): string {
-    if (item.Libro) {
-      return item.Libro.titulo || 'Libro sin título';
-    }
-    if (item.Equipo) {
-      return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
-    }
-    return 'Material desconocido';
-  }
 
   getTipoItem(item: any): string {
     if (item.Libro) return 'Libro';
@@ -479,7 +626,7 @@ this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email
       return '0 items';
     }
     const cantidad = items.length;
-    const plural = cantidad === 1 ? 'item' : 'items';
+    const plural = cantidad === 1 ? 'material' : 'materiales';
     return `${cantidad} ${plural}`;
   }
 
@@ -551,7 +698,7 @@ this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email
     });
   }
 
-  aplicarFiltros(): void {
+ aplicarFiltros(): void {
     let resultado = [...this.solicitudes];
 
     if (this.filtroEstadoActivo !== 'todas') {
@@ -567,8 +714,17 @@ this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email
       resultado = resultado.filter(s => {
         const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
         const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
+        
+        // Buscar también en TODOS los materiales de la solicitud
+        const items = this.getItemsSolicitud(s);
+        const coincideMaterial = items.some(item => {
+          const nombreItem = this.normalizarTexto(this.getNombreItem(item));
+          return nombreItem.includes(textoNormalizado);
+        });
+        
         return nombreUsuario.includes(textoNormalizado) ||
-          nombreMaterial.includes(textoNormalizado);
+               nombreMaterial.includes(textoNormalizado) ||
+               coincideMaterial;
       });
     }
 
@@ -595,7 +751,6 @@ this.mostrarNotificacion('exito', 'Solicitud rechazada', 'Se ha enviado el email
     // 4. Aplicar ordenación
     this.aplicarOrdenacion(resultado);
   }
-
   /**
    * Lógica interna de ordenación
    */

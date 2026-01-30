@@ -57,34 +57,42 @@ export class ApiService {
   /**
    * Formatea errores HTTP
    */
-  private formatErrors(error: HttpErrorResponse): Observable<never> {
-    console.error('Error en la API:', error);
-    
-    let errorMessage = 'Error desconocido';
-    
-    if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Error del lado del servidor
-      switch (error.status) {
-        case 400:
-          errorMessage = 'Solicitud incorrecta.';
-          break;
-        case 401:
-          errorMessage = 'No autorizado. Por favor, inicia sesión.';
-          break;
-        case 404:
-          errorMessage = 'Recurso no encontrado.';
-          break;
-        case 500:
-          errorMessage = 'Error al obtener ' + error.url?.split('/').pop();
-          break;
-        default:
-          errorMessage = `Error del servidor: ${error.status}`;
-      }
-    }
-    
-    return throwError(() => new Error(errorMessage));
+private formatErrors(error: HttpErrorResponse): Observable<never> {
+  console.error('❌ Error en la API:', error);
+  
+  let errorMessage = 'Ha ocurrido un error';
+  
+  // Prioridad 1: Mensaje del backend
+  if (error.error && error.error.mensaje) {
+    errorMessage = error.error.mensaje;
   }
+  // Prioridad 2: Mensaje de error HTTP estándar
+  else if (error.message) {
+    errorMessage = error.message;
+  }
+  // Prioridad 3: Mensaje genérico según el código
+  else {
+    switch (error.status) {
+      case 400:
+        errorMessage = 'Solicitud incorrecta';
+        break;
+      case 401:
+        errorMessage = 'No autorizado';
+        break;
+      case 403:
+        errorMessage = 'Acceso denegado';
+        break;
+      case 404:
+        errorMessage = 'No encontrado';
+        break;
+      case 500:
+        errorMessage = 'Error del servidor';
+        break;
+      default:
+        errorMessage = `Error ${error.status}`;
+    }
+  }
+  
+  return throwError(() => ({ message: errorMessage, status: error.status }));
+} 
 }

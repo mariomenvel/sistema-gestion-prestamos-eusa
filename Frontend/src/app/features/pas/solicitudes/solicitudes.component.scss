@@ -199,8 +199,10 @@ $font-family: 'Inter', sans-serif;
   border: 2px solid $color-border;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-
   overflow: hidden;
+  
+   max-height: calc(100vh - 350px); // Ajusta según tu layout
+  overflow-y: auto;
 }
 
 // Header de la tabla
@@ -280,11 +282,36 @@ $font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 17px;
   letter-spacing: -0.03em;
+  justify-content: center;
   color: $color-text-primary;
 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.link-alumno {
+  color: $color-primary-blue;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($color-primary-blue, 10%);
+  }
+  .link-materiales {
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary-blue;
+    text-decoration: underline;
+  }
+}
 }
 
 // ========================================
@@ -781,6 +808,331 @@ $font-family: 'Inter', sans-serif;
 }
 
 // ========================================
+// ENLACES CLICKEABLES
+// ========================================
+
+.link-alumno {
+  color: $color-primary-blue;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($color-primary-blue, 10%);
+  }
+}
+
+.link-materiales {
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary-blue;
+    text-decoration: underline;
+  }
+}
+
+// ========================================
+// MODAL DETALLE MATERIALES
+// ========================================
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  position: relative;
+  width: 500px;
+  max-height: 90vh;
+  background: $color-white;
+  border: 3px solid #999999;
+  border-radius: 12px;
+  box-shadow: 0px 12px 48px rgba(0, 0, 0, 0.35);
+  padding: 40px 24px 24px 24px;
+  overflow-y: auto;
+}
+
+.btn-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: $color-info-blue-light;
+  border: 1px solid $color-primary-blue;
+  border-radius: 16px;
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 22px;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: darken($color-info-blue-light, 5%);
+  }
+}
+
+.modal-header {
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29px;
+  color: $color-primary-blue;
+  margin: 0;
+}
+
+.modal-alumno {
+  padding: 12px 16px;
+  background: $color-bg-gray;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.alumno-label {
+  font-family: $font-family;
+  font-size: 12px;
+  font-weight: 500;
+  color: $color-text-secondary;
+  margin-right: 8px;
+}
+
+.alumno-nombre {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-primary;
+}
+
+.materiales-lista {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.material-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: $color-bg-gray;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.material-numero {
+  width: 28px;
+  height: 28px;
+  background: $color-primary-blue;
+  color: $color-white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.material-info {
+  flex: 1;
+}
+
+.material-nombre {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-primary;
+  margin-bottom: 6px;
+}
+
+.material-detalles {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.material-tipo {
+  font-family: $font-family;
+  font-size: 12px;
+  font-weight: 500;
+  color: $color-primary-blue;
+  background: $color-info-blue-light;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.material-codigo {
+  font-family: $font-family;
+  font-size: 12px;
+  color: $color-text-secondary;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid $color-border;
+}
+
+.btn-cerrar-modal {
+  padding: 12px 32px;
+  background: $color-primary-blue;
+  border: none;
+  border-radius: 6px;
+  color: $color-white;
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: darken($color-primary-blue, 10%);
+    box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
+  }
+}
+// ========================================
+// MODAL PERFIL USUARIO
+// ========================================
+
+.perfil-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.perfil-card {
+  background: $color-bg-gray;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.perfil-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: $color-primary-blue;
+  color: $color-white;
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.perfil-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.perfil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.perfil-label {
+  font-family: $font-family;
+  font-weight: 500;
+  font-size: 12px;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.perfil-value {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 14px;
+  color: $color-text-primary;
+}
+
+.perfil-codigo {
+  font-family: 'Courier New', monospace;
+  background: $color-white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid $color-border;
+  width: fit-content;
+}
+
+.perfil-badge {
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  width: fit-content;
+  text-transform: uppercase;
+
+  &.activo {
+    background: #D4EDDA;
+    color: #155724;
+  }
+
+  &.bloqueado {
+    background: #F8D7DA;
+    color: #721C24;
+  }
+
+  &.inactivo {
+    background: #E2E3E5;
+    color: #383D41;
+  }
+}
+
+// ========================================
+// ALINEACIÓN COLUMNA ESTADO
+// ========================================
+
+.th-estado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.td-estado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// ========================================
 // BOTONES DEL MODAL
 // ========================================
 
@@ -822,7 +1174,6 @@ $font-family: 'Inter', sans-serif;
 
 .btn-confirmar {
   min-width: 136px;
-
   border: none;
   color: $color-white;
 
@@ -830,10 +1181,18 @@ $font-family: 'Inter', sans-serif;
     background: #28A745;
     box-shadow: 0px 4px 16px rgba(40, 167, 69, 0.25);
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: darken(#28A745, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(40, 167, 69, 0.35);
+    }
+
+    &:disabled {
+      background: $color-border !important;
+      color: $color-text-disabled !important;
+      cursor: not-allowed !important;
+      opacity: 0.7;
+      box-shadow: none !important;
     }
   }
 
@@ -841,14 +1200,22 @@ $font-family: 'Inter', sans-serif;
     background: #DC3545;
     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.25);
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: darken(#DC3545, 8%);
       transform: translateY(-2px);
       box-shadow: 0px 6px 20px rgba(220, 53, 69, 0.35);
     }
+
+    &:disabled {
+      background: $color-border !important;
+      color: $color-text-disabled !important;
+      cursor: not-allowed !important;
+      opacity: 0.7;
+      box-shadow: none !important;
+    }
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(0);
   }
 }

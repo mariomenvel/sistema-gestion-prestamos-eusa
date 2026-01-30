@@ -104,14 +104,16 @@
 
         <!-- Columna: Alumno -->
         <div class="td td-alumno">
-          {{ getNombreUsuario(solicitud) }}
+          <a class="link-alumno" (click)="abrirPerfilAlumno(solicitud, $event)">
+            {{ getNombreUsuario(solicitud) }}
+          </a>
         </div>
-
         <!-- Columna: Materiales -->
         <div class="td td-materiales">
-          {{ getContadorMateriales(solicitud) }}
+          <a class="link-materiales" (click)="verMaterialesSolicitud(solicitud, $event)">
+            {{ getContadorMateriales(solicitud) }}
+          </a>
         </div>
-
         <!-- Columna: Tipo -->
         <div class="td td-tipo">
           {{ getTipoTexto(solicitud.tipo) }}
@@ -325,40 +327,30 @@
     </div>
 
     <!-- Selector de idioma para email -->
-<div class="form-group">
-  <label class="form-label">
-    Idioma del email
-  </label>
-  <div class="idioma-selector-compact">
-    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'es'">
-      <input 
-        type="radio" 
-        name="idiomaAprobacion" 
-        value="es" 
-        [(ngModel)]="idiomaEmailAprobacion"
-      />
-      <span>ES</span>
-    </label>
-    
-    <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'en'">
-      <input 
-        type="radio" 
-        name="idiomaAprobacion" 
-        value="en" 
-        [(ngModel)]="idiomaEmailAprobacion"
-      />
-      <span>EN</span>
-    </label>
-  </div>
-</div>
+    <div class="form-group">
+      <label class="form-label">
+        Idioma del email
+      </label>
+      <div class="idioma-selector-compact">
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'es'">
+          <input type="radio" name="idiomaAprobacion" value="es" [(ngModel)]="idiomaEmailAprobacion" />
+          <span>ES</span>
+        </label>
+
+        <label class="idioma-option-compact" [class.selected]="idiomaEmailAprobacion === 'en'">
+          <input type="radio" name="idiomaAprobacion" value="en" [(ngModel)]="idiomaEmailAprobacion" />
+          <span>EN</span>
+        </label>
+      </div>
+    </div>
 
     <!-- Botones -->
     <div class="modal-actions">
       <button class="btn-cancelar" (click)="cerrarModalAprobar()">
         Cancelar
       </button>
-      <button class="btn-confirmar success" (click)="confirmarAprobacion()">
-        Confirmar Aprobación
+      <button class="btn-confirmar success" (click)="confirmarAprobacion()" [disabled]="aprobandoSolicitud">
+        {{ aprobandoSolicitud ? 'Aprobando...' : 'Aprobar Solicitud' }}
       </button>
     </div>
 
@@ -369,93 +361,62 @@
 <div class="modal-overlay" *ngIf="mostrarModalRechazar" (click)="cerrarModalRechazar()">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
-    <!-- Botón cerrar -->
     <button class="btn-cerrar" (click)="cerrarModalRechazar()">✕</button>
 
-    <!-- Título -->
     <h2 class="modal-title">Rechazar Solicitud</h2>
 
-    <!-- Información de la solicitud -->
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
-
       <div class="info-row">
         <div class="info-item">
           <span class="info-label">Alumno:</span>
           <span class="info-value">{{ getNombreUsuario(solicitudSeleccionada) }}</span>
         </div>
-
         <div class="info-item">
           <span class="info-label">Tipo:</span>
           <span class="info-value">{{ getTipoTexto(solicitudSeleccionada.tipo) }}</span>
         </div>
       </div>
-
       <div class="info-row">
         <div class="info-item">
           <span class="info-label">Material:</span>
           <span class="info-value">{{ getNombreMaterial(solicitudSeleccionada) }}</span>
         </div>
-
         <div class="info-item">
           <span class="info-label">Fecha Solicitud:</span>
           <span class="info-value">{{ formatearFecha(solicitudSeleccionada.creada_en) }}</span>
         </div>
       </div>
-
     </div>
 
-    <!-- NUEVO: Selector de idioma -->
     <div class="campo-idioma">
       <label class="campo-label">Idioma del email</label>
       <div class="idioma-selector-compact">
         <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'es'">
-          <input 
-            type="radio" 
-            name="idiomaRechazo" 
-            value="es" 
-            [(ngModel)]="idiomaEmailRechazo"
-          />
+          <input type="radio" name="idiomaRechazo" value="es" [(ngModel)]="idiomaEmailRechazo" />
           <span>ES</span>
         </label>
-        
         <label class="idioma-option-compact" [class.selected]="idiomaEmailRechazo === 'en'">
-          <input 
-            type="radio" 
-            name="idiomaRechazo" 
-            value="en" 
-            [(ngModel)]="idiomaEmailRechazo"
-          />
+          <input type="radio" name="idiomaRechazo" value="en" [(ngModel)]="idiomaEmailRechazo" />
           <span>EN</span>
         </label>
       </div>
     </div>
 
-    <!-- NUEVO: Selector de plantilla -->
     <div class="campo-motivo">
       <label class="campo-label">
         Plantilla de rechazo <span class="required">*</span>
       </label>
-      
       <div class="loading-motivos" *ngIf="cargandoMotivos">
         Cargando plantillas...
       </div>
-      
-      <select 
-        class="campo-select"
-        [(ngModel)]="motivoSeleccionado"
-        *ngIf="!cargandoMotivos"
-      >
+      <select class="campo-select" [(ngModel)]="motivoSeleccionado" *ngIf="!cargandoMotivos">
         <option [ngValue]="null">Selecciona un motivo</option>
-        <option 
-          *ngFor="let motivo of motivosRechazo" 
-          [ngValue]="motivo"
-        >
+        <option *ngFor="let motivo of motivosRechazo" [ngValue]="motivo">
           {{ idiomaEmailRechazo === 'en' ? motivo.titulo_en : motivo.titulo_es }}
         </option>
       </select>
     </div>
 
-    <!-- NUEVO: Preview del email -->
     <div class="preview-email" *ngIf="motivoSeleccionado">
       <label class="campo-label">Vista previa del email</label>
       <div class="preview-contenido">
@@ -468,18 +429,128 @@
       </div>
     </div>
 
-    <!-- Botones -->
     <div class="modal-actions">
       <button class="btn-cancelar" (click)="cerrarModalRechazar()">
         Cancelar
       </button>
-      <button 
-        class="btn-confirmar danger" 
-        (click)="confirmarRechazo()"
-        [disabled]="!motivoSeleccionado"
-      >
-        Confirmar Rechazo
+      <button class="btn-confirmar danger" (click)="confirmarRechazo()"
+        [disabled]="!motivoSeleccionado || rechazandoSolicitud">
+        {{ rechazandoSolicitud ? 'Rechazando...' : 'Confirmar Rechazo' }}
       </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLES DE MATERIALES -->
+<div class="modal-overlay" *ngIf="mostrarModalDetallesMateriales" (click)="cerrarModalDetallesMateriales()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalDetallesMateriales()">✕</button>
+
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Materiales de la Solicitud</h2>
+    </div>
+
+    <!-- Info del alumno -->
+    <div class="modal-alumno" *ngIf="solicitudDetallesMateriales">
+      <span class="alumno-label">Alumno:</span>
+      <span class="alumno-nombre">{{ getNombreUsuario(solicitudDetallesMateriales) }}</span>
+    </div>
+
+    <!-- Lista de materiales -->
+    <div class="materiales-lista">
+      <div class="material-item" *ngFor="let item of materialesDetalles; let i = index">
+        <div class="material-numero">{{ i + 1 }}</div>
+        <div class="material-info">
+          <div class="material-nombre">{{ getNombreItem(item) }}</div>
+          <div class="material-detalles">
+            <span class="material-tipo">{{ getTipoItem(item) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cerrar-modal" (click)="cerrarModalDetallesMateriales()">Cerrar</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL PERFIL USUARIO -->
+<div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <!-- Botón cerrar -->
+    <button class="btn-cerrar" (click)="cerrarModalPerfil()">✕</button>
+
+    <!-- Header del modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">Perfil del Alumno</h2>
+    </div>
+
+    <!-- Info del usuario -->
+    <div class="perfil-contenido" *ngIf="usuarioPerfilSeleccionado">
+      
+      <!-- Card: Información Personal -->
+      <div class="perfil-card">
+        <div class="perfil-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Información Personal</span>
+        </div>
+        <div class="perfil-card-body">
+          <div class="perfil-field">
+            <span class="perfil-label">Nombre completo</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.nombre }} {{ usuarioPerfilSeleccionado.apellidos }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Email</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.email }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Teléfono</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.telefono || 'No especificado' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Datos Académicos -->
+      <div class="perfil-card">
+        <div class="perfil-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+          <span>Datos Académicos</span>
+        </div>
+        <div class="perfil-card-body">
+          <div class="perfil-field">
+            <span class="perfil-label">Código de tarjeta</span>
+            <span class="perfil-value perfil-codigo">{{ usuarioPerfilSeleccionado.codigo_tarjeta || 'Sin asignar' }}</span>
+          </div>
+          <div class="perfil-field">
+            <span class="perfil-label">Estado del perfil</span>
+            <span class="perfil-badge" [class.activo]="usuarioPerfilSeleccionado.estado_perfil === 'activo'"
+                  [class.bloqueado]="usuarioPerfilSeleccionado.estado_perfil === 'bloqueado'"
+                  [class.inactivo]="usuarioPerfilSeleccionado.estado_perfil === 'inactivo'">
+              {{ usuarioPerfilSeleccionado.estado_perfil || 'Desconocido' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-cerrar-modal" (click)="cerrarModalPerfil()">Cerrar</button>
     </div>
 
   </div>
@@ -487,4 +558,5 @@
 
 <!-- MODAL DE NOTIFICACIONES -->
 <app-modal [mostrar]="mostrarModalNotificacion" [tipo]="tipoModalNotificacion" [titulo]="tituloModalNotificacion"
-  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'" (cerrar)="cerrarModalNotificacion()"></app-modal>
+  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'"
+  (cerrar)="cerrarModalNotificacion()"></app-modal>

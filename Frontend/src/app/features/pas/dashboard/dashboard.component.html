@@ -33,21 +33,21 @@
 
   </div>
 
-  <!-- Sección de préstamos activos -->
+  <!-- Sección de solicitudes pendientes -->
   <div class="prestamos-section">
     
     <!-- Título de sección -->
     <h2 class="section-title">Solicitudes Pendientes</h2>
 
-    <!-- Tabla de préstamos -->
+    <!-- Tabla de solicitudes -->
     <div class="prestamos-table">
       
       <!-- Header de la tabla -->
       <div class="table-header">
         <div class="th th-alumno">Alumno</div>
         <div class="th th-material">Material</div>
-        <div class="th th-tipo">Tipo de Solicitud</div>
-        <div class="th th-fecha-solicitud">Fecha de Solicitud</div>
+        <div class="th th-tipo">Tipo</div>
+        <div class="th th-fecha-solicitud">Fecha Solicitud</div>
         <div class="th th-estado">Estado</div>
       </div>
 
@@ -55,24 +55,24 @@
       <div class="table-body">
         
         <!-- Loading -->
-        <div class="empty-state" *ngIf="isLoadingPrestamos">
+        <div class="empty-state" *ngIf="isLoadingSolicitudes">
           <p>Cargando solicitudes...</p>
         </div>
 
         <!-- Error -->
-        <div class="empty-state error" *ngIf="errorMessagePrestamos">
-          <p>{{ errorMessagePrestamos }}</p>
+        <div class="empty-state error" *ngIf="errorMessageSolicitudes">
+          <p>{{ errorMessageSolicitudes }}</p>
         </div>
 
         <!-- Sin solicitudes pendientes -->
-        <div class="empty-state" *ngIf="!isLoadingPrestamos && !errorMessagePrestamos && prestamosActivosData.length === 0">
-          <p>No hay solicitudes pendientes</p>
+        <div class="empty-state" *ngIf="!isLoadingSolicitudes && !errorMessageSolicitudes && solicitudesPendientesData.length === 0">
+          <p>✓ No hay solicitudes pendientes</p>
         </div>
 
         <!-- Filas de solicitudes -->
         <div 
           class="table-row" 
-          *ngFor="let solicitud of prestamosActivosData"
+          *ngFor="let solicitud of solicitudesPendientesData"
         >
           <!-- Columna: Alumno -->
           <div class="td td-alumno">
@@ -82,18 +82,18 @@
           <!-- Columna: Material -->
           <div class="td td-material">
             <div class="material-info">
-              <span>{{ getNombreMaterial(solicitud) }}</span>
+              <span>{{ getContadorMateriales(solicitud) }}</span>
             </div>
           </div>
 
-          <!-- Columna: Tipo de Solicitud -->
+          <!-- Columna: Tipo -->
           <div class="td td-tipo">
             {{ getTipoTexto(solicitud.tipo) }}
           </div>
 
           <!-- Columna: Fecha de Solicitud -->
           <div class="td td-fecha-solicitud">
-            {{ formatearFecha(solicitud.fecha_inicio) }}
+            {{ formatearFecha(solicitud.creada_en) }}
           </div>
 
           <!-- Columna: Estado -->
@@ -111,7 +111,7 @@
 
     </div>
 
-<!-- Botones de acción -->
+    <!-- Botones de acción -->
     <div class="botones-accion">
       <button 
         class="btn-ver-solicitudes"
@@ -124,7 +124,7 @@
         class="btn-prestamo-presencial"
         (click)="realizarPrestamoPresencial()"
       >
-        Crear Préstamo 
+        Crear Préstamo Presencial
       </button>
     </div>
 

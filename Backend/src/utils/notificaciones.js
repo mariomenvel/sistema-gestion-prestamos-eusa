@@ -80,9 +80,16 @@ function enviarEmailAprobacion(usuario, prestamo, idioma) {
             var nombreMaterial = '';
             var codigoBarra = '';
 
-            if (item.Unidad) {
+            if (item.Ejemplar) {
+                nombreMaterial = item.Ejemplar.libro ? item.Ejemplar.libro.titulo : 'Libro';
+                codigoBarra = item.Ejemplar.codigo_barra;
+            } else if (item.Unidad) {
                 if (item.Unidad.equipo) {
-                    nombreMaterial = (item.Unidad.equipo.marca + ' ' + item.Unidad.equipo.modelo).trim() || 'Equipo';
+                    // Construir nombre con marca + modelo
+                    nombreMaterial = (item.Unidad.equipo.marca + ' ' + item.Unidad.equipo.modelo).trim();
+                    if (!nombreMaterial) {
+                        nombreMaterial = 'Equipo';
+                    }
                 } else {
                     nombreMaterial = 'Equipo';
                 }
