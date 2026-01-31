@@ -234,7 +234,9 @@ export class UsuariosComponent implements OnInit {
       tipo_estudios: usuario.tipo_estudios || '',
       fecha_inicio_est: usuario.fecha_inicio_est || '',
       fecha_fin_prev: usuario.fecha_fin_prev || '',
-      estado_perfil: usuario.estado_perfil || 'activo'
+      estado_perfil: usuario.estado_perfil || 'activo',
+     grado: usuario.grado || '', 
+    curso: usuario.curso || ''   
     });
 
     this.mostrarModal = true;
@@ -330,7 +332,9 @@ export class UsuariosComponent implements OnInit {
       tipo_estudios: [''],
       fecha_inicio_est: [''],
       fecha_fin_prev: [''],
-      estado_perfil: ['activo', Validators.required]
+      estado_perfil: ['activo', Validators.required],
+      grado: [''],  
+    curso: [''] 
     });
   }
 

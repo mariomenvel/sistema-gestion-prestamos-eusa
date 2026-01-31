@@ -113,7 +113,7 @@
 
         <!-- Curso -->
         <div class="td td-curso">
-          -
+          {{ usuario.curso ? usuario.curso + 'º' : '-' }}
         </div>
 
         <!-- Tipo B -->
@@ -197,15 +197,12 @@
       <!-- Campo: Nombre del Grado -->
       <div class="form-field">
         <label class="field-label">Nombre del Grado</label>
-        <input type="text" class="field-input" formControlName="apellidos" />
+        <input type="text" class="field-input" formControlName="grado" />
       </div>
 
-      <!-- Campo: Curso -->
       <div class="form-field">
         <label class="field-label">Curso</label>
-        <select class="field-select" disabled>
-          <option value="">-</option>
-        </select>
+        <input type="text" class="field-input" formControlName="curso" readonly />
       </div>
 
       <!-- Campo: Fecha Estimada de Finalización -->
