@@ -288,7 +288,7 @@ function obtenerUsuarioMasSolicita(req, res) {
       COUNT(s.id) as total_solicitudes
     FROM usuarios u
     INNER JOIN solicitudes s ON s.usuario_id = u.id
-    WHERE u.grado IS NOT NULL
+    WHERE u.curso IS NOT NULL
     GROUP BY u.grado, u.curso
     ORDER BY total_solicitudes DESC
     LIMIT 1
@@ -296,6 +296,8 @@ function obtenerUsuarioMasSolicita(req, res) {
     type: Sequelize.QueryTypes.SELECT
   })
     .then(function (resultados) {
+      console.log('🔍 Resultados query grado:', resultados);
+      
       if (resultados.length === 0) {
         return res.json({
           nombre: 'Sin datos',
@@ -305,10 +307,12 @@ function obtenerUsuarioMasSolicita(req, res) {
       }
 
       var dato = resultados[0];
+      
+      console.log('📊 Dato encontrado:', dato);
 
       res.json({
-        nombre: dato.grado,
-        curso: dato.curso + 'º',
+        nombre: dato.grado || 'Grado no especificado',  // ← NOMBRE DEL GRADO
+        curso: dato.curso + 'º',                         // ← CURSO (1º, 2º, etc)
         totalSolicitudes: parseInt(dato.total_solicitudes)
       });
     })
