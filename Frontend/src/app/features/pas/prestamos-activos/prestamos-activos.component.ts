@@ -51,6 +51,10 @@ export class PrestamosActivosComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
 
+  //MODAL PERFIL ALUMNO
+mostrarModalPerfil: boolean = false;
+usuarioPerfilSeleccionado: any = null;
+
   // ===== CONSTRUCTOR =====
 
   constructor(
@@ -173,6 +177,7 @@ export class PrestamosActivosComponent implements OnInit {
         // Recargar lista
         this.cargarPrestamos();
       },
+      
       error: (err) => {
         console.error('❌ Error al registrar devolución:', err);
         this.procesandoDevolucion = false;
@@ -186,6 +191,24 @@ export class PrestamosActivosComponent implements OnInit {
       }
     });
   }
+  abrirPerfilAlumno(prestamo: Prestamo, event?: Event): void {
+  if (event) {
+    event.stopPropagation();
+  }
+  
+  const usuario = (prestamo as any).Usuario;
+  if (usuario) {
+    this.usuarioPerfilSeleccionado = usuario;
+    this.mostrarModalPerfil = true;
+    console.log('👤 Abriendo perfil del alumno:', usuario);
+  }
+}
+
+// Método para cerrar modal de perfil
+cerrarModalPerfil(): void {
+  this.mostrarModalPerfil = false;
+  this.usuarioPerfilSeleccionado = null;
+}
 
   /**
    * Cierra el modal de notificación
