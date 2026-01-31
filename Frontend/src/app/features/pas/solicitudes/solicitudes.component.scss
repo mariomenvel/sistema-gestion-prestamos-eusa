@@ -291,27 +291,17 @@ $font-family: 'Inter', sans-serif;
 }
 
 .link-alumno {
-  color: $color-primary-blue;
-  text-decoration: none;
+  color: $color-text-primary;
+    text-decoration: none;
+
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
+   color: $color-primary-blue;
     text-decoration: underline;
-    color: darken($color-primary-blue, 10%);
-  }
-  .link-materiales {
-  color: $color-text-primary;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $color-primary-blue;
-    text-decoration: underline;
-  }
-}
+    }
 }
 
 // ========================================
@@ -576,7 +566,7 @@ $font-family: 'Inter', sans-serif;
 
   .table-header,
   .table-row {
-    grid-template-columns: 1fr 1.5fr 0.7fr 1fr 0.8fr 1.3fr;
+    grid-template-columns: 1fr 1.5fr 0.7fr 1fr 0.8fr 1.5fr;
   }
 }
 
@@ -805,23 +795,6 @@ $font-family: 'Inter', sans-serif;
   font-size: 12px;
   line-height: 15px;
   color: $color-text-secondary;
-}
-
-// ========================================
-// ENLACES CLICKEABLES
-// ========================================
-
-.link-alumno {
-  color: $color-primary-blue;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    text-decoration: underline;
-    color: darken($color-primary-blue, 10%);
-  }
 }
 
 .link-materiales {
