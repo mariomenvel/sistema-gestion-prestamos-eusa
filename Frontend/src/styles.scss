@@ -13,3 +13,53 @@
 body {
   font-family: 'Inter', sans-serif;
 }
+
+/* ================================================
+   SPINNER DE CARGA — reutilizable en todo la app
+   ================================================ */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E0E0E0;
+  border-top: 3px solid #0066CC;
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-sm {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #FFFFFF;
+  border-radius: 50%;
+  animation: spinner-rotate 0.6s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* ================================================
+   ANIMACIÓN DE ENTRADA PARA FILAS DE TABLA
+   ================================================ */
+@keyframes row-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-row {
+  animation: row-fade-in 0.25s ease forwards;
+}
