@@ -52,8 +52,8 @@ export class PrestamosActivosComponent implements OnInit {
   errorMessage: string = '';
 
   //MODAL PERFIL ALUMNO
-mostrarModalPerfil: boolean = false;
-usuarioPerfilSeleccionado: any = null;
+  mostrarModalPerfil: boolean = false;
+  usuarioPerfilSeleccionado: any = null;
 
   // ===== CONSTRUCTOR =====
 
@@ -177,7 +177,7 @@ usuarioPerfilSeleccionado: any = null;
         // Recargar lista
         this.cargarPrestamos();
       },
-      
+
       error: (err) => {
         console.error('❌ Error al registrar devolución:', err);
         this.procesandoDevolucion = false;
@@ -192,23 +192,23 @@ usuarioPerfilSeleccionado: any = null;
     });
   }
   abrirPerfilAlumno(prestamo: Prestamo, event?: Event): void {
-  if (event) {
-    event.stopPropagation();
-  }
-  
-  const usuario = (prestamo as any).Usuario;
-  if (usuario) {
-    this.usuarioPerfilSeleccionado = usuario;
-    this.mostrarModalPerfil = true;
-    console.log('👤 Abriendo perfil del alumno:', usuario);
-  }
-}
+    if (event) {
+      event.stopPropagation();
+    }
 
-// Método para cerrar modal de perfil
-cerrarModalPerfil(): void {
-  this.mostrarModalPerfil = false;
-  this.usuarioPerfilSeleccionado = null;
-}
+    const usuario = (prestamo as any).Usuario;
+    if (usuario) {
+      this.usuarioPerfilSeleccionado = usuario;
+      this.mostrarModalPerfil = true;
+      console.log('👤 Abriendo perfil del alumno:', usuario);
+    }
+  }
+
+  // Método para cerrar modal de perfil
+  cerrarModalPerfil(): void {
+    this.mostrarModalPerfil = false;
+    this.usuarioPerfilSeleccionado = null;
+  }
 
   /**
    * Cierra el modal de notificación
@@ -254,13 +254,19 @@ cerrarModalPerfil(): void {
     // Si hay un solo item, mostrar su nombre
     const item = prestamo.items[0];
 
-    if (item.Ejemplar && item.Ejemplar.libro) {
-      return item.Ejemplar.libro.titulo;
+    // Verificar ambas posibles estructuras (Libro o libro)
+    if (item.Ejemplar) {
+      const libro = item.Ejemplar.Libro || item.Ejemplar.libro;
+      if (libro && libro.titulo) {
+        return libro.titulo;
+      }
     }
 
-    if (item.Unidad && item.Unidad.equipo) {
-      const equipo = item.Unidad.equipo;
-      return `${equipo.marca} ${equipo.modelo}`;
+    if (item.Unidad) {
+      const equipo = item.Unidad.Equipo || item.Unidad.equipo;
+      if (equipo) {
+        return `${equipo.marca || ''} ${equipo.modelo || ''}`.trim();
+      }
     }
 
     return 'Material desconocido';
@@ -277,11 +283,9 @@ cerrarModalPerfil(): void {
    * Formatea fecha DD/MM/YYYY
    */
   formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const anio = date.getFullYear();
-    return `${dia}/${mes}/${anio}`;
+    if (!fecha) return '—';
+    const partes = fecha.split('T')[0].split('-');
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
   }
 
   /**
@@ -343,12 +347,18 @@ cerrarModalPerfil(): void {
    * Obtiene el nombre de un item individual
    */
   getNombreItem(item: any): string {
-    if (item.Ejemplar && item.Ejemplar.libro) {
-      return item.Ejemplar.libro.titulo;
+    // Verificar ambas posibles estructuras (Libro o libro)
+    if (item.Ejemplar) {
+      const libro = item.Ejemplar.Libro || item.Ejemplar.libro;
+      if (libro && libro.titulo) {
+        return libro.titulo;
+      }
     }
-    if (item.Unidad && item.Unidad.equipo) {
-      const equipo = item.Unidad.equipo;
-      return `${equipo.marca} ${equipo.modelo}`;
+    if (item.Unidad) {
+      const equipo = item.Unidad.Equipo || item.Unidad.equipo;
+      if (equipo) {
+        return `${equipo.marca || ''} ${equipo.modelo || ''}`.trim();
+      }
     }
     return 'Material desconocido';
   }
