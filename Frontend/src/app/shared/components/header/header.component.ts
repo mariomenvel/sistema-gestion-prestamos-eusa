@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { Usuario } from '../../../core/models/usuario.model';
@@ -25,7 +25,7 @@ import { Usuario } from '../../../core/models/usuario.model';
 export class HeaderComponent implements OnInit {
 
   // ===== PROPIEDADES =====
-  
+
   /**
    * Usuario actual obtenido del AuthService.
    * Se usa para mostrar información en el header.
@@ -38,14 +38,15 @@ export class HeaderComponent implements OnInit {
   isProfileMenuOpen: boolean = false;
 
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private elementRef: ElementRef
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     // Suscribirse al usuario actual desde AuthService
     // Como usamos signals, podemos acceder directamente
@@ -53,10 +54,17 @@ export class HeaderComponent implements OnInit {
   }
 
   // ===== MÉTODOS PÚBLICOS =====
-  
+
   /**
    * Alterna la visibilidad del menú de perfil.
    */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.isProfileMenuOpen = false;
+    }
+  }
+
   toggleProfileMenu(): void {
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
   }
@@ -77,7 +85,7 @@ export class HeaderComponent implements OnInit {
   goToProfile(): void {
     this.isProfileMenuOpen = false;
     const role = this.authService.currentRole();
-    
+
     if (role === 'alumno' || role === 'profesor') {
       this.router.navigate(['/alumno/mi-perfil']);
     } else if (role === 'pas') {
