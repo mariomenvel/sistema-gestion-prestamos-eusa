@@ -247,6 +247,20 @@ $font-family: 'Inter', sans-serif;
 }
 
 // ========================================
+// BADGE TIPO DE PRÉSTAMO
+// ========================================
+
+.badge-tipo {
+  background: #E3F2FD;
+  color: $color-primary-blue;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: $font-family;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+// ========================================
 // FECHA CON ICONO
 // ========================================
 
@@ -334,7 +348,7 @@ $font-family: 'Inter', sans-serif;
   font-weight: 500;
 
   &:hover {
-  text-decoration: underline;
+    text-decoration: underline;
   }
 }
 
@@ -758,9 +772,9 @@ $font-family: 'Inter', sans-serif;
   color: $color-text-primary;
   cursor: pointer;
   font-weight: 500;
-    text-decoration: none;
+  text-decoration: none;
 
-  
+
   &:hover {
     text-decoration: underline;
   }
