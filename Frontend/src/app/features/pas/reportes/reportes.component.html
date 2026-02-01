@@ -4,9 +4,20 @@
   <!-- Título principal -->
   <h1 class="page-title">Reportes y Estadísticas</h1>
 
+  <!-- Estado: Cargando -->
+  <div class="estado-carga" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <!-- Estado: Error -->
+  <div class="estado-error" *ngIf="!isLoading && errorMessage">
+    <p>{{ errorMessage }}</p>
+  </div>
+
   <!-- Cards de estadísticas principales -->
-  <div class="stats-cards">
-    
+  <div class="stats-cards" *ngIf="!isLoading && !errorMessage">
+
     <!-- Card: Libro Más Prestado -->
     <div class="stat-card">
       <p class="card-label">Libro Más Prestado</p>
@@ -35,13 +46,13 @@
 
   <!-- Sección Top 5 -->
   <div class="top5-section">
-    
+
     <!-- Título de sección -->
     <h2 class="section-title">Top 5 Material Más Demandado</h2>
 
     <!-- Tabla Top 5 -->
     <div class="top5-table">
-      
+
       <!-- Header tabla -->
       <div class="table-header">
         <div class="th th-posicion">Posición</div>
@@ -52,12 +63,9 @@
 
       <!-- Body tabla -->
       <div class="table-body">
-        
+
         <!-- Filas del Top 5 -->
-        <div 
-          class="table-row" 
-          *ngFor="let item of top5Materiales"
-        >
+        <div class="table-row" *ngFor="let item of top5Materiales">
           <!-- Posición -->
           <div class="td td-posicion">
             <span class="numero-posicion">{{ item.posicion }}</span>
