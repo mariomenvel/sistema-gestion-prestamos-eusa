@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import {
   SolicitudesService,
   ItemAdicional,
@@ -100,6 +100,18 @@ export class SolicitudesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarSolicitudes();
+  }
+
+  // ===== HOST LISTENER =====
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.mostrarModalAprobar) { this.cerrarModalAprobar(); }
+      else if (this.mostrarModalRechazar) { this.cerrarModalRechazar(); }
+      else if (this.mostrarModalDetallesMateriales) { this.cerrarModalDetallesMateriales(); }
+      else if (this.mostrarModalPerfil) { this.cerrarModalPerfil(); }
+    }
   }
 
   // ===== MÉTODOS DE NOTIFICACIÓN =====

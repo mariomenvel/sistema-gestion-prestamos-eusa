@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../core/services/usuarios.service';
 import { Usuario } from '../../../core/models/usuario.model';
@@ -92,6 +92,15 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
 
   ngOnInit(): void {
     this.cargarUsuarios();
+  }
+
+  // ===== HOST LISTENER =====
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.mostrarModal) {
+      this.cerrarModal();
+    }
   }
 
   ngAfterViewChecked(): void {

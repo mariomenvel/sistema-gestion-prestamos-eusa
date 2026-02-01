@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { PrestamosService } from '../../../core/services/prestamos.service';
 import { Prestamo } from '../../../core/models/prestamo.model';
 
@@ -65,6 +65,17 @@ export class PrestamosActivosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarPrestamos();
+  }
+
+  // ===== HOST LISTENER =====
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.mostrarModalMateriales) { this.cerrarModalMateriales(); }
+      else if (this.mostrarModalDevolucion) { this.cerrarModalDevolucion(); }
+      else if (this.mostrarModalPerfil) { this.cerrarModalPerfil(); }
+    }
   }
 
   // ===== MÉTODOS DE FILTRO Y ORDENACIÓN =====
