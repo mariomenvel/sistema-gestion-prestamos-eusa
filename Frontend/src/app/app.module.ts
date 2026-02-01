@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'; 
-import { ReactiveFormsModule, FormsModule } from '@angular/forms'; 
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -44,7 +44,7 @@ import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/
     // Auth
     LoginComponent,
     RegistroComponent,
-    
+
     // Alumno
     AlumnoDashboardComponent,
     CatalogoComponent,
@@ -65,19 +65,18 @@ import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/
     HeaderComponent,
     SidebarComponent,
     ModalComponent,
-    PrestamoPresencialComponent,
-    RegistroComponent
+    PrestamoPresencialComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule,     
+    HttpClientModule,
     ReactiveFormsModule,
-    CommonModule,   
-    FormsModule        
+    CommonModule,
+    FormsModule
   ],
   providers: [
-     {
+    {
       provide: HTTP_INTERCEPTORS,
       useClass: JwtInterceptor,
       multi: true
