@@ -110,9 +110,11 @@
         </div>
         <!-- Columna: Materiales -->
         <div class="td td-materiales">
-          <a class="link-materiales" (click)="verMaterialesSolicitud(solicitud, $event)">
+          <button class="link-materiales" *ngIf="getItemsSolicitud(solicitud).length > 0"
+            (click)="verMaterialesSolicitud(solicitud, $event)" aria-label="Ver materiales de esta solicitud">
             {{ getContadorMateriales(solicitud) }}
-          </a>
+          </button>
+          <span class="sin-materiales" *ngIf="getItemsSolicitud(solicitud).length === 0">—</span>
         </div>
         <!-- Columna: Tipo -->
         <div class="td td-tipo">
@@ -322,7 +324,7 @@
       <label class="campo-label">
         Fecha de devolución <span class="required">*</span>
       </label>
-      <input type="date" class="campo-input" [(ngModel)]="fechaDevolucion" />
+      <input type="date" class="campo-input" [(ngModel)]="fechaDevolucion" [min]="fechaMinDevolucion" />
       <p class="campo-ayuda">Establece la fecha en la que el alumno debe devolver el material</p>
     </div>
 
@@ -495,11 +497,12 @@
 
     <!-- Info del usuario -->
     <div class="perfil-contenido" *ngIf="usuarioPerfilSeleccionado">
-      
+
       <!-- Card: Información Personal -->
       <div class="perfil-card">
         <div class="perfil-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
@@ -508,7 +511,8 @@
         <div class="perfil-card-body">
           <div class="perfil-field">
             <span class="perfil-label">Nombre completo</span>
-            <span class="perfil-value">{{ usuarioPerfilSeleccionado.nombre }} {{ usuarioPerfilSeleccionado.apellidos }}</span>
+            <span class="perfil-value">{{ usuarioPerfilSeleccionado.nombre }} {{ usuarioPerfilSeleccionado.apellidos
+              }}</span>
           </div>
           <div class="perfil-field">
             <span class="perfil-label">Email</span>
@@ -524,7 +528,8 @@
       <!-- Card: Datos Académicos -->
       <div class="perfil-card">
         <div class="perfil-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
             <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
           </svg>
@@ -533,13 +538,14 @@
         <div class="perfil-card-body">
           <div class="perfil-field">
             <span class="perfil-label">Código de tarjeta</span>
-            <span class="perfil-value perfil-codigo">{{ usuarioPerfilSeleccionado.codigo_tarjeta || 'Sin asignar' }}</span>
+            <span class="perfil-value perfil-codigo">{{ usuarioPerfilSeleccionado.codigo_tarjeta || 'Sin asignar'
+              }}</span>
           </div>
           <div class="perfil-field">
             <span class="perfil-label">Estado del perfil</span>
             <span class="perfil-badge" [class.activo]="usuarioPerfilSeleccionado.estado_perfil === 'activo'"
-                  [class.bloqueado]="usuarioPerfilSeleccionado.estado_perfil === 'bloqueado'"
-                  [class.inactivo]="usuarioPerfilSeleccionado.estado_perfil === 'inactivo'">
+              [class.bloqueado]="usuarioPerfilSeleccionado.estado_perfil === 'bloqueado'"
+              [class.inactivo]="usuarioPerfilSeleccionado.estado_perfil === 'inactivo'">
               {{ usuarioPerfilSeleccionado.estado_perfil || 'Desconocido' }}
             </span>
           </div>
@@ -558,5 +564,4 @@
 
 <!-- MODAL DE NOTIFICACIONES -->
 <app-modal [mostrar]="mostrarModalNotificacion" [tipo]="tipoModalNotificacion" [titulo]="tituloModalNotificacion"
-  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'"
-  (cerrar)="cerrarModalNotificacion()"></app-modal>
+  [mensaje]="mensajeModalNotificacion" [textoBtnPrincipal]="'Aceptar'" (cerrar)="cerrarModalNotificacion()"></app-modal>

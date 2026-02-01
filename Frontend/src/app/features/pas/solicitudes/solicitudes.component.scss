@@ -200,8 +200,8 @@ $font-family: 'Inter', sans-serif;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
-  
-   max-height: calc(100vh - 350px); // Ajusta según tu layout
+
+  max-height: calc(100vh - 350px); // Ajusta según tu layout
   overflow-y: auto;
 }
 
@@ -209,8 +209,8 @@ $font-family: 'Inter', sans-serif;
 
 .table-header {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 1fr 1.5fr; 
-  
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 1fr 1.5fr;
+
   background: $color-primary-blue;
   border-bottom: 2px solid $color-border;
 
@@ -258,7 +258,7 @@ $font-family: 'Inter', sans-serif;
 // Fila de la tabla
 .table-row {
   display: grid;
-  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 1fr 1.5fr; 
+  grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 1fr 1.5fr;
   gap: 16px;
   align-items: center;
 
@@ -292,16 +292,37 @@ $font-family: 'Inter', sans-serif;
 
 .link-alumno {
   color: $color-text-primary;
-    text-decoration: none;
-
+  text-decoration: none;
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-   color: $color-primary-blue;
+    color: $color-primary-blue;
     text-decoration: underline;
-    }
+  }
+}
+
+.link-materiales {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: $font-family;
+  font-size: 14px;
+  color: $color-text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $color-primary-blue;
+    text-decoration: underline;
+  }
+}
+
+.sin-materiales {
+  color: $color-text-disabled;
 }
 
 // ========================================
@@ -797,17 +818,7 @@ $font-family: 'Inter', sans-serif;
   color: $color-text-secondary;
 }
 
-.link-materiales {
-  color: $color-text-primary;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
 
-  &:hover {
-    color: $color-primary-blue;
-    text-decoration: underline;
-  }
-}
 
 // ========================================
 // MODAL DETALLE MATERIALES
@@ -992,6 +1003,7 @@ $font-family: 'Inter', sans-serif;
     box-shadow: 0 4px 12px rgba($color-primary-blue, 0.3);
   }
 }
+
 // ========================================
 // MODAL PERFIL USUARIO
 // ========================================
@@ -1218,6 +1230,7 @@ $font-family: 'Inter', sans-serif;
     }
   }
 }
+
 // ========================================
 // MODAL APROBAR GRANDE
 // ========================================
@@ -1492,6 +1505,7 @@ $font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: $color-text-secondary;
 }
+
 // ========================================
 // BUSCADOR POR CÓDIGO DE BARRAS
 // ========================================
@@ -1574,6 +1588,7 @@ $font-family: 'Inter', sans-serif;
     cursor: not-allowed;
   }
 }
+
 // Campo de idioma
 .campo-idioma {
   margin-bottom: 20px;
@@ -1630,7 +1645,7 @@ $font-family: 'Inter', sans-serif;
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid $color-border;
-  
+
   strong {
     color: $color-text-primary;
   }
