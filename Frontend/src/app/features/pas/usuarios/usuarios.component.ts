@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewChecked } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../core/services/usuarios.service';
 import { Usuario } from '../../../core/models/usuario.model';
@@ -17,7 +17,7 @@ import * as JsBarcode from 'jsbarcode';
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.scss']
 })
-export class UsuariosComponent implements OnInit {
+export class UsuariosComponent implements OnInit, AfterViewChecked {
 
   // ===== DATOS =====
 
@@ -46,6 +46,7 @@ export class UsuariosComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   guardando: boolean = false;
+  private barcodeGenerado: boolean = false;
 
   // ===== MODAL DE NOTIFICACIONES =====
 
@@ -91,6 +92,12 @@ export class UsuariosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarUsuarios();
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.mostrarModal && this.usuarioSeleccionado && !this.barcodeGenerado) {
+      this.generarBarcode();
+    }
   }
 
 
@@ -189,32 +196,23 @@ export class UsuariosComponent implements OnInit {
  * Genera el barcode cuando se abre el modal
  */
   generarBarcode(): void {
-    if (this.usuarioSeleccionado) {
-      setTimeout(() => {
-        const barcodeSvg = document.getElementById('barcodeModal');
-        if (barcodeSvg) {
-          // Solo usar codigo_tarjeta del backend
-          const codigoTarjeta = this.usuarioSeleccionado!.codigo_tarjeta;
+    if (!this.usuarioSeleccionado) return;
+    const barcodeSvg = document.getElementById('barcodeModal');
+    if (!barcodeSvg) return;
 
-          if (codigoTarjeta) {
-            try {
-              JsBarcode(barcodeSvg, codigoTarjeta, {
-                format: 'CODE128',
-                width: 2,
-                height: 80,
-                displayValue: true
-              });
-              console.log('✅ Barcode generado:', codigoTarjeta);
-            } catch (err) {
-              console.error('❌ Error generando barcode:', err);
-            }
-          } else {
-            // Si no tiene código, limpiar el SVG y mostrar mensaje
-            barcodeSvg.innerHTML = '';
-            console.warn('⚠️ Usuario sin código de tarjeta asignado');
-          }
-        }
-      }, 100);
+    const codigoTarjeta = this.usuarioSeleccionado.codigo_tarjeta;
+    if (codigoTarjeta) {
+      try {
+        JsBarcode(barcodeSvg, codigoTarjeta, {
+          format: 'CODE128',
+          width: 2,
+          height: 80,
+          displayValue: true
+        });
+        this.barcodeGenerado = true;
+      } catch (err) {
+        // Barcode generation failed
+      }
     }
   }
 
@@ -235,14 +233,12 @@ export class UsuariosComponent implements OnInit {
       fecha_inicio_est: usuario.fecha_inicio_est || '',
       fecha_fin_prev: usuario.fecha_fin_prev || '',
       estado_perfil: usuario.estado_perfil || 'activo',
-     grado: usuario.grado || '', 
-    curso: usuario.curso || ''   
+      grado: usuario.grado || '',
+      curso: usuario.curso || ''
     });
 
     this.mostrarModal = true;
-
-    //Generar el el cod de barras cuando se abre el modal
-    this.generarBarcode();
+    this.barcodeGenerado = false;
   }
 
   /**
@@ -250,6 +246,7 @@ export class UsuariosComponent implements OnInit {
    */
   cerrarModal(): void {
     this.mostrarModal = false;
+    this.barcodeGenerado = false;
     this.usuarioSeleccionado = null;
     this.formularioUsuario.reset();
     this.codigoBarrasUsuario = '';
@@ -333,8 +330,8 @@ export class UsuariosComponent implements OnInit {
       fecha_inicio_est: [''],
       fecha_fin_prev: [''],
       estado_perfil: ['activo', Validators.required],
-      grado: [''],  
-    curso: [''] 
+      grado: [''],
+      curso: ['']
     });
   }
 

@@ -159,10 +159,16 @@
     <!-- Formulario -->
     <form [formGroup]="formularioUsuario" (ngSubmit)="guardarCambios()">
 
-      <!-- Campo: Nombre Completo -->
+      <!-- Campo: Nombre -->
       <div class="form-field">
-        <label class="field-label">Nombre Completo</label>
-        <input type="text" class="field-input" formControlName="nombre" />
+        <label class="field-label" for="campo-nombre">Nombre</label>
+        <input type="text" id="campo-nombre" class="field-input" formControlName="nombre" />
+      </div>
+
+      <!-- Campo: Apellidos -->
+      <div class="form-field">
+        <label class="field-label" for="campo-apellidos">Apellidos</label>
+        <input type="text" id="campo-apellidos" class="field-input" formControlName="apellidos" />
       </div>
 
       <!-- Campo: Email -->
