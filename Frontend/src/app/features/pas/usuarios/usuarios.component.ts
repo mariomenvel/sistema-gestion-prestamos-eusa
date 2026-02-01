@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../core/services/usuarios.service';
 import { Usuario } from '../../../core/models/usuario.model';
 import * as JsBarcode from 'jsbarcode';
+import { normalizarTexto } from '../../../core/utils/text.utils';
 
 /**
  * Componente Gestión de Usuarios (PAS)
@@ -116,20 +117,15 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
   * Aplica todos los filtros (texto, estado, tipo estudios) y ordenación
   */
   aplicarFiltros(): void {
-    console.log('🔍 Aplicando filtros:', {
-      texto: this.textoBusqueda,
-      estado: this.filtroEstado
-    });
-
     let resultado = [...this.usuarios];
 
     // 1. Filtro por texto
     if (this.textoBusqueda.trim()) {
-      const texto = this.normalizarTexto(this.textoBusqueda);
+      const texto = normalizarTexto(this.textoBusqueda);
       resultado = resultado.filter(usuario => {
-        const nombre = this.normalizarTexto(usuario.nombre);
-        const apellidos = usuario.apellidos ? this.normalizarTexto(usuario.apellidos) : '';
-        const email = this.normalizarTexto(usuario.email);
+        const nombre = normalizarTexto(usuario.nombre);
+        const apellidos = usuario.apellidos ? normalizarTexto(usuario.apellidos) : '';
+        const email = normalizarTexto(usuario.email);
         return nombre.includes(texto) || apellidos.includes(texto) || email.includes(texto);
       });
     }
@@ -229,7 +225,6 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
    * Abre el modal de edición de un usuario
    */
   abrirModalEditar(usuario: Usuario): void {
-    console.log('👤 Abriendo modal para:', usuario.nombre);
     this.usuarioSeleccionado = usuario;
 
     // Cargar datos en el formulario
@@ -282,7 +277,6 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
 
     this.usuariosService.actualizarUsuario(this.usuarioSeleccionado.id, datos).subscribe({
       next: (response: any) => {
-        console.log('✅ Usuario actualizado:', response);
         this.guardando = false;
 
         // Primero mostrar notificación, luego cerrar modal de edición
@@ -298,7 +292,6 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
         this.cargarUsuarios();
       },
       error: (err: any) => {
-        console.error('❌ Error al actualizar usuario:', err);
         this.tipoModalNotificacion = 'error';
         this.tituloModalNotificacion = 'Error al Guardar';
         this.mensajeModalNotificacion = 'No se pudo actualizar el usuario. Inténtalo de nuevo.';
@@ -353,7 +346,6 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
 
     this.usuariosService.getUsuarios().subscribe({
       next: (usuarios: Usuario[]) => {
-        console.log('👥 Usuarios recibidos:', usuarios);
         this.usuarios = usuarios;
         this.aplicarFiltros();
         this.isLoading = false;
@@ -362,20 +354,16 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
         this.usuarios.forEach(u => this.obtenerContadorTipoB(u.id));
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar usuarios:', err);
         this.errorMessage = 'Error al cargar los usuarios';
         this.isLoading = false;
       }
     });
   }
   /**
- * Normaliza texto eliminando tildes para búsqueda
- */
-  private normalizarTexto(texto: string): string {
-    return texto
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+   * Delegation method for template usage
+   */
+  normalizarTexto(texto: string): string {
+    return normalizarTexto(texto);
   }
 
   /**
@@ -393,7 +381,6 @@ export class UsuariosComponent implements OnInit, AfterViewChecked {
         this.contadoresTipoB.set(usuarioId, { usados: data.usados, limite: data.limite });
       },
       error: (err) => {
-        console.error('Error al obtener contador:', err);
         // En caso de error, asumimos 0/5 por defecto para no romper la UI, 
         // o podríamos dejarlo sin setear para mostrar '-'
         this.contadoresTipoB.set(usuarioId, { usados: 0, limite: 5 });

@@ -5,6 +5,7 @@ import {
   MaterialEscaneado,
   ItemDisponibilidad
 } from '../../../core/services/solicitudes.service'; import { Solicitud } from '../../../core/models/solicitud.model';
+import { normalizarTexto } from '../../../core/utils/text.utils';
 
 /**
  * Componente Gestión de Solicitudes (PAS)
@@ -179,8 +180,6 @@ export class SolicitudesComponent implements OnInit {
    * Obtiene el código de barras de un item
    */
   getCodigoItem(item: any): string {
-    console.log('🔍 Item completo:', item);
-
     // Para solicitudes, la estructura puede ser diferente
     // Intentar varias posibilidades:
 
@@ -223,7 +222,6 @@ export class SolicitudesComponent implements OnInit {
     const usuario = (solicitud as any).Usuario || solicitud.usuario;
 
     if (!usuario || !usuario.id) {
-      console.warn('⚠️ No se pudo obtener el usuario');
       return;
     }
 
@@ -331,15 +329,12 @@ export class SolicitudesComponent implements OnInit {
       idioma: this.idiomaEmailAprobacion
     };
 
-    console.log('📤 Enviando aprobación:', datosAprobacion);
-
     // ACTIVAR PROTECCIÓN
     this.aprobandoSolicitud = true;
 
     this.solicitudesService.aprobarSolicitud(datosAprobacion).subscribe({
       next: () => {
         this.aprobandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
-        console.log('✅ Solicitud aprobada');
         this.mostrarNotificacion(
           'exito',
           'Solicitud aprobada',
@@ -352,7 +347,6 @@ export class SolicitudesComponent implements OnInit {
       },
       error: (err: any) => {
         this.aprobandoSolicitud = false;
-        console.error('❌ Error al aprobar solicitud:', err);
 
         // Intentar obtener el mensaje de error más específico
         let mensajeError = 'Error al aprobar la solicitud';
@@ -413,7 +407,6 @@ export class SolicitudesComponent implements OnInit {
     // Primero intentar buscar como ejemplar (libro)
     this.solicitudesService.buscarEjemplarPorCodigo(codigo).subscribe({
       next: (resultado) => {
-        console.log('📚 Ejemplar encontrado:', resultado);
         this.materialEncontrado = resultado;
         this.buscandoMaterial = false;
       },
@@ -421,7 +414,6 @@ export class SolicitudesComponent implements OnInit {
         // Si no es ejemplar, buscar como unidad (equipo)
         this.solicitudesService.buscarUnidadPorCodigo(codigo).subscribe({
           next: (resultado) => {
-            console.log('📷 Unidad encontrada:', resultado);
             this.materialEncontrado = resultado;
             this.buscandoMaterial = false;
           },
@@ -479,7 +471,6 @@ export class SolicitudesComponent implements OnInit {
     }
 
     this.itemsAdicionales.push(nuevoItem);
-    console.log('➕ Material añadido:', nuevoItem);
 
     // Limpiar búsqueda para escanear otro
     this.limpiarBusquedaMaterial();
@@ -533,7 +524,6 @@ export class SolicitudesComponent implements OnInit {
       },
       error: (err) => {
         this.rechazandoSolicitud = false; // 🔓 DESACTIVAR PROTECCIÓN
-        console.error('❌ Error al rechazar:', err);
         this.mostrarNotificacion('error', 'Error', err.message || 'No se pudo rechazar la solicitud');
       }
     });
@@ -653,10 +643,8 @@ export class SolicitudesComponent implements OnInit {
       next: (motivos) => {
         this.motivosRechazo = motivos;
         this.cargandoMotivos = false;
-        console.log('📋 Motivos de rechazo cargados:', motivos);
       },
       error: (err) => {
-        console.error('❌ Error cargando motivos:', err);
         this.cargandoMotivos = false;
         this.mostrarNotificacion('error', 'Error', 'No se pudieron cargar las plantillas');
       }
@@ -696,13 +684,11 @@ export class SolicitudesComponent implements OnInit {
 
     this.solicitudesService.getAllSolicitudes().subscribe({
       next: (solicitudes) => {
-        console.log('📋 Solicitudes recibidas:', solicitudes);
         this.solicitudes = solicitudes;
         this.aplicarFiltros();
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error al cargar solicitudes:', err);
         this.errorMessage = 'Error al cargar las solicitudes';
         this.isLoading = false;
       }
@@ -721,15 +707,14 @@ export class SolicitudesComponent implements OnInit {
     }
 
     if (this.textoBusqueda.trim()) {
-      const textoNormalizado = this.normalizarTexto(this.textoBusqueda);
+      const textoNormalizado = normalizarTexto(this.textoBusqueda);
       resultado = resultado.filter(s => {
-        const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
-        const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
+        const nombreUsuario = normalizarTexto(this.getNombreUsuario(s));
+        const nombreMaterial = normalizarTexto(this.getNombreMaterial(s));
 
-        // Buscar también en TODOS los materiales de la solicitud
         const items = this.getItemsSolicitud(s);
         const coincideMaterial = items.some(item => {
-          const nombreItem = this.normalizarTexto(this.getNombreItem(item));
+          const nombreItem = normalizarTexto(this.getNombreItem(item));
           return nombreItem.includes(textoNormalizado);
         });
 
@@ -791,18 +776,18 @@ export class SolicitudesComponent implements OnInit {
     this.solicitudesFiltradas = datos;
   }
 
-  private normalizarTexto(texto: string): string {
-    return texto
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+  /**
+   * Delegation method for template usage
+   */
+  normalizarTexto(texto: string): string {
+    return normalizarTexto(texto);
   }
+
   cargarDisponibilidadItems(solicitudId: number): void {
     this.cargandoDisponibilidad = true;
 
     this.solicitudesService.verificarDisponibilidad(solicitudId).subscribe({
       next: (response) => {
-        console.log('📦 Disponibilidad cargada:', response);
         // Inicializar cada item con su estado
         this.itemsSolicitudConDisponibilidad = response.items.map(item => {
           // Por defecto, incluir si está disponible
@@ -825,7 +810,6 @@ export class SolicitudesComponent implements OnInit {
         this.cargandoDisponibilidad = false;
       },
       error: (err) => {
-        console.error('❌ Error cargando disponibilidad:', err);
         this.cargandoDisponibilidad = false;
       }
     });

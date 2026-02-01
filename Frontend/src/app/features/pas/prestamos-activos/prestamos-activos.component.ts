@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { PrestamosService } from '../../../core/services/prestamos.service';
 import { Prestamo } from '../../../core/models/prestamo.model';
+import { normalizarTexto } from '../../../core/utils/text.utils';
 
 /**
  * Componente Préstamos Activos (PAS)
@@ -85,11 +86,11 @@ export class PrestamosActivosComponent implements OnInit {
 
     // 1. Filtro por texto (Nombre Alumno, Email o Código Tarjeta)
     if (this.textoBusqueda.trim()) {
-      const texto = this.normalizarTexto(this.textoBusqueda);
+      const texto = normalizarTexto(this.textoBusqueda);
       resultado = resultado.filter((p: any) => {
-        const nombre = this.normalizarTexto(this.getNombreUsuario(p));
-        const email = p.Usuario ? this.normalizarTexto(p.Usuario.email) : '';
-        const codigo = p.Usuario?.codigo_tarjeta ? this.normalizarTexto(p.Usuario.codigo_tarjeta) : '';
+        const nombre = normalizarTexto(this.getNombreUsuario(p));
+        const email = p.Usuario ? normalizarTexto(p.Usuario.email) : '';
+        const codigo = p.Usuario?.codigo_tarjeta ? normalizarTexto(p.Usuario.codigo_tarjeta) : '';
         return nombre.includes(texto) || email.includes(texto) || codigo.includes(texto);
       });
     }
@@ -139,11 +140,11 @@ export class PrestamosActivosComponent implements OnInit {
     this.prestamosFiltrados = datos;
   }
 
-  private normalizarTexto(texto: string): string {
-    return texto
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+  /**
+   * Delegation method for template usage
+   */
+  normalizarTexto(texto: string): string {
+    return normalizarTexto(texto);
   }
 
   // ===== MÉTODOS PÚBLICOS =====
@@ -152,7 +153,6 @@ export class PrestamosActivosComponent implements OnInit {
  * Abre el modal de confirmación de devolución
  */
   abrirModalDevolucion(prestamo: any): void {
-    console.log('🔵 Abriendo modal devolución:', prestamo);
     this.prestamoDevolucion = prestamo;
     this.mostrarModalDevolucion = true;
   }
@@ -175,7 +175,6 @@ export class PrestamosActivosComponent implements OnInit {
 
     this.prestamosService.registrarDevolucion(this.prestamoDevolucion.id).subscribe({
       next: () => {
-        console.log('✅ Devolución registrada');
         this.procesandoDevolucion = false;
         this.cerrarModalDevolucion();
 
@@ -190,7 +189,6 @@ export class PrestamosActivosComponent implements OnInit {
       },
 
       error: (err) => {
-        console.error('❌ Error al registrar devolución:', err);
         this.procesandoDevolucion = false;
         this.cerrarModalDevolucion();
 
@@ -211,7 +209,6 @@ export class PrestamosActivosComponent implements OnInit {
     if (usuario) {
       this.usuarioPerfilSeleccionado = usuario;
       this.mostrarModalPerfil = true;
-      console.log('👤 Abriendo perfil del alumno:', usuario);
     }
   }
 
@@ -411,13 +408,11 @@ export class PrestamosActivosComponent implements OnInit {
 
     this.prestamosService.getPrestamosActivos().subscribe({
       next: (prestamos) => {
-        console.log('📚 Préstamos activos recibidos:', prestamos);
         this.prestamos = prestamos;
         this.aplicarFiltros();
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('❌ Error al cargar préstamos:', err);
         this.errorMessage = 'Error al cargar los préstamos activos';
         this.isLoading = false;
       }

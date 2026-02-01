@@ -82,12 +82,10 @@ export class ReportesComponent implements OnInit {
     // Cargar libro más prestado
     this.reportesService.getLibroMasPrestado().subscribe({
       next: (data) => {
-        console.log('📚 Libro más prestado:', data);
         this.libroMasPrestado = data;
         checkLoading();
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar libro más prestado:', err);
         this.libroMasPrestado = { titulo: 'Error', autor: 'No se pudo cargar', totalPrestamos: 0 };
         checkLoading();
       }
@@ -96,12 +94,10 @@ export class ReportesComponent implements OnInit {
     // Cargar material más prestado
     this.reportesService.getMaterialMasPrestado().subscribe({
       next: (data) => {
-        console.log('📷 Material más prestado:', data);
         this.materialMasPrestado = data;
         checkLoading();
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar material más prestado:', err);
         this.materialMasPrestado = { nombre: 'Error', categoria: 'No se pudo cargar', totalPrestamos: 0 };
         checkLoading();
       }
@@ -110,12 +106,10 @@ export class ReportesComponent implements OnInit {
     // Cargar usuario que más solicita
     this.reportesService.getUsuarioMasSolicita().subscribe({
       next: (data) => {
-        console.log('👤 Usuario que más solicita:', data);
         this.gradoMasSolicita = data;
         checkLoading();
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar usuario que más solicita:', err);
         this.gradoMasSolicita = { nombre: 'Error', curso: '-', totalSolicitudes: 0 };
         checkLoading();
       }
@@ -124,12 +118,10 @@ export class ReportesComponent implements OnInit {
     // Cargar top 5 materiales
     this.reportesService.getTop5Materiales().subscribe({
       next: (data) => {
-        console.log('🏆 Top 5 materiales:', data);
         this.top5Materiales = data;
         checkLoading();
       },
       error: (err: any) => {
-        console.error('❌ Error al cargar top 5:', err);
         this.errorMessage = 'Algunas estadísticas no pudieron cargarse';
         // Poblar con vacíos si hay error crítico
         if (this.top5Materiales.length === 0) {

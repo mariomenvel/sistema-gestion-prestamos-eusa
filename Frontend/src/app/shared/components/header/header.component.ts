@@ -96,7 +96,6 @@ export class HeaderComponent implements OnInit {
       this.router.navigate(['/alumno/mi-perfil']);
     } else if (role === 'pas') {
       // Por ahora, el PAS no tiene perfil propio
-      console.log('Perfil PAS no implementado aún');
     }
   }
 
