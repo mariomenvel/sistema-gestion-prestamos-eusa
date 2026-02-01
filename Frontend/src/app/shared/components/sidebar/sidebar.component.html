@@ -1,19 +1,15 @@
 <!-- Sidebar principal -->
-<aside class="sidebar">
-  
+<aside class="sidebar" [class.open]="isSidebarOpen" aria-label="Menú de navegación principal">
+
   <!-- Lista de items del menú -->
   <nav class="sidebar-menu">
-    
+
     <!-- Iterar sobre cada item del menú -->
-    <div 
-      *ngFor="let item of menuItems"
-      class="menu-item"
-      [class.active]="isActive(item.route)"
-      (click)="navigateTo(item.route)"
-    >
+    <div *ngFor="let item of menuItems" class="menu-item" [class.active]="isActive(item.route)"
+      (click)="navigateTo(item.route)">
       {{ item.label }}
     </div>
-    
+
   </nav>
 
 </aside>

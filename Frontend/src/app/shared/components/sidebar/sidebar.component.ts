@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 
 /**
  * Interface para los items del menú del sidebar.
@@ -28,10 +30,10 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
 
   // ===== PROPIEDADES =====
-  
+
   /**
    * Items del menú que se mostrarán en el sidebar.
    * Se cargan según el rol del usuario.
@@ -43,25 +45,45 @@ export class SidebarComponent implements OnInit {
    */
   currentRole: string | undefined;
 
+  /**
+   * Estado de si el sidebar está abierto (para móvil).
+   */
+  isSidebarOpen: boolean = false;
+
+  /**
+   * Suscripción al servicio del sidebar.
+   */
+  private sidebarSub?: Subscription;
+
   // ===== CONSTRUCTOR =====
-  
+
   constructor(
     private authService: AuthService,
-    public router: Router  // Public para usarlo en el template
+    public router: Router,
+    private sidebarService: SidebarService
   ) { }
 
   // ===== CICLO DE VIDA =====
-  
+
   ngOnInit(): void {
     // Obtener el rol del usuario actual
     this.currentRole = this.authService.currentRole();
-    
+
     // Cargar el menú según el rol
     this.loadMenu();
+
+    // Suscribirse al estado del sidebar
+    this.sidebarSub = this.sidebarService.isOpen$.subscribe(open => {
+      this.isSidebarOpen = open;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sidebarSub?.unsubscribe();
   }
 
   // ===== MÉTODOS PRIVADOS =====
-  
+
   /**
    * Carga los items del menú según el rol del usuario.
    */
@@ -88,7 +110,7 @@ export class SidebarComponent implements OnInit {
   }
 
   // ===== MÉTODOS PÚBLICOS =====
-  
+
   /**
    * Verifica si una ruta está activa (es la página actual).
    * @param route Ruta a verificar (ej: "/alumno/dashboard")
@@ -106,5 +128,7 @@ export class SidebarComponent implements OnInit {
    */
   navigateTo(route: string): void {
     this.router.navigate([route]);
+    // Cerrar sidebar en móvil al navegar
+    this.sidebarService.close();
   }
 }
