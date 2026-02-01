@@ -48,7 +48,8 @@
     </select>
 
     <!-- Botón Limpiar Filtros -->
-    <button class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar todos los filtros">
+    <button class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar todos los filtros"
+      aria-label="Limpiar todos los filtros">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -104,9 +105,10 @@
 
         <!-- Columna: Alumno -->
         <div class="td td-alumno">
-          <a class="link-alumno" (click)="abrirPerfilAlumno(solicitud, $event)">
+          <button class="link-alumno" (click)="abrirPerfilAlumno(solicitud, $event)"
+            [attr.aria-label]="'Ver perfil de ' + getNombreUsuario(solicitud)">
             {{ getNombreUsuario(solicitud) }}
-          </a>
+          </button>
         </div>
         <!-- Columna: Materiales -->
         <div class="td td-materiales">
@@ -159,14 +161,15 @@
 </div>
 
 <!-- MODAL APROBAR SOLICITUD -->
-<div class="modal-overlay" *ngIf="mostrarModalAprobar" (click)="cerrarModalAprobar()">
+<div class="modal-overlay" *ngIf="mostrarModalAprobar" (click)="cerrarModalAprobar()" role="dialog" aria-modal="true"
+  aria-labelledby="titulo-aprobar">
   <div class="modal-card modal-aprobar-grande" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalAprobar()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalAprobar()" aria-label="Cerrar modal">✕</button>
 
     <!-- Título -->
-    <h2 class="modal-title">Aprobar Solicitud</h2>
+    <h2 class="modal-title" id="titulo-aprobar">Aprobar Solicitud</h2>
 
     <!-- Información de la solicitud -->
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
@@ -360,12 +363,13 @@
 </div>
 
 <!-- MODAL RECHAZAR SOLICITUD -->
-<div class="modal-overlay" *ngIf="mostrarModalRechazar" (click)="cerrarModalRechazar()">
+<div class="modal-overlay" *ngIf="mostrarModalRechazar" (click)="cerrarModalRechazar()" role="dialog" aria-modal="true"
+  aria-labelledby="titulo-rechazar">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
-    <button class="btn-cerrar" (click)="cerrarModalRechazar()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalRechazar()" aria-label="Cerrar modal">✕</button>
 
-    <h2 class="modal-title">Rechazar Solicitud</h2>
+    <h2 class="modal-title" id="titulo-rechazar">Rechazar Solicitud</h2>
 
     <div class="info-solicitud" *ngIf="solicitudSeleccionada">
       <div class="info-row">
@@ -445,15 +449,16 @@
 </div>
 
 <!-- MODAL DETALLES DE MATERIALES -->
-<div class="modal-overlay" *ngIf="mostrarModalDetallesMateriales" (click)="cerrarModalDetallesMateriales()">
+<div class="modal-overlay" *ngIf="mostrarModalDetallesMateriales" (click)="cerrarModalDetallesMateriales()"
+  role="dialog" aria-modal="true" aria-labelledby="titulo-detalles-mat">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalDetallesMateriales()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalDetallesMateriales()" aria-label="Cerrar modal">✕</button>
 
     <!-- Header del modal -->
     <div class="modal-header">
-      <h2 class="modal-title">Materiales de la Solicitud</h2>
+      <h2 class="modal-title" id="titulo-detalles-mat">Materiales de la Solicitud</h2>
     </div>
 
     <!-- Info del alumno -->
@@ -484,15 +489,16 @@
 </div>
 
 <!-- MODAL PERFIL USUARIO -->
-<div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()">
+<div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()" role="dialog" aria-modal="true"
+  aria-labelledby="titulo-perfil-sol">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalPerfil()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalPerfil()" aria-label="Cerrar modal">✕</button>
 
     <!-- Header del modal -->
     <div class="modal-header">
-      <h2 class="modal-title">Perfil del Alumno</h2>
+      <h2 class="modal-title" id="titulo-perfil-sol">Perfil del Alumno</h2>
     </div>
 
     <!-- Info del usuario -->

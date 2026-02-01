@@ -16,7 +16,7 @@
 
     <div class="selects-wrapper">
       <!-- Botón Limpiar -->
-      <button class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar búsqueda">
+      <button class="btn-limpiar" (click)="limpiarFiltros()" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -70,9 +70,10 @@
       <!-- Filas de préstamos -->
       <div class="table-row" *ngFor="let prestamo of prestamosFiltrados" [class.vencido]="esVencido(prestamo)">
         <div class="td td-alumno">
-          <a class="link-alumno" (click)="abrirPerfilAlumno(prestamo, $event)">
+          <button class="link-alumno" (click)="abrirPerfilAlumno(prestamo, $event)"
+            [attr.aria-label]="'Ver perfil de ' + getNombreUsuario(prestamo)">
             {{ getNombreUsuario(prestamo) }}
-          </a>
+          </button>
         </div>
 
         <!-- Columna: Tipo -->
@@ -85,10 +86,10 @@
         <!-- Columna: Material -->
         <div class="td td-material">
           <!-- Si tiene múltiples materiales, mostrar como enlace clickeable -->
-          <span *ngIf="tieneMultiplesMateriales(prestamo)" class="material-link"
-            (click)="verDetallesMateriales(prestamo, $event)">
+          <button *ngIf="tieneMultiplesMateriales(prestamo)" class="material-link"
+            (click)="verDetallesMateriales(prestamo, $event)" aria-label="Ver detalles de materiales">
             {{ getNombreMaterial(prestamo) }}
-          </span>
+          </button>
 
           <!-- Si tiene un solo material, mostrar texto normal -->
           <span *ngIf="!tieneMultiplesMateriales(prestamo)">
@@ -118,7 +119,8 @@
 
         <!-- Columna: Acción -->
         <div class="td td-accion">
-          <button class="btn-devolucion" (click)="abrirModalDevolucion(prestamo)">
+          <button class="btn-devolucion" (click)="abrirModalDevolucion(prestamo)"
+            [attr.aria-label]="'Registrar devolución para ' + getNombreUsuario(prestamo)">
             Registrar Devolución
           </button>
         </div>
@@ -132,15 +134,16 @@
 </div>
 
 <!-- MODAL: Detalle de Materiales -->
-<div class="modal-overlay" *ngIf="mostrarModalMateriales" (click)="cerrarModalMateriales()">
+<div class="modal-overlay" *ngIf="mostrarModalMateriales" (click)="cerrarModalMateriales()" role="dialog"
+  aria-modal="true" aria-labelledby="titulo-materiales-pa">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalMateriales()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalMateriales()" aria-label="Cerrar modal">✕</button>
 
     <!-- Header del modal -->
     <div class="modal-header">
-      <h2 class="modal-title">Materiales del Préstamo</h2>
+      <h2 class="modal-title" id="titulo-materiales-pa">Materiales del Préstamo</h2>
     </div>
 
     <!-- Info del alumno -->
@@ -172,15 +175,16 @@
 </div>
 
 <!-- MODAL: Confirmar Devolución -->
-<div class="modal-overlay" *ngIf="mostrarModalDevolucion" (click)="cerrarModalDevolucion()">
+<div class="modal-overlay" *ngIf="mostrarModalDevolucion" (click)="cerrarModalDevolucion()" role="dialog"
+  aria-modal="true" aria-labelledby="titulo-devolucion">
   <div class="modal-card modal-devolucion" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalDevolucion()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalDevolucion()" aria-label="Cerrar modal">✕</button>
 
     <!-- Header del modal -->
     <div class="modal-header">
-      <h2 class="modal-title">Registrar Devolución</h2>
+      <h2 class="modal-title" id="titulo-devolucion">Registrar Devolución</h2>
     </div>
 
     <!-- Contenido -->
@@ -258,15 +262,16 @@
 </div>
 
 <!-- MODAL PERFIL USUARIO -->
-<div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()">
+<div class="modal-overlay" *ngIf="mostrarModalPerfil" (click)="cerrarModalPerfil()" role="dialog" aria-modal="true"
+  aria-labelledby="titulo-perfil-pa">
   <div class="modal-card" (click)="$event.stopPropagation()">
 
     <!-- Botón cerrar -->
-    <button class="btn-cerrar" (click)="cerrarModalPerfil()">✕</button>
+    <button class="btn-cerrar" (click)="cerrarModalPerfil()" aria-label="Cerrar modal">✕</button>
 
     <!-- Header del modal -->
     <div class="modal-header">
-      <h2 class="modal-title">Perfil del Alumno</h2>
+      <h2 class="modal-title" id="titulo-perfil-pa">Perfil del Alumno</h2>
     </div>
 
     <!-- Info del usuario -->
