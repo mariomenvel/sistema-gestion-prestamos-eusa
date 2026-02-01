@@ -311,6 +311,12 @@ $font-family: 'Inter', sans-serif;
     color: #616161;
 }
 
+.badge-pendiente {
+    background: #FFF3E0;
+    border: 2px solid #FF9800;
+    color: $color-warning-orange;
+}
+
 .badge-completado {
     background: #F5F5F5;
     border: 2px solid #9E9E9E;
@@ -350,16 +356,17 @@ $font-family: 'Inter', sans-serif;
         transform: translateY(1px);
     }
 }
+
 // ========================================
 // BOTONES DE ACCIÓN
 // ========================================
 
 .botones-accion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  width: 936px; // Mismo ancho que la tabla
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    width: 936px; // Mismo ancho que la tabla
 }
 
 .btn-ver-solicitudes {
