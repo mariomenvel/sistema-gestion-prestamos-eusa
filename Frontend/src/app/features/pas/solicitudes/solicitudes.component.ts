@@ -47,6 +47,7 @@ export class SolicitudesComponent implements OnInit {
   // Datos del modal aprobar
   aprobandoSolicitud: boolean = false;
   fechaDevolucion: string = '';
+  fechaMinDevolucion: string = this.calcularFechaMin();
   idiomaEmailAprobacion: string = 'es'; // 'es' o 'en'
 
 
@@ -165,39 +166,39 @@ export class SolicitudesComponent implements OnInit {
   /**
    * Obtiene el código de barras de un item
    */
-getCodigoItem(item: any): string {
-  console.log('🔍 Item completo:', item);
-  
-  // Para solicitudes, la estructura puede ser diferente
-  // Intentar varias posibilidades:
-  
-  // Opción 1: item.Ejemplar.codigo_barra
-  if (item.Ejemplar && item.Ejemplar.codigo_barra) {
-    return item.Ejemplar.codigo_barra;
+  getCodigoItem(item: any): string {
+    console.log('🔍 Item completo:', item);
+
+    // Para solicitudes, la estructura puede ser diferente
+    // Intentar varias posibilidades:
+
+    // Opción 1: item.Ejemplar.codigo_barra
+    if (item.Ejemplar && item.Ejemplar.codigo_barra) {
+      return item.Ejemplar.codigo_barra;
+    }
+
+    // Opción 2: item.Unidad.codigo_barra
+    if (item.Unidad && item.Unidad.codigo_barra) {
+      return item.Unidad.codigo_barra;
+    }
+
+    // Opción 3: item.codigo_barra directamente
+    if (item.codigo_barra) {
+      return item.codigo_barra;
+    }
+
+    // Opción 4: Si es libro, buscar en item.ejemplar_id (minúscula)
+    if (item.Libro && item.ejemplar_id) {
+      return `EJ-${item.ejemplar_id}`;
+    }
+
+    // Opción 5: Si es equipo, buscar en item.unidad_id (minúscula)
+    if (item.Equipo && item.unidad_id) {
+      return `UN-${item.unidad_id}`;
+    }
+
+    return '-';
   }
-  
-  // Opción 2: item.Unidad.codigo_barra
-  if (item.Unidad && item.Unidad.codigo_barra) {
-    return item.Unidad.codigo_barra;
-  }
-  
-  // Opción 3: item.codigo_barra directamente
-  if (item.codigo_barra) {
-    return item.codigo_barra;
-  }
-  
-  // Opción 4: Si es libro, buscar en item.ejemplar_id (minúscula)
-  if (item.Libro && item.ejemplar_id) {
-    return `EJ-${item.ejemplar_id}`;
-  }
-  
-  // Opción 5: Si es equipo, buscar en item.unidad_id (minúscula)
-  if (item.Equipo && item.unidad_id) {
-    return `UN-${item.unidad_id}`;
-  }
-  
-  return '-';
-}
 
   /**
    * Abre el modal de perfil del usuario
@@ -337,26 +338,26 @@ getCodigoItem(item: any): string {
           this.cargarSolicitudes();
         }, 500);
       },
-     error: (err: any) => {
-  this.aprobandoSolicitud = false;
-  console.error('❌ Error al aprobar solicitud:', err);
-  
-  // Intentar obtener el mensaje de error más específico
-  let mensajeError = 'Error al aprobar la solicitud';
-  
-  if (err.message) {
-    // Si el error tiene message directamente
-    mensajeError = err.message;
-  } else if (err.error && err.error.mensaje) {
-    // Si viene en err.error.mensaje
-    mensajeError = err.error.mensaje;
-  } else if (err.error && typeof err.error === 'string') {
-    // Por si el error es un string directamente
-    mensajeError = err.error;
-  }
-  
-  this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
-}
+      error: (err: any) => {
+        this.aprobandoSolicitud = false;
+        console.error('❌ Error al aprobar solicitud:', err);
+
+        // Intentar obtener el mensaje de error más específico
+        let mensajeError = 'Error al aprobar la solicitud';
+
+        if (err.message) {
+          // Si el error tiene message directamente
+          mensajeError = err.message;
+        } else if (err.error && err.error.mensaje) {
+          // Si viene en err.error.mensaje
+          mensajeError = err.error.mensaje;
+        } else if (err.error && typeof err.error === 'string') {
+          // Por si el error es un string directamente
+          mensajeError = err.error;
+        }
+
+        this.mostrarNotificacion('error', 'Error en la aprobación', mensajeError);
+      }
     });
   }
 
@@ -545,43 +546,43 @@ getCodigoItem(item: any): string {
     return 'Usuario desconocido';
   }
 
- /**
- * Obtiene el nombre de un item (maneja estructuras de solicitudes y préstamos)
- */
-getNombreItem(item: any): string {
-  // Estructura de SOLICITUDES: item.Libro o item.Equipo
-  if (item.Libro) {
-    return item.Libro.titulo || 'Libro sin título';
-  }
-  if (item.Equipo) {
-    return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
-  }
-  
-  // Estructura de PRÉSTAMOS: item.Ejemplar.Libro o item.Unidad.equipo
-  if (item.Ejemplar && item.Ejemplar.Libro) {
-    return item.Ejemplar.Libro.titulo || 'Libro sin título';
-  }
-  if (item.Unidad && item.Unidad.equipo) {
-    const marca = item.Unidad.equipo.marca || '';
-    const modelo = item.Unidad.equipo.modelo || '';
-    return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
-  }
-  
-  return 'Material desconocido';
-}
+  /**
+  * Obtiene el nombre de un item (maneja estructuras de solicitudes y préstamos)
+  */
+  getNombreItem(item: any): string {
+    // Estructura de SOLICITUDES: item.Libro o item.Equipo
+    if (item.Libro) {
+      return item.Libro.titulo || 'Libro sin título';
+    }
+    if (item.Equipo) {
+      return `${item.Equipo.marca || ''} ${item.Equipo.modelo || ''}`.trim() || 'Equipo sin datos';
+    }
 
-/**
- * Obtiene el nombre del primer material de una solicitud
- */
-getNombreMaterial(solicitud: Solicitud): string {
-  const items = (solicitud as any).items;
-  if (!items || items.length === 0) {
+    // Estructura de PRÉSTAMOS: item.Ejemplar.Libro o item.Unidad.equipo
+    if (item.Ejemplar && item.Ejemplar.Libro) {
+      return item.Ejemplar.Libro.titulo || 'Libro sin título';
+    }
+    if (item.Unidad && item.Unidad.equipo) {
+      const marca = item.Unidad.equipo.marca || '';
+      const modelo = item.Unidad.equipo.modelo || '';
+      return `${marca} ${modelo}`.trim() || 'Equipo sin datos';
+    }
+
     return 'Material desconocido';
   }
-  
-  // Reutilizar getNombreItem
-  return this.getNombreItem(items[0]);
-}
+
+  /**
+   * Obtiene el nombre del primer material de una solicitud
+   */
+  getNombreMaterial(solicitud: Solicitud): string {
+    const items = (solicitud as any).items;
+    if (!items || items.length === 0) {
+      return 'Material desconocido';
+    }
+
+    // Reutilizar getNombreItem
+    return this.getNombreItem(items[0]);
+  }
 
   getItemsSolicitud(solicitud: Solicitud): any[] {
     return (solicitud as any).items || [];
@@ -595,11 +596,9 @@ getNombreMaterial(solicitud: Solicitud): string {
   }
 
   formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const anio = date.getFullYear();
-    return `${dia}/${mes}/${anio}`;
+    if (!fecha) return '—';
+    const partes = fecha.split('T')[0].split('-');
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
   }
 
   getEstadoClass(estado: string): string {
@@ -698,7 +697,7 @@ getNombreMaterial(solicitud: Solicitud): string {
     });
   }
 
- aplicarFiltros(): void {
+  aplicarFiltros(): void {
     let resultado = [...this.solicitudes];
 
     if (this.filtroEstadoActivo !== 'todas') {
@@ -714,17 +713,17 @@ getNombreMaterial(solicitud: Solicitud): string {
       resultado = resultado.filter(s => {
         const nombreUsuario = this.normalizarTexto(this.getNombreUsuario(s));
         const nombreMaterial = this.normalizarTexto(this.getNombreMaterial(s));
-        
+
         // Buscar también en TODOS los materiales de la solicitud
         const items = this.getItemsSolicitud(s);
         const coincideMaterial = items.some(item => {
           const nombreItem = this.normalizarTexto(this.getNombreItem(item));
           return nombreItem.includes(textoNormalizado);
         });
-        
+
         return nombreUsuario.includes(textoNormalizado) ||
-               nombreMaterial.includes(textoNormalizado) ||
-               coincideMaterial;
+          nombreMaterial.includes(textoNormalizado) ||
+          coincideMaterial;
       });
     }
 
@@ -826,13 +825,19 @@ getNombreMaterial(solicitud: Solicitud): string {
     }
   }
 
-  seleccionarEjemplar(item: ItemDisponibilidad, ejemplarId: number, codigoBarra: string): void {
-    item.ejemplar_seleccionado_id = ejemplarId;
+  seleccionarEjemplar(item: ItemDisponibilidad, ejemplarId: string, codigoBarra: string): void {
+    item.ejemplar_seleccionado_id = Number(ejemplarId);
     item.codigo_barra_seleccionado = codigoBarra;
   }
 
-  seleccionarUnidad(item: ItemDisponibilidad, unidadId: number, codigoBarra: string): void {
-    item.unidad_seleccionada_id = unidadId;
+  seleccionarUnidad(item: ItemDisponibilidad, unidadId: string, codigoBarra: string): void {
+    item.unidad_seleccionada_id = Number(unidadId);
     item.codigo_barra_seleccionado = codigoBarra;
+  }
+
+  private calcularFechaMin(): string {
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    return manana.toISOString().split('T')[0];
   }
 }
