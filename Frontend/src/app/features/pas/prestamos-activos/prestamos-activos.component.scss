@@ -271,8 +271,9 @@ $font-family: 'Inter', sans-serif;
 }
 
 .icono-calendario {
-  font-size: 16px;
-  line-height: 19px;
+  flex-shrink: 0;
+  color: $color-text-secondary;
+  transition: color 0.2s ease;
 
   &.vencido {
     color: #FF9800;
@@ -703,7 +704,8 @@ $font-family: 'Inter', sans-serif;
 }
 
 .aviso-icono {
-  font-size: 18px;
+  flex-shrink: 0;
+  color: $color-primary-blue;
 }
 
 .aviso-texto {

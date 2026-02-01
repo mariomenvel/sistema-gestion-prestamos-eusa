@@ -1,19 +1,46 @@
 <!-- Overlay -->
-<div class="modal-overlay" *ngIf="mostrar" (click)="cerrarModal()">
+<div class="modal-overlay" *ngIf="mostrar" (click)="cerrarModal()" role="dialog" aria-modal="true"
+  [attr.aria-labelledby]="'modal-titulo-' + tipo">
+
   <!-- Modal Card -->
-  <div class="modal-card" [ngClass]="'modal-' + tipo" (click)="$event.stopPropagation()">
-    <!-- Ícono -->
-    <div class="modal-icono" [ngClass]="tipo + '-icono'">
-      {{ getIcono() }}
+  <div class="modal-card" [ngClass]="'modal-' + tipo" (click)="$event.stopPropagation()" tabindex="-1">
+
+    <!-- Ícono (SVG) -->
+    <div class="modal-icono" [ngClass]="tipo + '-icono'" aria-hidden="true">
+      <!-- Éxito -->
+      <svg *ngIf="tipo === 'exito'" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+      <!-- Error -->
+      <svg *ngIf="tipo === 'error'" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+      <!-- Confirmación -->
+      <svg *ngIf="tipo === 'confirmacion'" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      <!-- Info -->
+      <svg *ngIf="tipo === 'info'" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
     </div>
 
     <!-- Título -->
-    <h2 class="modal-titulo">
+    <h2 class="modal-titulo" [id]="'modal-titulo-' + tipo">
       {{ titulo }}
     </h2>
 
     <!-- Mensaje -->
-    <p class="modal-mensaje">
+    <p class="modal-mensaje" role="status">
       {{ mensaje }}
     </p>
 

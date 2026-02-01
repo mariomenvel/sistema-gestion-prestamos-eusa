@@ -1,6 +1,7 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 import { Usuario } from '../../../core/models/usuario.model';
 
 /**
@@ -42,7 +43,8 @@ export class HeaderComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private sidebarService: SidebarService
   ) { }
 
   // ===== CICLO DE VIDA =====
@@ -67,6 +69,10 @@ export class HeaderComponent implements OnInit {
 
   toggleProfileMenu(): void {
     this.isProfileMenuOpen = !this.isProfileMenuOpen;
+  }
+
+  toggleSidebar(): void {
+    this.sidebarService.toggle();
   }
 
   /**
