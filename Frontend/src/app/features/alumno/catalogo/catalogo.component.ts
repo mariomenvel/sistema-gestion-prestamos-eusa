@@ -500,8 +500,9 @@ export class CatalogoComponent implements OnInit {
    * Obtiene la URL completa de la imagen
    */
   getImageUrl(url?: string): string | undefined {
-    if (!url) return undefined;
-    if (url.startsWith('data:')) return url; // Para previsualizaciones
-    return `${environment.apiUrl}${url}`;
-  }
+  if (!url) return undefined;
+  if (url.startsWith('data:')) return url; // Para previsualizaciones
+  if (url.startsWith('assets/')) return url; // Assets locales de Angular
+  return `${environment.apiUrl}${url}`;
+}
 }
