@@ -740,13 +740,15 @@ $font-family: 'Inter', sans-serif;
   position: fixed;
   top: 100px;
   left: 50%;
-  transform: translateX(-50%) translateY(-100%) scale(0.9);
+  transform: translateX(-50%) translateY(-150%) scale(0.9);
+  opacity: 0;
+  visibility: hidden;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
   border-radius: 16px;
-  padding: 18px 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
-  z-index: 10000;
+  padding: 18px 26px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 100000;
   display: flex;
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border-left: 6px solid #28A745;
@@ -755,6 +757,8 @@ $font-family: 'Inter', sans-serif;
 
   &.show {
     transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
   }
 
   .notification-content {
@@ -820,9 +824,13 @@ $font-family: 'Inter', sans-serif;
     width: auto;
     min-width: 0;
     transform: translateY(-150%) scale(0.9);
+    opacity: 0;
+    visibility: hidden;
 
     &.show {
       transform: translateY(0) scale(1);
+      opacity: 1;
+      visibility: visible;
     }
   }
 }
