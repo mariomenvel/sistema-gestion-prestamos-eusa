@@ -1,0 +1,92 @@
+<div class="perfil-container">
+
+    <!-- Header de la página -->
+    <div class="perfil-header">
+        <h1 class="titulo-pagina">Mi Perfil</h1>
+        <p class="subtitulo">Información de tu cuenta</p>
+    </div>
+
+    <div class="perfil-content" *ngIf="usuario">
+
+        <!-- Card principal con avatar y datos personales -->
+        <div class="perfil-card">
+
+            <!-- Sección avatar e identificación -->
+            <div class="avatar-section">
+                <div class="avatar-circulo">
+                    {{ iniciales }}
+                </div>
+                <div class="rol-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    Personal Administrativo
+                </div>
+            </div>
+
+            <!-- Sección datos del usuario -->
+            <div class="datos-section">
+
+                <div class="dato-item">
+                    <label class="dato-label">Nombre completo</label>
+                    <p class="dato-valor">{{ usuario.nombre || 'No especificado' }}</p>
+                </div>
+
+                <div class="dato-item">
+                    <label class="dato-label">Correo electrónico</label>
+                    <p class="dato-valor">{{ usuario.email || 'No especificado' }}</p>
+                </div>
+
+                <div class="dato-item">
+                    <label class="dato-label">Rol en el sistema</label>
+                    <p class="dato-valor"> Servicio Técnico (PAS)</p>
+                </div>
+
+                <div class="dato-item">
+                    <label class="dato-label">Estado de la cuenta</label>
+                    <div class="estado-badge activo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Activa
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Card informativa sobre permisos -->
+        <div class="info-card">
+            <div class="info-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <h2>Información de la cuenta</h2>
+            </div>
+
+            <p class="info-texto">
+                Tu cuenta tiene permisos de Personal Administrativo (PAS), lo que te permite gestionar
+                solicitudes de préstamo, aprobar o rechazar peticiones, registrar devoluciones, administrar
+                el catálogo de materiales (libros y equipos audiovisuales) y gestionar usuarios del sistema.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Estado de carga (mientras no hay datos) -->
+    <div class="perfil-loading" *ngIf="!usuario">
+        <p>Cargando información del perfil...</p>
+    </div>
+
+</div>

@@ -86,7 +86,7 @@ export class HeaderComponent implements OnInit {
   }
 
   /**
-   * Navega a la página de perfil del usuario.
+   * Navega a la página de perfil del usuario según su rol.
    */
   goToProfile(): void {
     this.isProfileMenuOpen = false;
@@ -95,7 +95,7 @@ export class HeaderComponent implements OnInit {
     if (role === 'alumno' || role === 'profesor') {
       this.router.navigate(['/alumno/mi-perfil']);
     } else if (role === 'pas') {
-      // Por ahora, el PAS no tiene perfil propio
+      this.router.navigate(['/pas/perfil']);
     }
   }
 

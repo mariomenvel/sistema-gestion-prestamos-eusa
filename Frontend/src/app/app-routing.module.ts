@@ -23,6 +23,7 @@ import { MaterialesComponent } from './features/pas/materiales/materiales.compon
 import { ReportesComponent } from './features/pas/reportes/reportes.component';
 import { UsuariosComponent } from './features/pas/usuarios/usuarios.component';
 import { PrestamoPresencialComponent } from './features/pas/prestamo-presencial/prestamo-presencial.component';
+import { PerfilComponent } from './features/pas/perfil/perfil.component';
 
 /**
  * Configuración de rutas de la aplicación.
@@ -141,6 +142,11 @@ const routes: Routes = [
       {
         path: 'prestamo-presencial',
         component: PrestamoPresencialComponent
+      },
+      // Perfil del usuario PAS
+      {
+        path: 'perfil',
+        component: PerfilComponent
       }
     ]
   },
