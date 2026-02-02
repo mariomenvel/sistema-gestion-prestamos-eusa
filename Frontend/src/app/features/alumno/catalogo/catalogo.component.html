@@ -113,7 +113,7 @@
       </div>
 
       <!-- Cards de materiales -->
-      <article class="material-card" *ngFor="let material of materialesFiltrados">
+      <article class="material-card" *ngFor="let material of materialesPaginados">
 
         <!-- Imagen y Info clickable para Detalle -->
         <div class="card-clickable-area" (click)="verDetalle(material)">
@@ -144,6 +144,21 @@
       </article>
 
     </main>
+
+    <!-- Controles de Paginación -->
+    <div class="pagination-footer" *ngIf="totalPaginas > 1">
+      <button class="btn-pagination" [disabled]="paginaActual === 1" (click)="irAPagina(paginaActual - 1)">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+
+      <div class="pagination-info">
+        Página <strong>{{ paginaActual }}</strong> de {{ totalPaginas }}
+      </div>
+
+      <button class="btn-pagination" [disabled]="paginaActual === totalPaginas" (click)="irAPagina(paginaActual + 1)">
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
 
   </div>
 

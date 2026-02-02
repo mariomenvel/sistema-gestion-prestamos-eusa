@@ -836,6 +836,81 @@ $font-family: 'Inter', sans-serif;
 }
 
 // ========================================
+// PAGINACIÓN (FIGHTER STYLE)
+// ========================================
+
+.pagination-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  grid-column: 1 / -1;
+  padding: 48px 0;
+  margin-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+
+  .btn-pagination {
+    background: white;
+    border: 2px solid #eee;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+
+    i {
+      font-size: 12px;
+      transition: transform 0.3s;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: $color-primary-blue;
+      color: $color-primary-blue;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba($color-primary-blue, 0.1);
+
+      i {
+        transform: translateX(2px);
+      }
+
+      &:first-child i {
+        transform: translateX(-2px);
+      }
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background: #fafafa;
+      color: #ccc;
+      border-color: #f0f0f0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  }
+
+  .pagination-info {
+    font-size: 15px;
+    color: #666;
+    font-weight: 500;
+
+    strong {
+      color: $color-primary-blue;
+      font-weight: 800;
+      font-size: 17px;
+    }
+  }
+}
+
+// ========================================
 // RESPONSIVE
 // ========================================
 

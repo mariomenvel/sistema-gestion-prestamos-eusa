@@ -66,6 +66,11 @@ export class CatalogoComponent implements OnInit {
   mostrarNotificacionCarrito: boolean = false;
   ultimoMaterialAgregado: MaterialVista | null = null;
 
+  // ===== PAGINACIÓN =====
+  paginaActual: number = 1;
+  itemsPorPagina: number = 50;
+  materialesPaginados: MaterialVista[] = [];
+
   // ===== ESTADO =====
 
   isLoading: boolean = false;
@@ -459,7 +464,36 @@ export class CatalogoComponent implements OnInit {
     }
 
     this.materialesFiltrados = resultado;
+    this.paginaActual = 1; // Resetear a la primera página al filtrar
+    this.actualizarMaterialesPaginados();
     console.log('🔍 Materiales filtrados:', this.materialesFiltrados.length);
+  }
+
+  /**
+   * Actualiza la sublista de materiales que se muestran en la página actual
+   */
+  actualizarMaterialesPaginados(): void {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    this.materialesPaginados = this.materialesFiltrados.slice(inicio, fin);
+  }
+
+  /**
+   * Cambia a una página específica
+   */
+  irAPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+      this.actualizarMaterialesPaginados();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  /**
+   * Getter para el total de páginas
+   */
+  get totalPaginas(): number {
+    return Math.ceil(this.materialesFiltrados.length / this.itemsPorPagina) || 1;
   }
 
   /**
