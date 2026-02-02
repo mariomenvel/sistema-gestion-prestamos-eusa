@@ -14,6 +14,7 @@ interface MaterialVista {
   descripcion: string;
   disponible: boolean;
   imagenUrl?: string;
+  cantidad?: number;
 }
 
 /**
@@ -25,6 +26,7 @@ interface ItemCarrito {
   titulo: string;
   categoria: string;
   marcaModelo: string;
+  cantidad?: number;
 }
 
 /**
@@ -57,6 +59,11 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   @Input() todosLosMateriales: MaterialVista[] = [];
 
   /**
+   * Items previos en el carrito (desde el catálogo)
+   */
+  @Input() listaCarrito: MaterialVista[] = [];
+
+  /**
    * Evento cuando se cierra el modal
    */
   @Output() close = new EventEmitter<void>();
@@ -65,6 +72,21 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    * Evento cuando se crea la solicitud exitosamente
    */
   @Output() solicitudCreada = new EventEmitter<void>();
+
+  /**
+   * Evento para vaciar el carrito
+   */
+  @Output() vaciarCarrito = new EventEmitter<void>();
+
+  /**
+   * Evento para quitar un item específico
+   */
+  @Output() quitarItem = new EventEmitter<{ id: number, tipo: 'libro' | 'equipo' }>();
+
+  /**
+   * Evento para actualizar cantidad
+   */
+  @Output() actualizarCantidad = new EventEmitter<{ id: number, tipo: 'libro' | 'equipo', delta: number }>();
 
   // ===== INYECCIÓN DE SERVICIOS =====
   private solicitudesService = inject(SolicitudesService);
@@ -110,16 +132,24 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    * Se ejecuta cuando material cambia
    */
   ngOnChanges(changes: SimpleChanges): void {
-    // Si cambia material y el modal está abierto
-    if (changes['material'] && changes['material'].currentValue && this.isOpen) {
+    // Si se abre el modal, cargamos los items del catálogo
+    if (changes['isOpen'] && changes['isOpen'].currentValue) {
       this.carrito = [];
-      this.agregarMaterialInicial();
-    }
-
-    // Si cambia isOpen y se abre el modal
-    if (changes['isOpen'] && changes['isOpen'].currentValue && !changes['isOpen'].previousValue) {
-      this.carrito = [];
-      this.agregarMaterialInicial();
+      if (this.listaCarrito && this.listaCarrito.length > 0) {
+        // Cargar todos los items del carrito externo
+        this.listaCarrito.forEach(item => {
+          this.carrito.push({
+            id: item.id,
+            tipo: item.tipo,
+            titulo: item.titulo,
+            categoria: item.categoria,
+            marcaModelo: item.marcaModelo
+          });
+        });
+      } else if (this.material) {
+        // Fallback: si no hay lista externa pero hay material único
+        this.agregarMaterialInicial();
+      }
     }
   }
 
@@ -141,7 +171,8 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
       tipo: this.material.tipo,
       titulo: this.material.titulo,
       categoria: this.material.categoria,
-      marcaModelo: this.material.marcaModelo
+      marcaModelo: this.material.marcaModelo,
+      cantidad: this.material.cantidad || 1
     });
   }
 
@@ -217,7 +248,8 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
       tipo: material.tipo,
       titulo: material.titulo,
       categoria: material.categoria,
-      marcaModelo: material.marcaModelo
+      marcaModelo: material.marcaModelo,
+      cantidad: material.cantidad || 1
     });
 
     this.errorSolicitud = '';
@@ -229,9 +261,34 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    * Elimina material del carrito
    */
   eliminarDelCarrito(index: number): void {
+    const item = this.carrito[index];
     this.carrito.splice(index, 1);
+    this.quitarItem.emit({ id: item.id, tipo: item.tipo });
     this.resultadosBusqueda = [];
     this.busquedaTexto = '';
+  }
+
+  /**
+   * Modifica la cantidad de un item
+   */
+  modificarCantidad(index: number, delta: number): void {
+    const item = this.carrito[index];
+    const nuevaCantidad = (item.cantidad || 1) + delta;
+    if (nuevaCantidad > 0) {
+      item.cantidad = nuevaCantidad;
+      this.actualizarCantidad.emit({ id: item.id, tipo: item.tipo, delta });
+    } else {
+      this.eliminarDelCarrito(index);
+    }
+  }
+
+  /**
+   * Vacía todo el carrito
+   */
+  limpiarCarrito(): void {
+    this.carrito = [];
+    this.vaciarCarrito.emit();
+    this.cerrarModal();
   }
 
   /**
@@ -329,12 +386,14 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
     this.enviandoSolicitud = true;
     this.errorSolicitud = '';
 
-    // Preparar array de items - SIN el campo "tipo"
-    const items = this.carrito.map(item =>
-      item.tipo === 'libro'
-        ? { libro_id: item.id }
-        : { equipo_id: item.id }
-    );
+    // Preparar array de items - Respetando cantidades
+    const items: any[] = [];
+    this.carrito.forEach(item => {
+      const cant = item.cantidad || 1;
+      for (let i = 0; i < cant; i++) {
+        items.push(item.tipo === 'libro' ? { libro_id: item.id } : { equipo_id: item.id });
+      }
+    });
 
     // Obtener grado del usuario logueado
     const usuarioActual = this.authService.currentUser();
@@ -372,29 +431,29 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
           this.cerrarModal();
         }, 3000);
       },
-     error: (err) => {
-  console.error('❌ Error al crear solicitud:', err);
-  
-  // Intentar obtener el mensaje de error más específico
-  let mensajeError = 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
-  
-  if (err.error && err.error.mensaje) {
-    // Mensaje del backend (formato: { mensaje: "..." })
-    mensajeError = err.error.mensaje;
-  } else if (err.message) {
-    // Mensaje del error HTTP
-    mensajeError = err.message;
-  } else if (typeof err.error === 'string') {
-    // Por si el backend envía un string directamente
-    mensajeError = err.error;
-  }
-  
-  this.tipoModalNotificacion = 'error';
-  this.tituloModalNotificacion = 'Error en la Solicitud';
-  this.mensajeModalNotificacion = mensajeError;
-  this.mostrarModalNotificacion = true;
-  this.enviandoSolicitud = false;
-}
+      error: (err) => {
+        console.error('❌ Error al crear solicitud:', err);
+
+        // Intentar obtener el mensaje de error más específico
+        let mensajeError = 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
+
+        if (err.error && err.error.mensaje) {
+          // Mensaje del backend (formato: { mensaje: "..." })
+          mensajeError = err.error.mensaje;
+        } else if (err.message) {
+          // Mensaje del error HTTP
+          mensajeError = err.message;
+        } else if (typeof err.error === 'string') {
+          // Por si el backend envía un string directamente
+          mensajeError = err.error;
+        }
+
+        this.tipoModalNotificacion = 'error';
+        this.tituloModalNotificacion = 'Error en la Solicitud';
+        this.mensajeModalNotificacion = mensajeError;
+        this.mostrarModalNotificacion = true;
+        this.enviandoSolicitud = false;
+      }
     });
   }
 

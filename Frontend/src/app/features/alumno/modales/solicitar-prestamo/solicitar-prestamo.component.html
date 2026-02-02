@@ -7,9 +7,13 @@
     <!-- Header -->
     <div class="modal-header">
       <div class="header-content">
-        <h2 class="modal-title">Solicitar Préstamo Material</h2>
-        <p class="modal-subtitle">{{ carrito.length > 0 ? carrito.length + ' material(es)' : 'Material Seleccionado' }}
-        </p>
+        <h2 class="modal-title">Formalizar Préstamo</h2>
+        <p class="modal-subtitle">{{ carrito.length }} material(es) en tu lista</p>
+      </div>
+      <div class="header-actions" *ngIf="carrito.length > 0">
+        <button class="btn-vaciar" (click)="limpiarCarrito()" title="Vaciar todo el carrito">
+          <i class="fas fa-trash-alt"></i> Vaciar Carrito
+        </button>
       </div>
       <button class="btn-close" (click)="cerrarModal()" type="button">
         ✕
@@ -19,23 +23,47 @@
     <!-- Body -->
     <div class="modal-body">
 
-      <!-- Card Material Seleccionado (ahora es Item en Carrito) -->
-      <div class="material-card" *ngIf="material && carrito.length > 0">
-        <div class="material-info">
-          <h3 class="material-title">{{ material.titulo }}</h3>
-          <p class="material-category">{{ material.categoria }} - {{ material.marcaModelo }}</p>
-        </div>
-      </div>
+      <!-- LISTA DE ITEMS (CARDS PREMIUM) -->
+      <div class="cart-items-container" *ngIf="carrito.length > 0">
+        <div class="cart-item-card" *ngFor="let item of carrito; let i = index">
 
-      <!-- Otros items en carrito (si hay más de uno) -->
-      <div class="otros-items" *ngIf="carrito.length > 1">
-        <h4 class="otros-items-titulo">Otros materiales ({{ carrito.length - 1 }})</h4>
-        <div class="otros-items-lista">
-          <div class="otro-item" *ngFor="let item of carrito.slice(1); let i = index">
-            <span class="otro-item-titulo">{{ item.titulo }}</span>
-            <button type="button" class="btn-eliminar-item" (click)="eliminarDelCarrito(i + 1)"
-              title="Eliminar">✕</button>
+          <!-- Lado Izquierdo: Icono/Miniatura -->
+          <div class="item-visual">
+            <div class="mini-icon" [class]="item.tipo">
+              <i class="fas" [ngClass]="item.tipo === 'libro' ? 'fa-book' : 'fa-camera'"></i>
+            </div>
           </div>
+
+          <!-- Centro: Información -->
+          <div class="item-details">
+            <h4 class="item-title">{{ item.titulo }}</h4>
+            <div class="item-meta">
+              <span class="meta-tag">{{ item.categoria }}</span>
+              <span class="meta-sep"></span>
+              <span class="meta-desc">{{ item.marcaModelo }}</span>
+            </div>
+          </div>
+
+          <!-- Lado Derecho: Acciones -->
+          <div class="item-controls">
+            <!-- Cantidad -->
+            <div class="stepper">
+              <button type="button" class="btn-step" (click)="modificarCantidad(i, -1)" [disabled]="enviandoSolicitud">
+                <i class="fas fa-minus"></i>
+              </button>
+              <span class="step-value">{{ item.cantidad || 1 }}</span>
+              <button type="button" class="btn-step" (click)="modificarCantidad(i, 1)" [disabled]="enviandoSolicitud">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+
+            <!-- Eliminar -->
+            <button type="button" class="btn-remove" (click)="eliminarDelCarrito(i)" [disabled]="enviandoSolicitud"
+              title="Eliminar del carrito">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
         </div>
       </div>
 

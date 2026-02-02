@@ -26,6 +26,9 @@ interface MaterialVista {
   modelo?: string;
   nombre_equipo?: string;
 
+  // Gestión de Carrito
+  cantidad?: number;
+
   marcaModelo: string;
   descripcion: string;
   disponible: boolean;
@@ -58,13 +61,18 @@ export class CatalogoComponent implements OnInit {
   nombresSeleccionados: number[] = [];
   textoBusqueda: string = '';
 
+  // ===== CARRITO DE PRÉSTAMOS =====
+  carrito: MaterialVista[] = [];
+  mostrarNotificacionCarrito: boolean = false;
+  ultimoMaterialAgregado: MaterialVista | null = null;
+
   // ===== ESTADO =====
 
   isLoading: boolean = false;
   errorMessage: string = '';
 
-  // ===== MODAL DE SOLICITUD ===== 
-
+  // ===== MODALES ===== 
+  mostrarModalDetalle: boolean = false;
   mostrarModalSolicitud: boolean = false;
   materialSeleccionado: MaterialVista | null = null;
   // ===== CONSTRUCTOR =====
@@ -176,28 +184,112 @@ export class CatalogoComponent implements OnInit {
   }
 
   /**
-   * Abre el modal de solicitud
+   * Abre el modal de detalle
    */
-  solicitarPrestamo(material: MaterialVista): void {
+  verDetalle(material: MaterialVista): void {
     this.materialSeleccionado = material;
+    this.mostrarModalDetalle = true;
+  }
+
+  /**
+   * Cierra el modal de detalle
+   */
+  cerrarModalDetalle(): void {
+    this.mostrarModalDetalle = false;
+  }
+
+  /**
+   * Cierra el modal de solicitud (checkout)
+   */
+  cerrarModalSolicitud(): void {
+    this.mostrarModalSolicitud = false;
+  }
+
+  /**
+   * Agrega un material al carrito
+   */
+  agregarAlCarrito(material: MaterialVista): void {
+    const itemExistente = this.carrito.find(m => m.id === material.id && m.tipo === material.tipo);
+
+    if (itemExistente) {
+      // Si ya está, incrementamos cantidad si es posible (ej: libros)
+      // Aunque por ahora el sistema de préstamos suele ser de items únicos, 
+      // permitimos incrementar para que el usuario gestione sus cantidades.
+      itemExistente.cantidad = (itemExistente.cantidad || 1) + 1;
+    } else {
+      // Si no está, lo añadimos con cantidad 1
+      this.carrito.push({
+        ...material,
+        cantidad: 1
+      });
+    }
+
+    this.ultimoMaterialAgregado = material;
+
+    // Mostrar notificación temporal
+    this.mostrarNotificacionCarrito = true;
+    setTimeout(() => {
+      this.mostrarNotificacionCarrito = false;
+    }, 3000);
+  }
+
+  /**
+   * Actualiza la cantidad de un item
+   */
+  actualizarCantidad(materialId: number, tipo: 'libro' | 'equipo', delta: number): void {
+    const item = this.carrito.find(m => m.id === materialId && m.tipo === tipo);
+    if (item) {
+      const nuevaCantidad = (item.cantidad || 1) + delta;
+      if (nuevaCantidad > 0) {
+        item.cantidad = nuevaCantidad;
+      } else {
+        this.quitarDelCarrito(materialId, tipo);
+      }
+    }
+  }
+
+  /**
+   * Vacía el carrito por completo
+   */
+  vaciarCarrito(): void {
+    this.carrito = [];
+    this.cerrarModalSolicitud();
+  }
+
+  /**
+   * Quita un material del carrito
+   */
+  quitarDelCarrito(materialId: number, tipo: 'libro' | 'equipo'): void {
+    this.carrito = this.carrito.filter(m => !(m.id === materialId && m.tipo === tipo));
+    if (this.carrito.length === 0) {
+      this.cerrarModalSolicitud();
+    }
+  }
+
+  /**
+   * Verifica si un material ya está en el carrito
+   */
+  estaEnCarrito(material: MaterialVista | null): boolean {
+    if (!material) return false;
+    return this.carrito.some(m => m.id === material.id && m.tipo === material.tipo);
+  }
+
+  /**
+   * Abre el modal del carrito / formalización
+   */
+  abrirCarrito(): void {
+    if (this.carrito.length === 0) return;
+    this.materialSeleccionado = this.carrito[0]; // El modal pide uno inicial
     this.mostrarModalSolicitud = true;
   }
 
   /**
-   * Cierra el modal de solicitud
-   */
-  cerrarModalSolicitud(): void {
-    this.mostrarModalSolicitud = false;
-    this.materialSeleccionado = null;
-  }
-
-  /**
-   * Callback cuando se crea la solicitud exitosamente
+   * Limpia el carrito después de una solicitud exitosa
    */
   onSolicitudCreada(): void {
+    this.carrito = [];
     this.cerrarModalSolicitud();
-    // Opcional: Recargar datos o mostrar mensaje
-    console.log('✅ Solicitud creada exitosamente');
+    console.log('✅ Carrito vaciado tras solicitud exitosa');
   }
 
   // ===== MÉTODOS PRIVADOS =====
