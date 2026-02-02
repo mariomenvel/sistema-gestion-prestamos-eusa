@@ -1,46 +1,29 @@
 <div class="catalogo">
-  
+
   <!-- TÍTULO -->
   <h1 class="catalogo-title">Catálogo</h1>
 
   <!-- BARRA DE BÚSQUEDA Y FILTROS RÁPIDOS -->
   <div class="search-filters-row">
-    
+
     <!-- Barra de búsqueda -->
     <div class="search-bar">
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar Libros, cámaras, micrófonos..."
-        [(ngModel)]="textoBusqueda"
-        (keyup.enter)="buscar()"
-      >
+      <input type="text" class="search-input" placeholder="Buscar Libros, cámaras, micrófonos..."
+        [(ngModel)]="textoBusqueda" (keyup.enter)="buscar()">
       <button class="search-icon" (click)="buscar()">🔍</button>
     </div>
 
     <!-- Filtros rápidos -->
     <div class="quick-filters">
-      <button 
-        class="filter-btn"
-        [class.active]="filtroTipoActivo === 'todos'"
-        (click)="cambiarFiltroTipo('todos')"
-      >
+      <button class="filter-btn" [class.active]="filtroTipoActivo === 'todos'" (click)="cambiarFiltroTipo('todos')">
         Todos
       </button>
-      
-      <button 
-        class="filter-btn"
-        [class.active]="filtroTipoActivo === 'libros'"
-        (click)="cambiarFiltroTipo('libros')"
-      >
+
+      <button class="filter-btn" [class.active]="filtroTipoActivo === 'libros'" (click)="cambiarFiltroTipo('libros')">
         Libros
       </button>
-      
-      <button 
-        class="filter-btn"
-        [class.active]="filtroTipoActivo === 'equipos'"
-        (click)="cambiarFiltroTipo('equipos')"
-      >
+
+      <button class="filter-btn" [class.active]="filtroTipoActivo === 'equipos'" (click)="cambiarFiltroTipo('equipos')">
         Material Audiovisual
       </button>
     </div>
@@ -49,7 +32,7 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   <div class="catalogo-content">
-    
+
     <!-- PANEL LATERAL DE FILTROS -->
     <aside class="filters-panel">
       <h2 class="filters-title">Filtros</h2>
@@ -58,48 +41,62 @@
       <div class="filter-section">
         <h3 class="filter-section-title">Tipo de Material</h3>
         <div class="filter-divider"></div>
-        
+
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            [checked]="filtroTipoActivo === 'libros'"
-            (change)="cambiarFiltroTipo('libros')"
-          >
+          <input type="checkbox" [checked]="filtroTipoActivo === 'libros'" (change)="cambiarFiltroTipo('libros')">
           <span>Libros</span>
         </label>
-        
+
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            [checked]="filtroTipoActivo === 'equipos'"
-            (change)="cambiarFiltroTipo('equipos')"
-          >
+          <input type="checkbox" [checked]="filtroTipoActivo === 'equipos'" (change)="cambiarFiltroTipo('equipos')">
           <span>Material Audiovisual</span>
         </label>
       </div>
 
-      <!-- Categorías -->
-      <div class="filter-section">
-        <h3 class="filter-section-title">Categorías</h3>
+      <!-- Filtro por Categoría de Equipo (Solo para Audiovisual) -->
+      <div class="filter-section" *ngIf="filtroTipoActivo === 'equipos'">
+        <h3 class="filter-section-title">Categoría</h3>
         <div class="filter-divider"></div>
-        
-        <label 
-          class="checkbox-label" 
-          *ngFor="let categoria of categoriasFiltradas"
-        >
-          <input 
-            type="checkbox" 
-            [checked]="isCategoriaSeleccionada(categoria.codigo)"
-            (change)="toggleCategoria(categoria.codigo)"
-          >
-          <span>{{ categoria.nombre }}</span>
-        </label>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label" *ngFor="let cat of categoriasEquipos">
+            <input type="checkbox" [checked]="isCategoriaEquipoSeleccionada(cat.id)"
+              (change)="toggleCategoriaEquipo(cat.id)">
+            <span>{{ cat.nombre }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Filtro por Nombre de Equipo (Solo para Audiovisual) -->
+      <div class="filter-section" *ngIf="filtroTipoActivo === 'equipos'">
+        <h3 class="filter-section-title">Nombre de Equipo</h3>
+        <div class="filter-divider"></div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label" *ngFor="let nombre of nombresEquipo">
+            <input type="checkbox" [checked]="isNombreSeleccionado(nombre.id)" (change)="toggleNombreEquipo(nombre.id)">
+            <span>{{ nombre.nombre }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Filtro por Género (Solo para Libros) -->
+      <div class="filter-section" *ngIf="filtroTipoActivo === 'libros'">
+        <h3 class="filter-section-title">Género</h3>
+        <div class="filter-divider"></div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label" *ngFor="let genero of generos">
+            <input type="checkbox" [checked]="isGeneroSeleccionado(genero.id)" (change)="toggleGenero(genero.id)">
+            <span>{{ genero.nombre }}</span>
+          </label>
+        </div>
       </div>
     </aside>
 
     <!-- GRID DE MATERIALES -->
     <main class="materials-grid">
-      
+
       <!-- Loading -->
       <div *ngIf="isLoading" class="loading-state">
         Cargando materiales...
@@ -116,18 +113,11 @@
       </div>
 
       <!-- Cards de materiales -->
-      <article 
-        class="material-card"
-        *ngFor="let material of materialesFiltrados"
-      >
-        
+      <article class="material-card" *ngFor="let material of materialesFiltrados">
+
         <!-- Imagen -->
         <div class="material-image">
-          <img 
-            *ngIf="material.imagenUrl" 
-            [src]="material.imagenUrl" 
-            [alt]="material.titulo"
-          >
+          <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo">
           <div *ngIf="!material.imagenUrl" class="image-placeholder">
             {{ material.tipo === 'libro' ? '📚' : '📷' }}
           </div>
@@ -142,10 +132,7 @@
         </div>
 
         <!-- Botón Solicitar -->
-        <button 
-          class="btn-solicitar"
-          (click)="solicitarPrestamo(material)"
-        >
+        <button class="btn-solicitar" (click)="solicitarPrestamo(material)">
           Solicitar
         </button>
 
@@ -158,9 +145,6 @@
 </div>
 
 <!-- Modal Solicitar Préstamo -->
-<app-solicitar-prestamo 
-  [isOpen]="mostrarModalSolicitud" 
-  [material]="materialSeleccionado"
-  [todosLosMateriales]="materiales"
-  (close)="cerrarModalSolicitud()" 
+<app-solicitar-prestamo [isOpen]="mostrarModalSolicitud" [material]="materialSeleccionado"
+  [todosLosMateriales]="materiales" (close)="cerrarModalSolicitud()"
   (solicitudCreada)="onSolicitudCreada()"></app-solicitar-prestamo>

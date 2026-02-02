@@ -12,6 +12,9 @@ interface MaterialVista {
   tipo: 'libro' | 'equipo';
   titulo: string;
   categoria: string;
+  genero_id?: number;
+  categoria_id?: number;
+  nombre_id?: number;
   marcaModelo: string;
   descripcion: string;
   disponible: boolean;
@@ -32,14 +35,16 @@ export class CatalogoComponent implements OnInit {
 
   libros: Libro[] = [];
   equipos: Equipo[] = [];
-  categorias: Categoria[] = [];
+  generos: any[] = [];
+  categoriasEquipos: any[] = [];
+  nombresEquipo: any[] = [];
   materiales: MaterialVista[] = [];
   materialesFiltrados: MaterialVista[] = [];
 
-  // ===== FILTROS =====
-
   filtroTipoActivo: 'todos' | 'libros' | 'equipos' = 'todos';
-  categoriasSeleccionadas: string[] = [];
+  generosSeleccionados: number[] = [];
+  categoriasEquiposSeleccionadas: number[] = [];
+  nombresSeleccionados: number[] = [];
   textoBusqueda: string = '';
 
   // ===== ESTADO =====
@@ -69,30 +74,87 @@ export class CatalogoComponent implements OnInit {
    * Cambia el filtro de tipo (Todos, Libros, Material Audiovisual)
    */
   cambiarFiltroTipo(tipo: 'todos' | 'libros' | 'equipos'): void {
-    this.filtroTipoActivo = tipo;
-    this.aplicarFiltros();
-  }
-
-  /**
-   * Toggle de categoría en el panel de filtros
-   */
-  toggleCategoria(categoriaCodigo: string): void {
-    const index = this.categoriasSeleccionadas.indexOf(categoriaCodigo);
-
-    if (index === -1) {
-      this.categoriasSeleccionadas.push(categoriaCodigo);
+    // Si el tipo ya está activo y pulsamos de nuevo (toggle), volvemos a 'todos'
+    if (this.filtroTipoActivo === tipo && tipo !== 'todos') {
+      this.filtroTipoActivo = 'todos';
     } else {
-      this.categoriasSeleccionadas.splice(index, 1);
+      this.filtroTipoActivo = tipo;
+    }
+
+    // Limpiamos filtros específicos según el nuevo estado
+    if (this.filtroTipoActivo === 'libros') {
+      this.categoriasEquiposSeleccionadas = [];
+      this.nombresSeleccionados = [];
+    } else if (this.filtroTipoActivo === 'equipos') {
+      this.generosSeleccionados = [];
+    } else {
+      // Si es 'todos', limpiamos todo para mostrar el catálogo general
+      this.generosSeleccionados = [];
+      this.categoriasEquiposSeleccionadas = [];
+      this.nombresSeleccionados = [];
     }
 
     this.aplicarFiltros();
   }
 
   /**
-   * Verifica si una categoría está seleccionada
+   * Toggle de género en el panel de filtros
    */
-  isCategoriaSeleccionada(categoriaCodigo: string): boolean {
-    return this.categoriasSeleccionadas.includes(categoriaCodigo);
+  toggleGenero(generoId: number): void {
+    const index = this.generosSeleccionados.indexOf(generoId);
+    if (index === -1) {
+      this.generosSeleccionados.push(generoId);
+    } else {
+      this.generosSeleccionados.splice(index, 1);
+    }
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Verifica si un género está seleccionado
+   */
+  isGeneroSeleccionado(generoId: number): boolean {
+    return this.generosSeleccionados.includes(generoId);
+  }
+
+  /**
+   * Toggle de categoría de equipo
+   */
+  toggleCategoriaEquipo(categoriaId: number): void {
+    const index = this.categoriasEquiposSeleccionadas.indexOf(categoriaId);
+    if (index === -1) {
+      this.categoriasEquiposSeleccionadas.push(categoriaId);
+    } else {
+      this.categoriasEquiposSeleccionadas.splice(index, 1);
+    }
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Verifica si una categoría de equipo está seleccionada
+   */
+  isCategoriaEquipoSeleccionada(categoriaId: number): boolean {
+    return this.categoriasEquiposSeleccionadas.includes(categoriaId);
+  }
+
+  /**
+   * Toggle de nombre de equipo
+   */
+  toggleNombreEquipo(nombreId: number): void {
+    const index = this.nombresSeleccionados.indexOf(nombreId);
+    if (index === -1) {
+      this.nombresSeleccionados.push(nombreId);
+    } else {
+      this.nombresSeleccionados.splice(index, 1);
+    }
+    this.aplicarFiltros();
+  }
+
+  /**
+   * Verifica si un nombre de equipo está seleccionado
+   */
+  isNombreSeleccionado(nombreId: number): boolean {
+    return this.nombresSeleccionados.includes(nombreId);
   }
 
   /**
@@ -127,19 +189,6 @@ export class CatalogoComponent implements OnInit {
     console.log('✅ Solicitud creada exitosamente');
   }
 
-  /**
-   * Obtiene las categorías según el filtro de tipo
-   */
-  get categoriasFiltradas(): Categoria[] {
-    if (this.filtroTipoActivo === 'todos') {
-      return this.categorias;
-    } else if (this.filtroTipoActivo === 'libros') {
-      return this.categorias.filter(c => c.tipo === 'libro');
-    } else {
-      return this.categorias.filter(c => c.tipo === 'equipo');
-    }
-  }
-
   // ===== MÉTODOS PRIVADOS =====
 
   /**
@@ -152,9 +201,7 @@ export class CatalogoComponent implements OnInit {
     // Cargar libros
     this.materialesService.getLibros().subscribe({
       next: (libros) => {
-        console.log('📚 Libros recibidos:', libros);
         this.libros = libros;
-        this.extraerCategorias();
         this.procesarMateriales();
       },
       error: (err) => {
@@ -167,9 +214,7 @@ export class CatalogoComponent implements OnInit {
     // Cargar equipos
     this.materialesService.getEquipos().subscribe({
       next: (equipos) => {
-        console.log('📷 Equipos recibidos:', equipos);
         this.equipos = equipos;
-        this.extraerCategorias();
         this.procesarMateriales();
       },
       error: (err) => {
@@ -178,37 +223,30 @@ export class CatalogoComponent implements OnInit {
         this.isLoading = false;
       }
     });
-  }
 
-  /**
-   * Extrae categorías únicas de libros y equipos
-   */
-  private extraerCategorias(): void {
-    const categoriasMap = new Map<string, Categoria>();
-
-    // Extraer de libros (Géneros)
-    this.libros.forEach(libro => {
-      const genero = libro.genero;
-      if (genero && !categoriasMap.has(genero.nombre)) {
-        // Mapeamos el género a una Categoria para que la vista lo trate igual
-        categoriasMap.set(genero.nombre, {
-          id: genero.id,
-          nombre: genero.nombre,
-          tipo: 'libro',
-          activa: true
-        } as Categoria);
-      }
+    // Cargar géneros para el filtro de libros
+    this.materialesService.getGeneros().subscribe({
+      next: (generos) => {
+        this.generos = generos;
+      },
+      error: (err) => console.error('❌ Error al cargar géneros:', err)
     });
 
-    // Extraer de equipos (Categorías)
-    this.equipos.forEach(equipo => {
-      if (equipo.categoria && !categoriasMap.has(equipo.categoria.nombre)) {
-        categoriasMap.set(equipo.categoria.nombre, equipo.categoria);
-      }
+    // Cargar categorías para equipos
+    this.materialesService.getCategorias().subscribe({
+      next: (categorias) => {
+        this.categoriasEquipos = categorias;
+      },
+      error: (err) => console.error('❌ Error al cargar categorías de equipo:', err)
     });
 
-    this.categorias = Array.from(categoriasMap.values());
-    console.log('🏷️ Categorías extraídas:', this.categorias);
+    // Cargar nombres para equipos
+    this.materialesService.getNombres().subscribe({
+      next: (nombres) => {
+        this.nombresEquipo = nombres;
+      },
+      error: (err) => console.error('❌ Error al cargar nombres de equipo:', err)
+    });
   }
 
   /**
@@ -232,6 +270,7 @@ export class CatalogoComponent implements OnInit {
         tipo: 'libro',
         titulo: libro.titulo,
         categoria: nombreGenero,
+        genero_id: libro.genero_id, // Necesario para el filtrado
         marcaModelo: `${libro.autor || 'Autor desconocido'} - ${libro.editorial || 'Editorial desconocida'}`,
         descripcion: `Libro número: ${libro.libro_numero}`,
         disponible: tieneDisponibles,
@@ -248,6 +287,8 @@ export class CatalogoComponent implements OnInit {
         tipo: 'equipo',
         titulo: `${equipo.marca} ${equipo.modelo}`,
         categoria: equipo.categoria?.nombre || 'Sin categoría',
+        categoria_id: equipo.categoria_id, // Necesario para el filtrado
+        nombre_id: equipo.nombre_id,       // Necesario para el filtrado
         marcaModelo: `${equipo.marca} - ${equipo.modelo}`,
         descripcion: equipo.descripcion || 'Equipo disponible para préstamo',
         disponible: tieneDisponibles,
@@ -273,10 +314,27 @@ export class CatalogoComponent implements OnInit {
       resultado = resultado.filter(m => m.tipo === 'equipo');
     }
 
-    // Filtro por categorías
-    if (this.categoriasSeleccionadas.length > 0) {
+    // Filtro por géneros (solo aplica a libros)
+    if (this.generosSeleccionados.length > 0) {
       resultado = resultado.filter(m => {
-        return this.categoriasSeleccionadas.some(catNombre => catNombre === m.categoria);
+        if (m.tipo !== 'libro') return true; // No filtrar equipos por género
+        return m.genero_id && this.generosSeleccionados.includes(m.genero_id);
+      });
+    }
+
+    // Filtro por categorías de equipos
+    if (this.categoriasEquiposSeleccionadas.length > 0) {
+      resultado = resultado.filter(m => {
+        if (m.tipo !== 'equipo') return true; // No filtrar libros por categoría de equipo
+        return m.categoria_id && this.categoriasEquiposSeleccionadas.includes(m.categoria_id);
+      });
+    }
+
+    // Filtro por nombres de equipos
+    if (this.nombresSeleccionados.length > 0) {
+      resultado = resultado.filter(m => {
+        if (m.tipo !== 'equipo') return true; // No filtrar libros por nombre de equipo
+        return m.nombre_id && this.nombresSeleccionados.includes(m.nombre_id);
       });
     }
 
