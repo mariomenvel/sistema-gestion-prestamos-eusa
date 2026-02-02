@@ -15,6 +15,17 @@ interface MaterialVista {
   genero_id?: number;
   categoria_id?: number;
   nombre_id?: number;
+
+  // Detalle de Libros
+  autor?: string;
+  editorial?: string;
+  libro_numero?: string;
+
+  // Detalle de Equipos
+  marca?: string;
+  modelo?: string;
+  nombre_equipo?: string;
+
   marcaModelo: string;
   descripcion: string;
   disponible: boolean;
@@ -270,9 +281,12 @@ export class CatalogoComponent implements OnInit {
         tipo: 'libro',
         titulo: libro.titulo,
         categoria: nombreGenero,
-        genero_id: libro.genero_id, // Necesario para el filtrado
+        genero_id: libro.genero_id,
+        autor: libro.autor,
+        editorial: libro.editorial,
+        libro_numero: libro.libro_numero,
         marcaModelo: `${libro.autor || 'Autor desconocido'} - ${libro.editorial || 'Editorial desconocida'}`,
-        descripcion: `Libro número: ${libro.libro_numero}`,
+        descripcion: `Libro con número de registro: ${libro.libro_numero}. Disponible para préstamo.`,
         disponible: tieneDisponibles,
         imagenUrl: this.getImageUrl(libro.foto_url)
       });
@@ -287,8 +301,11 @@ export class CatalogoComponent implements OnInit {
         tipo: 'equipo',
         titulo: `${equipo.marca} ${equipo.modelo}`,
         categoria: equipo.categoria?.nombre || 'Sin categoría',
-        categoria_id: equipo.categoria_id, // Necesario para el filtrado
-        nombre_id: equipo.nombre_id,       // Necesario para el filtrado
+        categoria_id: equipo.categoria_id,
+        nombre_id: equipo.nombre_id,
+        nombre_equipo: (equipo as any).Nombre?.nombre || (equipo as any).nombre?.nombre || 'Equipo',
+        marca: equipo.marca,
+        modelo: equipo.modelo,
         marcaModelo: `${equipo.marca} - ${equipo.modelo}`,
         descripcion: equipo.descripcion || 'Equipo disponible para préstamo',
         disponible: tieneDisponibles,

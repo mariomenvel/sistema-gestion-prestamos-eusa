@@ -144,7 +144,96 @@
 
 </div>
 
-<!-- Modal Solicitar Préstamo -->
-<app-solicitar-prestamo [isOpen]="mostrarModalSolicitud" [material]="materialSeleccionado"
-  [todosLosMateriales]="materiales" (close)="cerrarModalSolicitud()"
-  (solicitudCreada)="onSolicitudCreada()"></app-solicitar-prestamo>
+<!-- MODAL DE DETALLE / SOLICITUD -->
+<div class="modal-overlay" *ngIf="mostrarModalSolicitud" (click)="cerrarModalSolicitud()">
+  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+    <!-- Cabecera -->
+    <div class="modal-header">
+      <div class="header-info">
+        <span class="material-type-badge" [class]="materialSeleccionado?.tipo">
+          {{ materialSeleccionado?.tipo === 'libro' ? 'Libro' : 'Material Audiovisual' }}
+        </span>
+        <h2 class="modal-title">{{ materialSeleccionado?.titulo }}</h2>
+      </div>
+      <button class="btn-close" (click)="cerrarModalSolicitud()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Cuerpo del Modal -->
+    <div class="modal-body">
+      <div class="detail-container">
+        <!-- Imagen -->
+        <div class="detail-image-section">
+          <div class="image-wrapper">
+            <img [src]="materialSeleccionado?.imagenUrl || 'assets/images/placeholder-material.png'"
+              [alt]="materialSeleccionado?.titulo" onerror="this.src='assets/images/placeholder-material.png'">
+          </div>
+          <div class="status-badge" [class.available]="materialSeleccionado?.disponible">
+            <i class="fas" [ngClass]="materialSeleccionado?.disponible ? 'fa-check-circle' : 'fa-times-circle'"></i>
+            {{ materialSeleccionado?.disponible ? 'Disponible' : 'No disponible' }}
+          </div>
+        </div>
+
+        <!-- Información -->
+        <div class="detail-info-section">
+          <div class="info-grid">
+            <!-- Info específica Libros -->
+            <ng-container *ngIf="materialSeleccionado?.tipo === 'libro'">
+              <div class="info-item">
+                <label>Autor</label>
+                <span>{{ materialSeleccionado?.autor || 'Desconocido' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Editorial</label>
+                <span>{{ materialSeleccionado?.editorial || 'Desconocida' }}</span>
+              </div>
+              <div class="info-item">
+                <label>Número de Registro</label>
+                <span>{{ materialSeleccionado?.libro_numero }}</span>
+              </div>
+              <div class="info-item">
+                <label>Género</label>
+                <span>{{ materialSeleccionado?.categoria }}</span>
+              </div>
+            </ng-container>
+
+            <!-- Info específica Equipos -->
+            <ng-container *ngIf="materialSeleccionado?.tipo === 'equipo'">
+              <div class="info-item">
+                <label>Marca</label>
+                <span>{{ materialSeleccionado?.marca }}</span>
+              </div>
+              <div class="info-item">
+                <label>Modelo</label>
+                <span>{{ materialSeleccionado?.modelo }}</span>
+              </div>
+              <div class="info-item">
+                <label>Nombre Genérico</label>
+                <span>{{ materialSeleccionado?.nombre_equipo }}</span>
+              </div>
+              <div class="info-item">
+                <label>Categoría</label>
+                <span>{{ materialSeleccionado?.categoria }}</span>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="description-section">
+            <label>Descripción</label>
+            <p>{{ materialSeleccionado?.descripcion }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie del Modal -->
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalSolicitud()">Cerrar</button>
+      <button class="btn-solicitar" [disabled]="!materialSeleccionado?.disponible" (click)="onSolicitudCreada()">
+        <i class="fas fa-hand-holding"></i>
+        Solicitar Préstamo
+      </button>
+    </div>
+  </div>
+</div>

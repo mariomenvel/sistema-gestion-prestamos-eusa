@@ -66,23 +66,23 @@ $font-family: 'Inter', sans-serif;
   width: 100%;
   height: 44px;
   padding: 0 48px 0 16px;
-  
+
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
   color: $color-text-primary;
-  
+
   box-sizing: border-box;
-  
+
   &::placeholder {
     color: $color-text-disabled;
   }
-  
+
   &:focus {
     outline: none;
     border-color: $color-primary-blue;
@@ -94,14 +94,14 @@ $font-family: 'Inter', sans-serif;
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  
+
   background: none;
   border: none;
   font-size: 18px;
   color: $color-text-secondary;
   cursor: pointer;
   padding: 4px;
-  
+
   &:hover {
     color: $color-primary-blue;
   }
@@ -116,25 +116,25 @@ $font-family: 'Inter', sans-serif;
 .filter-btn {
   height: 44px;
   padding: 0 20px;
-  
+
   background: $color-bg-light;
   border: 1px solid $color-border;
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 14px;
   line-height: 17px;
   color: $color-text-secondary;
-  
+
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  
+
   &:hover {
     background: darken($color-bg-light, 3%);
   }
-  
+
   &.active {
     background: $color-primary-blue;
     border-color: $color-primary-blue;
@@ -160,13 +160,13 @@ $font-family: 'Inter', sans-serif;
 .filters-panel {
   width: 240px;
   min-height: 600px;
-  
+
   background: $color-white;
   border: 2px solid $color-border;
   border-radius: 8px;
-  
+
   padding: 16px;
-  
+
   flex-shrink: 0;
 }
 
@@ -177,14 +177,14 @@ $font-family: 'Inter', sans-serif;
   line-height: 22px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   text-align: center;
   margin: 0 0 20px 0;
 }
 
 .filter-section {
   margin-bottom: 32px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -197,7 +197,7 @@ $font-family: 'Inter', sans-serif;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin: 0 0 8px 0;
 }
 
@@ -212,30 +212,30 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
   margin-bottom: 12px;
   cursor: pointer;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
-  
+
   input[type="checkbox"] {
     width: 20px;
     height: 20px;
-    
+
     background: $color-white;
     border: 2px solid $color-border;
     border-radius: 2px;
-    
+
     cursor: pointer;
-    
+
     &:checked {
       background: $color-primary-blue;
       border-color: $color-primary-blue;
     }
   }
-  
+
   span {
     font-family: $font-family;
     font-weight: 400;
@@ -255,7 +255,7 @@ $font-family: 'Inter', sans-serif;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  
+
   min-height: 600px;
 }
 
@@ -267,13 +267,13 @@ $font-family: 'Inter', sans-serif;
 .error-state,
 .empty-state {
   grid-column: 1 / -1;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   min-height: 400px;
-  
+
   font-family: $font-family;
   font-size: 16px;
   color: $color-text-secondary;
@@ -291,19 +291,19 @@ $font-family: 'Inter', sans-serif;
 .material-card {
   width: 100%;
   height: 420px;
-  
+
   background: $color-white;
   border: 2px solid $color-border-dark;
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  
+
   padding: 16px;
-  
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  
+
   position: relative;
 }
 
@@ -311,18 +311,18 @@ $font-family: 'Inter', sans-serif;
 .material-image {
   width: 186px;
   height: 168px;
-  
+
   border: 1px solid $color-border;
   border-radius: 8px;
-  
+
   overflow: hidden;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   background: $color-bg-light;
-  
+
   img {
     width: 100%;
     height: 100%;
@@ -348,9 +348,9 @@ $font-family: 'Inter', sans-serif;
   line-height: 19px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin: 0 0 4px 0;
-  
+
   // Truncar si es muy largo
   overflow: hidden;
   text-overflow: ellipsis;
@@ -364,7 +364,7 @@ $font-family: 'Inter', sans-serif;
   line-height: 17px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin: 0 0 4px 0;
 }
 
@@ -375,7 +375,7 @@ $font-family: 'Inter', sans-serif;
   line-height: 16px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin: 0 0 8px 0;
 }
 
@@ -386,12 +386,13 @@ $font-family: 'Inter', sans-serif;
   line-height: 15px;
   letter-spacing: -0.03em;
   color: $color-text-secondary;
-  
+
   margin: 0;
-  
+
   // Limitar a 2 líneas
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -406,10 +407,10 @@ $font-family: 'Inter', sans-serif;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  
+
   padding: 6px 14px;
   border-radius: 13px;
-  
+
   font-family: $font-family;
   font-weight: 500;
   font-size: 12px;
@@ -432,35 +433,235 @@ $font-family: 'Inter', sans-serif;
 .btn-solicitar {
   width: 100%;
   height: 42px;
-  
+
   background: $color-primary-blue;
   border: 1px solid $color-border;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
   border-radius: 4px;
-  
+
   font-family: $font-family;
   font-weight: 600;
   font-size: 14px;
   line-height: 17px;
   color: $color-white;
-  
+
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover:not(:disabled) {
     background: darken($color-primary-blue, 8%);
     transform: translateY(-2px);
     box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
   }
-  
+
   &:active:not(:disabled) {
     transform: translateY(0);
   }
-  
+
   &:disabled {
     background: $color-text-disabled;
     cursor: not-allowed;
     box-shadow: none;
+  }
+}
+
+// ========================================
+// MODAL DE DETALLE / SOLICITUD
+// ========================================
+
+.detail-modal {
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+
+  .modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid $color-border;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .header-info {
+      .material-type-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+
+        &.libro {
+          background: #E3F2FD;
+          color: #1976D2;
+        }
+
+        &.equipo {
+          background: #F3E5F5;
+          color: #7B1FA2;
+        }
+      }
+
+      .modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        color: $color-text-primary;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 32px;
+  }
+
+  .detail-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 40px;
+  }
+
+  // Columna Imagen
+  .detail-image-section {
+    .image-wrapper {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: $color-bg-light;
+      border: 2px solid $color-border;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #FFEBEE;
+      color: #D32F2F;
+      border: 1px solid #FFCDD2;
+
+      &.available {
+        background: $color-success-green-light;
+        color: $color-success-green-dark;
+        border-color: #C8E6C9;
+      }
+
+      i {
+        font-size: 18px;
+      }
+    }
+  }
+
+  // Columna Información
+  .detail-info-section {
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+
+      .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        label {
+          font-size: 12px;
+          font-weight: 600;
+          color: $color-text-secondary;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        span {
+          font-size: 16px;
+          font-weight: 500;
+          color: $color-text-primary;
+        }
+      }
+    }
+
+    .description-section {
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: $color-text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #444;
+        margin: 0;
+        white-space: pre-line;
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 24px 32px;
+    background: #FAFAFA;
+    border-top: 1px solid $color-border;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+
+    .btn-cancel {
+      padding: 12px 24px;
+      border-radius: 6px;
+      border: 1px solid $color-border;
+      background: white;
+      font-weight: 600;
+      color: $color-text-secondary;
+      cursor: pointer;
+
+      &:hover {
+        background: #F5F5F5;
+      }
+    }
+
+    .btn-solicitar {
+      padding: 12px 32px;
+      border-radius: 6px;
+      border: none;
+      background: linear-gradient(135deg, $color-primary-blue 0%, #0052A3 100%);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
+      }
+
+      &:disabled {
+        background: #CCC;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+    }
   }
 }
 
@@ -475,23 +676,33 @@ $font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 768px) {
+  .detail-modal {
+    .detail-container {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+  }
+
   .search-filters-row {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-bar {
     width: 100%;
   }
-  
+
   .catalogo-content {
     flex-direction: column;
   }
-  
+
   .filters-panel {
     width: 100%;
   }
-  
+
   .materials-grid {
     grid-template-columns: 1fr;
   }
