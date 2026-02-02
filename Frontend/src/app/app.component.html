@@ -1,17 +1,20 @@
 <!-- Layout principal de la aplicación -->
 <div class="app-container">
-  
+
+  <!-- Skip link para accesibilidad -->
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
   <!-- Header (solo se muestra si showLayout es true) -->
   <app-header *ngIf="showLayout"></app-header>
 
   <!-- Contenedor del contenido -->
   <div class="content-wrapper">
-    
+
     <!-- Sidebar (solo se muestra si showLayout es true) -->
     <app-sidebar *ngIf="showLayout"></app-sidebar>
 
     <!-- Área de contenido principal -->
-    <main class="main-content" [class.full-width]="!showLayout">
+    <main class="main-content" [class.full-width]="!showLayout" role="main" id="main-content" tabindex="-1">
       <!-- Aquí Angular carga el componente de la ruta actual -->
       <router-outlet></router-outlet>
     </main>

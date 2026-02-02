@@ -14,14 +14,18 @@
     <p class="subtitle">Servicio Técnico</p>
 
     <!-- Formulario -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form"
+      aria-label="Formulario de inicio de sesión">
 
       <!-- Input Email -->
       <div class="input-group">
         <label for="email" class="input-label">Email Corporativo</label>
         <input id="email" type="email" formControlName="email" class="input-field" placeholder="correo@campuscamara.es"
+          aria-required="true" [attr.aria-invalid]="email.invalid && email.touched"
+          [attr.aria-describedby]="(email.invalid && email.touched) ? 'email-error' : null"
           [class.input-error]="email.invalid && email.touched">
-        <div class="error-message" *ngIf="email.invalid && email.touched">
+        <div class="error-message" *ngIf="email.invalid && email.touched" id="email-error" role="alert"
+          aria-live="polite">
           <span *ngIf="email.errors?.['required']">El email es obligatorio</span>
           <span *ngIf="email.errors?.['email']">Formato de email inválido</span>
         </div>
@@ -31,27 +35,31 @@
       <div class="input-group">
         <label for="password" class="input-label">Contraseña</label>
         <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" class="input-field"
-          placeholder="•••••••••••" [class.input-error]="password.invalid && password.touched">
-        <div class="error-message" *ngIf="password.invalid && password.touched">
+          placeholder="•••••••••••" aria-required="true" [attr.aria-invalid]="password.invalid && password.touched"
+          [attr.aria-describedby]="(password.invalid && password.touched) ? 'password-error' : null"
+          [class.input-error]="password.invalid && password.touched">
+        <div class="error-message" *ngIf="password.invalid && password.touched" id="password-error" role="alert"
+          aria-live="polite">
           <span *ngIf="password.errors?.['required']">La contraseña es obligatoria</span>
           <span *ngIf="password.errors?.['minlength']">Mínimo 6 caracteres</span>
         </div>
       </div>
 
       <!-- Mensaje de error general -->
-      <div class="error-alert" *ngIf="errorMessage">
+      <div class="error-alert" *ngIf="errorMessage" role="alert" aria-live="assertive">
         {{ errorMessage }}
       </div>
 
       <!-- Botón Submit -->
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
+      <button type="submit" class="btn-primary" [disabled]="isLoading"
+        [attr.aria-label]="isLoading ? 'Iniciando sesión, por favor espere...' : 'Iniciar sesión'">
         {{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
       </button>
 
       <div class="login-footer">
         <p>
           ¿No tienes una cuenta?
-          <a routerLink="/registro" class="forgot-link">Regístrate</a>
+          <a routerLink="/registro" class="forgot-link" aria-label="Ir a la página de registro">Regístrate</a>
         </p>
       </div>
     </form>

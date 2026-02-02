@@ -1,14 +1,19 @@
 <!-- Sidebar principal -->
-<aside class="sidebar" [class.open]="isSidebarOpen" aria-label="Menú de navegación principal">
+<aside class="sidebar" [class.open]="isSidebarOpen" role="navigation" aria-label="Menú de navegación principal">
 
   <!-- Lista de items del menú -->
   <nav class="sidebar-menu">
 
     <!-- Iterar sobre cada item del menú -->
-    <div *ngFor="let item of menuItems" class="menu-item" [class.active]="isActive(item.route)"
-      (click)="navigateTo(item.route)">
-      {{ item.label }}
-    </div>
+    <ul role="list">
+      <li *ngFor="let item of menuItems">
+        <div class="menu-item" [class.active]="isActive(item.route)"
+          [attr.aria-current]="isActive(item.route) ? 'page' : null" (click)="navigateTo(item.route)" role="button"
+          tabindex="0" [attr.aria-label]="item.label">
+          {{ item.label }}
+        </div>
+      </li>
+    </ul>
 
   </nav>
 

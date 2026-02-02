@@ -13,13 +13,17 @@
         </div>
 
         <!-- Formulario -->
-        <form [formGroup]="registroForm" (ngSubmit)="registrarse()" class="login-form">
+        <form [formGroup]="registroForm" (ngSubmit)="registrarse()" class="login-form"
+            aria-label="Formulario de registro de nuevo usuario">
 
             <!-- Nombre -->
             <div class="form-group">
-                <label class="form-label">Nombre *</label>
-                <input type="text" class="form-input" formControlName="nombre" placeholder="Juan" />
-                <span class="error-message"
+                <label for="nombre" class="form-label">Nombre *</label>
+                <input type="text" id="nombre" class="form-input" formControlName="nombre" placeholder="Juan"
+                    aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('nombre')?.invalid && registroForm.get('nombre')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('nombre')?.invalid && registroForm.get('nombre')?.touched) ? 'nombre-error' : null" />
+                <span class="error-message" id="nombre-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('nombre')?.invalid && registroForm.get('nombre')?.touched">
                     El nombre es obligatorio
                 </span>
@@ -27,9 +31,12 @@
 
             <!-- Apellidos -->
             <div class="form-group">
-                <label class="form-label">Apellidos *</label>
-                <input type="text" class="form-input" formControlName="apellidos" placeholder="Sánchez Pérez" />
-                <span class="error-message"
+                <label for="apellidos" class="form-label">Apellidos *</label>
+                <input type="text" id="apellidos" class="form-input" formControlName="apellidos"
+                    placeholder="Sánchez Pérez" aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('apellidos')?.invalid && registroForm.get('apellidos')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('apellidos')?.invalid && registroForm.get('apellidos')?.touched) ? 'apellidos-error' : null" />
+                <span class="error-message" id="apellidos-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('apellidos')?.invalid && registroForm.get('apellidos')?.touched">
                     Los apellidos son obligatorios
                 </span>
@@ -37,10 +44,12 @@
 
             <!-- Email -->
             <div class="form-group">
-                <label class="form-label">Email Corporativo *</label>
-                <input type="email" class="form-input" formControlName="email"
-                    placeholder="correo@eusa.es o correo@campuscamara.es" />
-                <span class="error-message"
+                <label for="email" class="form-label">Email Corporativo *</label>
+                <input type="email" id="email" class="form-input" formControlName="email"
+                    placeholder="correo@eusa.es o correo@campuscamara.es" aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('email')?.invalid && registroForm.get('email')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('email')?.invalid && registroForm.get('email')?.touched) ? 'email-error' : null" />
+                <span class="error-message" id="email-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('email')?.invalid && registroForm.get('email')?.touched">
                     <span *ngIf="registroForm.get('email')?.errors?.['required']">El email es obligatorio</span>
                     <span *ngIf="registroForm.get('email')?.errors?.['email']">Email inválido</span>
@@ -51,10 +60,12 @@
 
             <!-- Teléfono -->
             <div class="form-group">
-                <label class="form-label">Teléfono *</label>
-                <input type="tel" class="form-input" formControlName="telefono"
-                    placeholder="+34 612345678 o 612345678" />
-                <span class="error-message"
+                <label for="telefono" class="form-label">Teléfono *</label>
+                <input type="tel" id="telefono" class="form-input" formControlName="telefono"
+                    placeholder="+34 612345678 o 612345678" aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('telefono')?.invalid && registroForm.get('telefono')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('telefono')?.invalid && registroForm.get('telefono')?.touched) ? 'telefono-error' : null" />
+                <span class="error-message" id="telefono-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('telefono')?.invalid && registroForm.get('telefono')?.touched">
                     <span *ngIf="registroForm.get('telefono')?.errors?.['required']">El teléfono es obligatorio</span>
                     <span *ngIf="registroForm.get('telefono')?.errors?.['pattern']">Formato inválido (ej: +34
@@ -64,14 +75,16 @@
 
             <!-- Tipo de Estudios -->
             <div class="form-group">
-                <label class="form-label">Tipo de Estudios *</label>
-                <select class="form-input" formControlName="tipo_estudios">
+                <label for="tipo_estudios" class="form-label">Tipo de Estudios *</label>
+                <select id="tipo_estudios" class="form-input" formControlName="tipo_estudios" aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('tipo_estudios')?.invalid && registroForm.get('tipo_estudios')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('tipo_estudios')?.invalid && registroForm.get('tipo_estudios')?.touched) ? 'tipo-estudios-error' : null">
                     <option value="">Selecciona...</option>
                     <option value="grado_uni">Grado Universitario</option>
                     <option value="grado_sup">Grado Superior</option>
                     <option value="master">Máster</option>
                 </select>
-                <span class="error-message"
+                <span class="error-message" id="tipo-estudios-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('tipo_estudios')?.invalid && registroForm.get('tipo_estudios')?.touched">
                     Selecciona tu tipo de estudios
                 </span>
@@ -129,9 +142,12 @@
 
             <!-- Contraseña -->
             <div class="form-group">
-                <label class="form-label">Contraseña *</label>
-                <input type="password" class="form-input" formControlName="password" placeholder="············" />
-                <span class="error-message"
+                <label for="password" class="form-label">Contraseña *</label>
+                <input type="password" id="password" class="form-input" formControlName="password"
+                    placeholder="············" aria-required="true"
+                    [attr.aria-invalid]="registroForm.get('password')?.invalid && registroForm.get('password')?.touched"
+                    [attr.aria-describedby]="(registroForm.get('password')?.invalid && registroForm.get('password')?.touched) ? 'password-error' : null" />
+                <span class="error-message" id="password-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.get('password')?.invalid && registroForm.get('password')?.touched">
                     <span *ngIf="registroForm.get('password')?.errors?.['required']">La contraseña es obligatoria</span>
                     <span *ngIf="registroForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
@@ -142,22 +158,25 @@
 
             <!-- Confirmar Contraseña -->
             <div class="form-group">
-                <label class="form-label">Confirmar Contraseña *</label>
-                <input type="password" class="form-input" formControlName="confirmarPassword"
-                    placeholder="············" />
-                <span class="error-message"
+                <label for="confirmarPassword" class="form-label">Confirmar Contraseña *</label>
+                <input type="password" id="confirmarPassword" class="form-input" formControlName="confirmarPassword"
+                    placeholder="············" aria-required="true"
+                    [attr.aria-invalid]="registroForm.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched"
+                    [attr.aria-describedby]="(registroForm.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched) ? 'confirm-password-error' : null" />
+                <span class="error-message" id="confirm-password-error" role="alert" aria-live="polite"
                     *ngIf="registroForm.hasError('passwordMismatch') && registroForm.get('confirmarPassword')?.touched">
                     Las contraseñas no coinciden
                 </span>
             </div>
 
             <!-- Mensaje de error general -->
-            <div class="error-message" *ngIf="errorMessage">
+            <div class="error-message" *ngIf="errorMessage" role="alert" aria-live="assertive">
                 {{ errorMessage }}
             </div>
 
             <!-- Botón Registrarse -->
-            <button type="submit" class="login-button" [disabled]="registroForm.invalid || registrando">
+            <button type="submit" class="login-button" [disabled]="registroForm.invalid || registrando"
+                [attr.aria-label]="registrando ? 'Registrando usuario, por favor espere...' : 'Registrarse en el sistema'">
                 {{ registrando ? 'Registrando...' : 'Registrarse' }}
             </button>
 
@@ -165,7 +184,8 @@
             <div class="login-footer">
                 <p>
                     ¿Ya tienes una cuenta?
-                    <a routerLink="/auth/login" class="login-link">Inicia Sesión</a>
+                    <a routerLink="/auth/login" class="login-link"
+                        aria-label="Ir a la página de inicio de sesión">Inicia Sesión</a>
                 </p>
             </div>
 

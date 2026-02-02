@@ -15,6 +15,40 @@ body {
 }
 
 /* ================================================
+   ACCESSIBILITY UTILITIES
+   ================================================ */
+
+// Screen reader only - hide visually but keep accessible
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// Skip link - visible only on focus
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 10000;
+  font-weight: 500;
+
+  &:focus {
+    top: 0;
+  }
+}
+
+/* ================================================
    SPINNER DE CARGA — reutilizable en todo la app
    ================================================ */
 .spinner {
