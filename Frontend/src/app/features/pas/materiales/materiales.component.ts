@@ -982,9 +982,10 @@ export class MaterialesComponent implements OnInit {
   /**
    * Obtiene la URL completa de la imagen
    */
-  getImageUrl(url?: string): string | undefined {
+ getImageUrl(url?: string): string | undefined {
     if (!url) return undefined;
-    if (url.startsWith('data:')) return url;
+    if (url.startsWith('data:')) return url; // Para previsualizaciones
+    if (url.startsWith('assets/')) return url; // Assets locales de Angular
     return `${environment.apiUrl}${url}`;
   }
 }
