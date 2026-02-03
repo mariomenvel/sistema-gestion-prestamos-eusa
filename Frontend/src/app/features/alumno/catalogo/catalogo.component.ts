@@ -15,20 +15,6 @@ interface MaterialVista {
   genero_id?: number;
   categoria_id?: number;
   nombre_id?: number;
-
-  // Detalle de Libros
-  autor?: string;
-  editorial?: string;
-  libro_numero?: string;
-
-  // Detalle de Equipos
-  marca?: string;
-  modelo?: string;
-  nombre_equipo?: string;
-
-  // Gestión de Carrito
-  cantidad?: number;
-
   marcaModelo: string;
   descripcion: string;
   disponible: boolean;
@@ -61,25 +47,16 @@ export class CatalogoComponent implements OnInit {
   nombresSeleccionados: number[] = [];
   textoBusqueda: string = '';
 
-  // ===== CARRITO DE PRÉSTAMOS =====
-  carrito: MaterialVista[] = [];
-  mostrarNotificacionCarrito: boolean = false;
-  ultimoMaterialAgregado: MaterialVista | null = null;
-
-  // ===== PAGINACIÓN =====
-  paginaActual: number = 1;
-  itemsPorPagina: number = 50;
-  materialesPaginados: MaterialVista[] = [];
-
   // ===== ESTADO =====
 
   isLoading: boolean = false;
   errorMessage: string = '';
 
-  // ===== MODALES ===== 
-  mostrarModalDetalle: boolean = false;
+  // ===== MODAL DE SOLICITUD ===== 
+
   mostrarModalSolicitud: boolean = false;
   materialSeleccionado: MaterialVista | null = null;
+
   // ===== CONSTRUCTOR =====
 
   constructor(
@@ -189,112 +166,28 @@ export class CatalogoComponent implements OnInit {
   }
 
   /**
-   * Abre el modal de detalle
+   * Abre el modal de solicitud
    */
-  verDetalle(material: MaterialVista): void {
+  solicitarPrestamo(material: MaterialVista): void {
     this.materialSeleccionado = material;
-    this.mostrarModalDetalle = true;
-  }
-
-  /**
-   * Cierra el modal de detalle
-   */
-  cerrarModalDetalle(): void {
-    this.mostrarModalDetalle = false;
-  }
-
-  /**
-   * Cierra el modal de solicitud (checkout)
-   */
-  cerrarModalSolicitud(): void {
-    this.mostrarModalSolicitud = false;
-  }
-
-  /**
-   * Agrega un material al carrito
-   */
-  agregarAlCarrito(material: MaterialVista): void {
-    const itemExistente = this.carrito.find(m => m.id === material.id && m.tipo === material.tipo);
-
-    if (itemExistente) {
-      // Si ya está, incrementamos cantidad si es posible (ej: libros)
-      // Aunque por ahora el sistema de préstamos suele ser de items únicos, 
-      // permitimos incrementar para que el usuario gestione sus cantidades.
-      itemExistente.cantidad = (itemExistente.cantidad || 1) + 1;
-    } else {
-      // Si no está, lo añadimos con cantidad 1
-      this.carrito.push({
-        ...material,
-        cantidad: 1
-      });
-    }
-
-    this.ultimoMaterialAgregado = material;
-
-    // Mostrar notificación temporal
-    this.mostrarNotificacionCarrito = true;
-    setTimeout(() => {
-      this.mostrarNotificacionCarrito = false;
-    }, 3000);
-  }
-
-  /**
-   * Actualiza la cantidad de un item
-   */
-  actualizarCantidad(materialId: number, tipo: 'libro' | 'equipo', delta: number): void {
-    const item = this.carrito.find(m => m.id === materialId && m.tipo === tipo);
-    if (item) {
-      const nuevaCantidad = (item.cantidad || 1) + delta;
-      if (nuevaCantidad > 0) {
-        item.cantidad = nuevaCantidad;
-      } else {
-        this.quitarDelCarrito(materialId, tipo);
-      }
-    }
-  }
-
-  /**
-   * Vacía el carrito por completo
-   */
-  vaciarCarrito(): void {
-    this.carrito = [];
-    this.cerrarModalSolicitud();
-  }
-
-  /**
-   * Quita un material del carrito
-   */
-  quitarDelCarrito(materialId: number, tipo: 'libro' | 'equipo'): void {
-    this.carrito = this.carrito.filter(m => !(m.id === materialId && m.tipo === tipo));
-    if (this.carrito.length === 0) {
-      this.cerrarModalSolicitud();
-    }
-  }
-
-  /**
-   * Verifica si un material ya está en el carrito
-   */
-  estaEnCarrito(material: MaterialVista | null): boolean {
-    if (!material) return false;
-    return this.carrito.some(m => m.id === material.id && m.tipo === material.tipo);
-  }
-
-  /**
-   * Abre el modal del carrito / formalización
-   */
-  abrirCarrito(): void {
-    if (this.carrito.length === 0) return;
-    this.materialSeleccionado = this.carrito[0]; // El modal pide uno inicial
     this.mostrarModalSolicitud = true;
   }
 
   /**
-   * Limpia el carrito después de una solicitud exitosa
+   * Cierra el modal de solicitud
+   */
+  cerrarModalSolicitud(): void {
+    this.mostrarModalSolicitud = false;
+    this.materialSeleccionado = null;
+  }
+
+  /**
+   * Callback cuando se crea la solicitud exitosamente
    */
   onSolicitudCreada(): void {
-    this.carrito = [];
     this.cerrarModalSolicitud();
-    console.log('✅ Carrito vaciado tras solicitud exitosa');
+    // Opcional: Recargar datos o mostrar mensaje
+    console.log('✅ Solicitud creada exitosamente');
   }
 
   // ===== MÉTODOS PRIVADOS =====
@@ -379,11 +272,8 @@ export class CatalogoComponent implements OnInit {
         titulo: libro.titulo,
         categoria: nombreGenero,
         genero_id: libro.genero_id,
-        autor: libro.autor,
-        editorial: libro.editorial,
-        libro_numero: libro.libro_numero,
         marcaModelo: `${libro.autor || 'Autor desconocido'} - ${libro.editorial || 'Editorial desconocida'}`,
-        descripcion: `Libro con número de registro: ${libro.libro_numero}. Disponible para préstamo.`,
+        descripcion: `Libro número: ${libro.libro_numero}`,
         disponible: tieneDisponibles,
         imagenUrl: this.getImageUrl(libro.foto_url)
       });
@@ -400,9 +290,6 @@ export class CatalogoComponent implements OnInit {
         categoria: equipo.categoria?.nombre || 'Sin categoría',
         categoria_id: equipo.categoria_id,
         nombre_id: equipo.nombre_id,
-        nombre_equipo: (equipo as any).Nombre?.nombre || (equipo as any).nombre?.nombre || 'Equipo',
-        marca: equipo.marca,
-        modelo: equipo.modelo,
         marcaModelo: `${equipo.marca} - ${equipo.modelo}`,
         descripcion: equipo.descripcion || 'Equipo disponible para préstamo',
         disponible: tieneDisponibles,
@@ -464,45 +351,16 @@ export class CatalogoComponent implements OnInit {
     }
 
     this.materialesFiltrados = resultado;
-    this.paginaActual = 1; // Resetear a la primera página al filtrar
-    this.actualizarMaterialesPaginados();
     console.log('🔍 Materiales filtrados:', this.materialesFiltrados.length);
-  }
-
-  /**
-   * Actualiza la sublista de materiales que se muestran en la página actual
-   */
-  actualizarMaterialesPaginados(): void {
-    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
-    const fin = inicio + this.itemsPorPagina;
-    this.materialesPaginados = this.materialesFiltrados.slice(inicio, fin);
-  }
-
-  /**
-   * Cambia a una página específica
-   */
-  irAPagina(pagina: number): void {
-    if (pagina >= 1 && pagina <= this.totalPaginas) {
-      this.paginaActual = pagina;
-      this.actualizarMaterialesPaginados();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  /**
-   * Getter para el total de páginas
-   */
-  get totalPaginas(): number {
-    return Math.ceil(this.materialesFiltrados.length / this.itemsPorPagina) || 1;
   }
 
   /**
    * Obtiene la URL completa de la imagen
    */
   getImageUrl(url?: string): string | undefined {
-  if (!url) return undefined;
-  if (url.startsWith('data:')) return url; // Para previsualizaciones
-  if (url.startsWith('assets/')) return url; // Assets locales de Angular
-  return `${environment.apiUrl}${url}`;
-}
+    if (!url) return undefined;
+    if (url.startsWith('data:')) return url; // Para previsualizaciones
+    if (url.startsWith('assets/')) return url; // Assets locales de Angular
+    return `${environment.apiUrl}${url}`;
+  }
 }

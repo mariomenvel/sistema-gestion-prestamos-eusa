@@ -113,176 +113,38 @@
       </div>
 
       <!-- Cards de materiales -->
-      <article class="material-card" *ngFor="let material of materialesPaginados">
+      <article class="material-card" *ngFor="let material of materialesFiltrados">
 
-        <!-- Imagen y Info clickable para Detalle -->
-        <div class="card-clickable-area" (click)="verDetalle(material)">
-          <!-- Imagen -->
-          <div class="material-image">
-            <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo">
-            <div *ngIf="!material.imagenUrl" class="image-placeholder">
-              {{ material.tipo === 'libro' ? '📚' : '📷' }}
-            </div>
-          </div>
-
-          <!-- Información -->
-          <div class="material-info">
-            <h3 class="material-title">{{ material.titulo }}</h3>
-            <p class="material-category">{{ material.categoria }}</p>
-            <p class="material-brand">{{ material.marcaModelo }}</p>
-            <p class="material-description">{{ material.descripcion }}</p>
+        <!-- Imagen -->
+        <div class="material-image">
+          <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo">
+          <div *ngIf="!material.imagenUrl" class="image-placeholder">
+            {{ material.tipo === 'libro' ? '📚' : '📷' }}
           </div>
         </div>
 
-        <div class="material-footer">
-          <button class="btn-solicitar" [disabled]="!material.disponible" (click)="agregarAlCarrito(material)">
-            <i class="fas" [ngClass]="estaEnCarrito(material) ? 'fa-check' : 'fa-shopping-cart'"></i>
-            {{ estaEnCarrito(material) ? 'En el carrito' : 'Solicitar' }}
-          </button>
+        <!-- Información -->
+        <div class="material-info">
+          <h3 class="material-title">{{ material.titulo }}</h3>
+          <p class="material-category">{{ material.categoria }}</p>
+          <p class="material-brand">{{ material.marcaModelo }}</p>
+          <p class="material-description">{{ material.descripcion }}</p>
         </div>
+
+        <!-- Botón Solicitar -->
+        <button class="btn-solicitar" (click)="solicitarPrestamo(material)">
+          Solicitar
+        </button>
 
       </article>
 
     </main>
 
-    <!-- Controles de Paginación -->
-    <div class="pagination-footer" *ngIf="totalPaginas > 1">
-      <button class="btn-pagination" [disabled]="paginaActual === 1" (click)="irAPagina(paginaActual - 1)">
-        <i class="fas fa-chevron-left"></i> Anterior
-      </button>
-
-      <div class="pagination-info">
-        Página <strong>{{ paginaActual }}</strong> de {{ totalPaginas }}
-      </div>
-
-      <button class="btn-pagination" [disabled]="paginaActual === totalPaginas" (click)="irAPagina(paginaActual + 1)">
-        Siguiente <i class="fas fa-chevron-right"></i>
-      </button>
-    </div>
-
-  </div>
-
-  <!-- BOTÓN FLOTANTE DEL CARRITO -->
-  <div class="cart-floating-btn" *ngIf="carrito.length > 0" (click)="abrirCarrito()">
-    <div class="cart-icon-wrapper">
-      <i class="fas fa-shopping-basket"></i>
-      <span class="cart-badge">{{ carrito.length }}</span>
-    </div>
-    <span class="cart-text">Ver Mi Carrito</span>
-  </div>
-
-  <!-- NOTIFICACIÓN DE CARRITO ACTUALIZADO -->
-  <div class="cart-notification" [class.show]="mostrarNotificacionCarrito">
-    <div class="notification-content">
-      <div class="notification-icon">
-        <i class="fas fa-check-circle"></i>
-      </div>
-      <div class="notification-info">
-        <p class="notification-title">Agregado al Carrito</p>
-        <p class="notification-desc">{{ ultimoMaterialAgregado?.titulo }}</p>
-      </div>
-    </div>
   </div>
 
 </div>
 
-<!-- MODAL DE DETALLE / INFO -->
-<div class="modal-overlay" *ngIf="mostrarModalDetalle" (click)="cerrarModalDetalle()">
-  <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
-    <!-- Cabecera -->
-    <div class="modal-header">
-      <div class="header-info">
-        <span class="material-type-badge" [class]="materialSeleccionado?.tipo">
-          {{ materialSeleccionado?.tipo === 'libro' ? 'Libro' : 'Material Audiovisual' }}
-        </span>
-        <h2 class="modal-title">{{ materialSeleccionado?.titulo }}</h2>
-      </div>
-      <button class="btn-close" (click)="cerrarModalDetalle()">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
-    <!-- Cuerpo del Modal -->
-    <div class="modal-body">
-      <div class="detail-container">
-        <!-- Imagen -->
-        <div class="detail-image-section">
-          <div class="image-wrapper">
-            <img [src]="materialSeleccionado?.imagenUrl || 'assets/images/placeholder-material.png'"
-              [alt]="materialSeleccionado?.titulo" onerror="this.src='assets/images/placeholder-material.png'">
-          </div>
-          <div class="status-badge" [class.available]="materialSeleccionado?.disponible">
-            <i class="fas" [ngClass]="materialSeleccionado?.disponible ? 'fa-check-circle' : 'fa-times-circle'"></i>
-            {{ materialSeleccionado?.disponible ? 'Disponible' : 'No disponible' }}
-          </div>
-        </div>
-
-        <!-- Información -->
-        <div class="detail-info-section">
-          <div class="info-grid">
-            <!-- Info específica Libros -->
-            <ng-container *ngIf="materialSeleccionado?.tipo === 'libro'">
-              <div class="info-item">
-                <label>Autor</label>
-                <span>{{ materialSeleccionado?.autor || 'Desconocido' }}</span>
-              </div>
-              <div class="info-item">
-                <label>Editorial</label>
-                <span>{{ materialSeleccionado?.editorial || 'Desconocida' }}</span>
-              </div>
-              <div class="info-item">
-                <label>Número de Registro</label>
-                <span>{{ materialSeleccionado?.libro_numero }}</span>
-              </div>
-              <div class="info-item">
-                <label>Género</label>
-                <span>{{ materialSeleccionado?.categoria }}</span>
-              </div>
-            </ng-container>
-
-            <!-- Info específica Equipos -->
-            <ng-container *ngIf="materialSeleccionado?.tipo === 'equipo'">
-              <div class="info-item">
-                <label>Marca</label>
-                <span>{{ materialSeleccionado?.marca }}</span>
-              </div>
-              <div class="info-item">
-                <label>Modelo</label>
-                <span>{{ materialSeleccionado?.modelo }}</span>
-              </div>
-              <div class="info-item">
-                <label>Nombre Genérico</label>
-                <span>{{ materialSeleccionado?.nombre_equipo }}</span>
-              </div>
-              <div class="info-item">
-                <label>Categoría</label>
-                <span>{{ materialSeleccionado?.categoria }}</span>
-              </div>
-            </ng-container>
-          </div>
-
-          <div class="description-section">
-            <label>Descripción</label>
-            <p>{{ materialSeleccionado?.descripcion }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pie del Modal -->
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="cerrarModalDetalle()">Cerrar</button>
-      <button class="btn-solicitar" [disabled]="!materialSeleccionado?.disponible"
-        (click)="agregarAlCarrito(materialSeleccionado!)">
-        <i class="fas" [ngClass]="estaEnCarrito(materialSeleccionado) ? 'fa-check' : 'fa-shopping-cart'"></i>
-        {{ estaEnCarrito(materialSeleccionado) ? 'Ya en el Carrito' : 'Añadir al Carrito' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DE FORMALIZACIÓN (Checkout) -->
-<app-solicitar-prestamo [isOpen]="mostrarModalSolicitud" [material]="materialSeleccionado" [listaCarrito]="carrito"
-  [todosLosMateriales]="materiales" (close)="cerrarModalSolicitud()" (solicitudCreada)="onSolicitudCreada()"
-  (vaciarCarrito)="vaciarCarrito()" (quitarItem)="quitarDelCarrito($event.id, $event.tipo)"
-  (actualizarCantidad)="actualizarCantidad($event.id, $event.tipo, $event.delta)"></app-solicitar-prestamo>
+<!-- Modal Solicitar Préstamo -->
+<app-solicitar-prestamo [isOpen]="mostrarModalSolicitud" [material]="materialSeleccionado"
+  [todosLosMateriales]="materiales" (close)="cerrarModalSolicitud()"
+  (solicitudCreada)="onSolicitudCreada()"></app-solicitar-prestamo>
