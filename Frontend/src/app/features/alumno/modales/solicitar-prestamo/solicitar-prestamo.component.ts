@@ -3,7 +3,7 @@ import { SolicitudesService } from '../../../../core/services/solicitudes.servic
 import { AuthService } from '../../../../core/services/auth.service';
 
 /**
- * Interface para el material seleccionado
+ * Interface para el material
  */
 interface MaterialVista {
   id: number;
@@ -14,27 +14,13 @@ interface MaterialVista {
   descripcion: string;
   disponible: boolean;
   imagenUrl?: string;
-  cantidad?: number;
-}
-
-/**
- * Interface para item en el carrito
- */
-interface ItemCarrito {
-  id: number;
-  tipo: 'libro' | 'equipo';
-  titulo: string;
-  categoria: string;
-  marcaModelo: string;
-  cantidad?: number;
 }
 
 /**
  * Modal de Solicitar Préstamo
  * 
- * Permite al alumno solicitar un préstamo de un material (libro o equipo)
+ * Permite al alumno solicitar un préstamo de uno o varios materiales
  * con opciones para Tipo A (trabajo académico) o Tipo B (uso personal)
- * Ahora soporta múltiples items
  */
 @Component({
   selector: 'app-solicitar-prestamo',
@@ -49,7 +35,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   @Input() isOpen: boolean = false;
 
   /**
-   * Material seleccionado para solicitar
+   * Material seleccionado inicialmente
    */
   @Input() material: MaterialVista | null = null;
 
@@ -57,11 +43,6 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    * Todos los materiales disponibles (para búsqueda)
    */
   @Input() todosLosMateriales: MaterialVista[] = [];
-
-  /**
-   * Items previos en el carrito (desde el catálogo)
-   */
-  @Input() listaCarrito: MaterialVista[] = [];
 
   /**
    * Evento cuando se cierra el modal
@@ -73,36 +54,20 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    */
   @Output() solicitudCreada = new EventEmitter<void>();
 
-  /**
-   * Evento para vaciar el carrito
-   */
-  @Output() vaciarCarrito = new EventEmitter<void>();
-
-  /**
-   * Evento para quitar un item específico
-   */
-  @Output() quitarItem = new EventEmitter<{ id: number, tipo: 'libro' | 'equipo' }>();
-
-  /**
-   * Evento para actualizar cantidad
-   */
-  @Output() actualizarCantidad = new EventEmitter<{ id: number, tipo: 'libro' | 'equipo', delta: number }>();
-
   // ===== INYECCIÓN DE SERVICIOS =====
   private solicitudesService = inject(SolicitudesService);
   private authService = inject(AuthService);
 
-  // ===== CARRITO =====
-  carrito: ItemCarrito[] = [];
+  // ===== MATERIALES SELECCIONADOS =====
+  materialesSeleccionados: MaterialVista[] = [];
 
-  // ===== BÚSQUEDA DE MATERIALES ADICIONALES =====
+  // ===== BUSCADOR =====
+  mostrarBuscador: boolean = false;
   busquedaTexto: string = '';
   resultadosBusqueda: MaterialVista[] = [];
   filtroTipoBusqueda: 'todos' | 'libro' | 'equipo' = 'todos';
-  mostrarBuscador: boolean = false;
 
   // ===== FORMULARIO =====
-
   tipoSolicitud: 'prof_trabajo' | 'uso_propio' = 'prof_trabajo';
   nombreProfesor: string = '';
   asignatura: string = '';
@@ -110,12 +75,12 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   fechaSolicitud: string = '';
 
   // ===== ESTADO =====
-
   enviandoSolicitud: boolean = false;
   errorSolicitud: string = '';
   mostrarModalNormas: boolean = false;
   normasLeidas: boolean = false;
-  // ===== MODAL DE NOTIFICACIONES (Reutilizable) =====
+
+  // ===== MODAL DE NOTIFICACIONES =====
   mostrarModalNotificacion: boolean = false;
   tipoModalNotificacion: 'exito' | 'error' | 'info' = 'info';
   tituloModalNotificacion: string = '';
@@ -129,105 +94,53 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
 
   /**
    * Detecta cambios en los @Input
-   * Se ejecuta cuando material cambia
    */
   ngOnChanges(changes: SimpleChanges): void {
-    // Si se abre el modal, cargamos los items del catálogo
     if (changes['isOpen'] && changes['isOpen'].currentValue) {
-      this.carrito = [];
-      if (this.listaCarrito && this.listaCarrito.length > 0) {
-        // Cargar todos los items del carrito externo
-        this.listaCarrito.forEach(item => {
-          this.carrito.push({
-            id: item.id,
-            tipo: item.tipo,
-            titulo: item.titulo,
-            categoria: item.categoria,
-            marcaModelo: item.marcaModelo
-          });
-        });
-      } else if (this.material) {
-        // Fallback: si no hay lista externa pero hay material único
-        this.agregarMaterialInicial();
+      this.inicializarFormulario();
+      // Agregar material inicial si existe
+      if (this.material && !this.yaEstaSeleccionado(this.material)) {
+        this.materialesSeleccionados.push(this.material);
       }
     }
   }
 
-  // ===== MÉTODOS PÚBLICOS - CARRITO =====
+  // ===== MÉTODOS - MATERIALES =====
 
   /**
-   * Agrega el material inicial al carrito
+   * Verifica si un material ya está seleccionado
    */
-  agregarMaterialInicial(): void {
-    if (!this.material) return;
-
-    // Verificar que no esté ya en el carrito
-    if (this.yaEstaEnCarrito(this.material)) {
-      return;
-    }
-
-    this.carrito.push({
-      id: this.material.id,
-      tipo: this.material.tipo,
-      titulo: this.material.titulo,
-      categoria: this.material.categoria,
-      marcaModelo: this.material.marcaModelo,
-      cantidad: this.material.cantidad || 1
-    });
+  yaEstaSeleccionado(material: MaterialVista): boolean {
+    return this.materialesSeleccionados.some(m => m.id === material.id && m.tipo === material.tipo);
   }
 
   /**
-   * Verifica si un material ya está en el carrito
+   * Agrega un material a la lista
    */
-  yaEstaEnCarrito(material: MaterialVista): boolean {
-    return this.carrito.some(item => item.id === material.id && item.tipo === material.tipo);
-  }
-
-  /**
-   * Busca materiales localmente con normalización de tildes
-   */
-  buscarMateriales(): void {
-    if (this.busquedaTexto.trim().length === 0) {
+  agregarMaterial(material: MaterialVista): void {
+    if (!this.yaEstaSeleccionado(material)) {
+      this.materialesSeleccionados.push(material);
+      this.busquedaTexto = '';
       this.resultadosBusqueda = [];
-      return;
     }
-
-    // Normalizar búsqueda: quitar tildes y convertir a minúsculas
-    const termino = this.normalizarTexto(this.busquedaTexto);
-
-    let resultados = this.todosLosMateriales.filter(material => {
-      // Normalizar campos (algunos pueden ser undefined)
-      const titulo = material.titulo ? this.normalizarTexto(material.titulo) : '';
-      const marcaModelo = material.marcaModelo ? this.normalizarTexto(material.marcaModelo) : '';
-      const categoria = material.categoria ? this.normalizarTexto(material.categoria) : '';
-      const descripcion = material.descripcion ? this.normalizarTexto(material.descripcion) : '';
-
-      const coincide =
-        titulo.includes(termino) ||
-        marcaModelo.includes(termino) ||
-        categoria.includes(termino) ||
-        descripcion.includes(termino);
-
-      return coincide;
-      // ← Eliminamos "&& material.disponible" - permitimos buscar TODO
-    });
-
-    // Aplicar filtro de tipo
-    if (this.filtroTipoBusqueda !== 'todos') {
-      resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
-    }
-
-    this.resultadosBusqueda = resultados;
   }
 
   /**
-   * Normaliza texto: minúsculas y sin tildes
+   * Elimina un material de la lista
    */
-  private normalizarTexto(texto: string): string {
-    return texto
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+  eliminarMaterial(index: number): void {
+    this.materialesSeleccionados.splice(index, 1);
+  }
+
+  // ===== MÉTODOS - BUSCADOR =====
+
+  /**
+   * Abre el buscador
+   */
+  abrirBuscador(): void {
+    this.mostrarBuscador = true;
+    this.busquedaTexto = '';
+    this.resultadosBusqueda = [];
   }
 
   /**
@@ -240,59 +153,48 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Agrega material al carrito desde búsqueda
+   * Busca materiales
    */
-  agregarAlCarrito(material: MaterialVista): void {
-    this.carrito.push({
-      id: material.id,
-      tipo: material.tipo,
-      titulo: material.titulo,
-      categoria: material.categoria,
-      marcaModelo: material.marcaModelo,
-      cantidad: material.cantidad || 1
+  buscarMateriales(): void {
+    if (this.busquedaTexto.trim().length === 0) {
+      this.resultadosBusqueda = [];
+      return;
+    }
+
+    const termino = this.normalizarTexto(this.busquedaTexto);
+
+    let resultados = this.todosLosMateriales.filter(material => {
+      const titulo = this.normalizarTexto(material.titulo || '');
+      const marcaModelo = this.normalizarTexto(material.marcaModelo || '');
+      const categoria = this.normalizarTexto(material.categoria || '');
+      const descripcion = this.normalizarTexto(material.descripcion || '');
+
+      return titulo.includes(termino) ||
+        marcaModelo.includes(termino) ||
+        categoria.includes(termino) ||
+        descripcion.includes(termino);
     });
 
-    this.errorSolicitud = '';
-    this.busquedaTexto = '';
-    this.resultadosBusqueda = [];
-  }
-
-  /**
-   * Elimina material del carrito
-   */
-  eliminarDelCarrito(index: number): void {
-    const item = this.carrito[index];
-    this.carrito.splice(index, 1);
-    this.quitarItem.emit({ id: item.id, tipo: item.tipo });
-    this.resultadosBusqueda = [];
-    this.busquedaTexto = '';
-  }
-
-  /**
-   * Modifica la cantidad de un item
-   */
-  modificarCantidad(index: number, delta: number): void {
-    const item = this.carrito[index];
-    const nuevaCantidad = (item.cantidad || 1) + delta;
-    if (nuevaCantidad > 0) {
-      item.cantidad = nuevaCantidad;
-      this.actualizarCantidad.emit({ id: item.id, tipo: item.tipo, delta });
-    } else {
-      this.eliminarDelCarrito(index);
+    // Filtrar por tipo
+    if (this.filtroTipoBusqueda !== 'todos') {
+      resultados = resultados.filter(m => m.tipo === this.filtroTipoBusqueda);
     }
+
+    this.resultadosBusqueda = resultados.slice(0, 10); // Limitar a 10 resultados
   }
 
   /**
-   * Vacía todo el carrito
+   * Normaliza texto para búsqueda
    */
-  limpiarCarrito(): void {
-    this.carrito = [];
-    this.vaciarCarrito.emit();
-    this.cerrarModal();
+  private normalizarTexto(texto: string): string {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   /**
-   * Cambia filtro de búsqueda
+   * Cambia el filtro de tipo en el buscador
    */
   cambiarFiltroTipo(tipo: 'todos' | 'libro' | 'equipo'): void {
     this.filtroTipoBusqueda = tipo;
@@ -301,34 +203,26 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
     }
   }
 
-  // ===== MÉTODOS PÚBLICOS - FORMULARIO =====
+  // ===== MÉTODOS - FORMULARIO =====
 
   /**
-   * Inicializa el formulario con valores por defecto
+   * Inicializa el formulario
    */
   inicializarFormulario(): void {
+    this.materialesSeleccionados = [];
+    this.mostrarBuscador = false;
+    this.busquedaTexto = '';
+    this.resultadosBusqueda = [];
+    this.filtroTipoBusqueda = 'todos';
     this.tipoSolicitud = 'prof_trabajo';
     this.nombreProfesor = '';
     this.asignatura = '';
     this.normasAceptadas = false;
     this.normasLeidas = false;
     this.errorSolicitud = '';
-    this.carrito = [];
-    this.busquedaTexto = '';
-    this.filtroTipoBusqueda = 'todos';
-    this.resultadosBusqueda = [];
-    this.mostrarBuscador = false;
-    this.mostrarModalNotificacion = false;
-    this.tipoModalNotificacion = 'info';
-    this.tituloModalNotificacion = '';
-    this.mensajeModalNotificacion = '';
+    this.enviandoSolicitud = false;
 
-    // Agregar material inicial al carrito
-    if (this.material) {
-      this.agregarMaterialInicial();
-    }
-
-    // Fecha actual en formato DD/MM/YYYY
+    // Fecha actual
     const hoy = new Date();
     const dia = String(hoy.getDate()).padStart(2, '0');
     const mes = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -341,8 +235,6 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    */
   cambiarTipo(tipo: 'prof_trabajo' | 'uso_propio'): void {
     this.tipoSolicitud = tipo;
-
-    // Limpiar campos si cambia a Tipo B
     if (tipo === 'uso_propio') {
       this.nombreProfesor = '';
       this.asignatura = '';
@@ -353,17 +245,14 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    * Verifica si el formulario es válido
    */
   get formularioValido(): boolean {
-    // Debe haber al menos 1 item en carrito
-    if (this.carrito.length === 0) {
+    if (this.materialesSeleccionados.length === 0) {
       return false;
     }
 
-    // Normas deben estar aceptadas
     if (!this.normasAceptadas) {
       return false;
     }
 
-    // Si es Tipo A, validar campos adicionales
     if (this.tipoSolicitud === 'prof_trabajo') {
       return this.nombreProfesor.trim() !== '' && this.asignatura.trim() !== '';
     }
@@ -372,80 +261,57 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Envía la solicitud con múltiples items
+   * Envía la solicitud
    */
   enviarSolicitud(): void {
-    if (!this.formularioValido || this.carrito.length === 0) {
-      this.tipoModalNotificacion = 'error';
-      this.tituloModalNotificacion = 'Formulario Incompleto';
-      this.mensajeModalNotificacion = 'Debe haber al menos un material en el carrito';
-      this.mostrarModalNotificacion = true;
+    if (!this.formularioValido) {
+      this.errorSolicitud = 'Por favor, completa todos los campos requeridos';
       return;
     }
 
     this.enviandoSolicitud = true;
     this.errorSolicitud = '';
 
-    // Preparar array de items - Respetando cantidades
-    const items: any[] = [];
-    this.carrito.forEach(item => {
-      const cant = item.cantidad || 1;
-      for (let i = 0; i < cant; i++) {
-        items.push(item.tipo === 'libro' ? { libro_id: item.id } : { equipo_id: item.id });
-      }
-    });
-
-    // Obtener grado del usuario logueado
     const usuarioActual = this.authService.currentUser();
     const gradoId = usuarioActual?.grado_id;
 
-    // Preparar datos principales
+    // Preparar items
+    const items = this.materialesSeleccionados.map(mat => {
+      return mat.tipo === 'libro' ? { libro_id: mat.id } : { equipo_id: mat.id };
+    });
+
     const datos: any = {
       tipo: this.tipoSolicitud,
       normas_aceptadas: this.normasAceptadas,
       items: items,
-      grado_id: gradoId // Agregar grado_id del alumno
+      grado_id: gradoId
     };
 
-    // Si es Tipo A, añadir profesor y asignatura
     if (this.tipoSolicitud === 'prof_trabajo') {
       datos.observaciones = `Profesor: ${this.nombreProfesor} | Asignatura: ${this.asignatura}`;
-      // Nota: profesor_asociado_id no se envía porque en el modal solo escribimos el NOMBRE
-      // El backend debería usar el nombre del profesor, no un ID
     }
 
-    console.log('📤 Enviando solicitud múltiple:', datos);
+    console.log('📤 Enviando solicitud:', datos);
 
-    // Enviar al backend
     this.solicitudesService.crearSolicitud(datos).subscribe({
       next: (response) => {
         console.log('✅ Solicitud creada:', response);
         this.tipoModalNotificacion = 'exito';
         this.tituloModalNotificacion = 'Solicitud Registrada';
-        this.mensajeModalNotificacion = `Solicitud registrada correctamente con ${this.carrito.length} material(es). Recibirás actualizaciones sobre el estado de tu solicitud por correo.`;
+        this.mensajeModalNotificacion = `Tu solicitud de ${this.materialesSeleccionados.length} material(es) ha sido registrada correctamente.`;
         this.mostrarModalNotificacion = true;
+        this.enviandoSolicitud = false;
         this.solicitudCreada.emit();
-
-        // Cerrar modal después de 3 segundos
-        setTimeout(() => {
-          this.cerrarModal();
-        }, 3000);
       },
       error: (err) => {
         console.error('❌ Error al crear solicitud:', err);
 
-        // Intentar obtener el mensaje de error más específico
         let mensajeError = 'Error al enviar la solicitud. Por favor, inténtalo de nuevo.';
 
         if (err.error && err.error.mensaje) {
-          // Mensaje del backend (formato: { mensaje: "..." })
           mensajeError = err.error.mensaje;
         } else if (err.message) {
-          // Mensaje del error HTTP
           mensajeError = err.message;
-        } else if (typeof err.error === 'string') {
-          // Por si el backend envía un string directamente
-          mensajeError = err.error;
         }
 
         this.tipoModalNotificacion = 'error';
@@ -458,12 +324,10 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   }
 
   /**
- * Cierra el modal de notificación
- */
+   * Cierra el modal de notificación
+   */
   cerrarModalNotificacion(): void {
     this.mostrarModalNotificacion = false;
-
-    // Si fue éxito, cerrar el modal principal
     if (this.tipoModalNotificacion === 'exito') {
       this.cerrarModal();
     }
@@ -478,7 +342,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Abre el modal de normas completas
+   * Abre el modal de normas
    */
   verNormasCompletas(): void {
     this.mostrarModalNormas = true;
@@ -493,7 +357,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Se ejecuta cuando el usuario acepta las normas
+   * Cuando se aceptan las normas
    */
   onNormasAceptadas(): void {
     this.normasAceptadas = true;
