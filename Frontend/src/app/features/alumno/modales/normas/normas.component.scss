@@ -28,8 +28,8 @@ $font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  z-index: 2000; // Mayor que el modal de solicitud
+  padding: 80px 20px 20px;
+  z-index: 2000; 
 }
 
 .modal-container {
