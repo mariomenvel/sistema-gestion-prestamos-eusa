@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { MaterialesService } from '../../../core/services/materiales.service';
 import { Libro, Equipo, Categoria } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
@@ -27,7 +28,18 @@ interface MaterialVista {
 @Component({
   selector: 'app-catalogo',
   templateUrl: './catalogo.component.html',
-  styleUrls: ['./catalogo.component.scss']
+  styleUrls: ['./catalogo.component.scss'],
+  animations: [
+    trigger('fadeSlideUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(20px)' }))
+      ])
+    ])
+  ]
 })
 export class CatalogoComponent implements OnInit {
 
@@ -52,10 +64,20 @@ export class CatalogoComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
 
+  // ===== MATERIALES EN SOLICITUD (CARRITO) =====
+
+  materialesEnSolicitud: MaterialVista[] = [];
+
   // ===== MODAL DE SOLICITUD ===== 
 
   mostrarModalSolicitud: boolean = false;
   materialSeleccionado: MaterialVista | null = null;
+
+  // ===== NOTIFICACIÓN TOAST =====
+
+  mostrarNotificacion: boolean = false;
+  mensajeNotificacion: string = '';
+  timeoutNotificacion: any;
 
   // ===== CONSTRUCTOR =====
 
@@ -165,11 +187,46 @@ export class CatalogoComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // ===== MÉTODOS DE SOLICITUD (CARRITO) =====
+
   /**
-   * Abre el modal de solicitud
+   * Verifica si un material está en la solicitud
    */
-  solicitarPrestamo(material: MaterialVista): void {
-    this.materialSeleccionado = material;
+  estaEnSolicitud(material: MaterialVista): boolean {
+    return this.materialesEnSolicitud.some(m => m.id === material.id && m.tipo === material.tipo);
+  }
+
+  /**
+   * Agrega un material a la solicitud
+   */
+  agregarASolicitud(material: MaterialVista): void {
+    if (!this.estaEnSolicitud(material)) {
+      this.materialesEnSolicitud.push(material);    }
+  }
+
+  /**
+   * Quita un material de la solicitud
+   */
+  quitarDeSolicitud(material: MaterialVista): void {
+    const index = this.materialesEnSolicitud.findIndex(m => m.id === material.id && m.tipo === material.tipo);
+    if (index > -1) {
+      this.materialesEnSolicitud.splice(index, 1);
+      this.mostrarToast(`"${material.titulo}" quitado de la solicitud`);
+    }
+  }
+
+  /**
+   * Vacía todos los materiales de la solicitud
+   */
+  vaciarSolicitud(): void {
+    this.materialesEnSolicitud = [];
+    this.mostrarToast('Selección vaciada');
+  }
+
+  /**
+   * Abre el modal de solicitud con los materiales seleccionados
+   */
+  abrirModalSolicitud(): void {
     this.mostrarModalSolicitud = true;
   }
 
@@ -185,9 +242,28 @@ export class CatalogoComponent implements OnInit {
    * Callback cuando se crea la solicitud exitosamente
    */
   onSolicitudCreada(): void {
+    this.materialesEnSolicitud = [];
     this.cerrarModalSolicitud();
-    // Opcional: Recargar datos o mostrar mensaje
+    this.cargarDatos(); // Recargar disponibilidad
     console.log('✅ Solicitud creada exitosamente');
+  }
+
+  // ===== NOTIFICACIÓN TOAST =====
+
+  /**
+   * Muestra una notificación toast
+   */
+  mostrarToast(mensaje: string): void {
+    if (this.timeoutNotificacion) {
+      clearTimeout(this.timeoutNotificacion);
+    }
+
+    this.mensajeNotificacion = mensaje;
+    this.mostrarNotificacion = true;
+
+    this.timeoutNotificacion = setTimeout(() => {
+      this.mostrarNotificacion = false;
+    }, 3000);
   }
 
   // ===== MÉTODOS PRIVADOS =====

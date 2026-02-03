@@ -1,150 +1,264 @@
-<div class="catalogo">
+<!-- Contenedor Principal -->
+<div class="catalogo-container">
 
-  <!-- TÍTULO -->
-  <h1 class="catalogo-title">Catálogo</h1>
-
-  <!-- BARRA DE BÚSQUEDA Y FILTROS RÁPIDOS -->
-  <div class="search-filters-row">
+  <!-- Header con búsqueda -->
+  <header class="catalogo-header">
+    <div class="header-content">
+      <h1 class="catalogo-titulo">Catálogo de Materiales</h1>
+      <p class="catalogo-subtitulo">Explora y solicita libros y equipos disponibles</p>
+    </div>
 
     <!-- Barra de búsqueda -->
-    <div class="search-bar">
-      <input type="text" class="search-input" placeholder="Buscar Libros, cámaras, micrófonos..."
-        [(ngModel)]="textoBusqueda" (keyup.enter)="buscar()">
-      <button class="search-icon" (click)="buscar()">🔍</button>
+    <div class="buscador-wrapper">
+      <svg class="buscador-icono" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input type="text" class="buscador-input" placeholder="Buscar por título, autor, marca..."
+        [(ngModel)]="textoBusqueda" (ngModelChange)="buscar()" aria-label="Buscar materiales">
+      <button *ngIf="textoBusqueda" class="buscador-limpiar" (click)="textoBusqueda = ''; buscar()" aria-label="Limpiar búsqueda">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
     </div>
 
     <!-- Filtros rápidos -->
-    <div class="quick-filters">
-      <button class="filter-btn" [class.active]="filtroTipoActivo === 'todos'" (click)="cambiarFiltroTipo('todos')">
+    <div class="filtros-rapidos" role="group" aria-label="Filtrar por tipo">
+      <button [class.activo]="filtroTipoActivo === 'todos'" (click)="cambiarFiltroTipo('todos')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+        </svg>
         Todos
       </button>
-
-      <button class="filter-btn" [class.active]="filtroTipoActivo === 'libros'" (click)="cambiarFiltroTipo('libros')">
+      <button [class.activo]="filtroTipoActivo === 'libros'" (click)="cambiarFiltroTipo('libros')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
         Libros
       </button>
-
-      <button class="filter-btn" [class.active]="filtroTipoActivo === 'equipos'" (click)="cambiarFiltroTipo('equipos')">
-        Material Audiovisual
+      <button [class.activo]="filtroTipoActivo === 'equipos'" (click)="cambiarFiltroTipo('equipos')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" />
+        </svg>
+        Equipos
       </button>
     </div>
+  </header>
 
-  </div>
-
-  <!-- CONTENIDO PRINCIPAL -->
+  <!-- Contenido principal -->
   <div class="catalogo-content">
 
-    <!-- PANEL LATERAL DE FILTROS -->
-    <aside class="filters-panel">
-      <h2 class="filters-title">Filtros</h2>
-
-      <!-- Tipo de Material -->
-      <div class="filter-section">
-        <h3 class="filter-section-title">Tipo de Material</h3>
-        <div class="filter-divider"></div>
-
-        <label class="checkbox-label">
-          <input type="checkbox" [checked]="filtroTipoActivo === 'libros'" (change)="cambiarFiltroTipo('libros')">
-          <span>Libros</span>
-        </label>
-
-        <label class="checkbox-label">
-          <input type="checkbox" [checked]="filtroTipoActivo === 'equipos'" (change)="cambiarFiltroTipo('equipos')">
-          <span>Material Audiovisual</span>
-        </label>
+    <!-- Sidebar de filtros -->
+    <aside class="filtros-sidebar">
+      <div class="filtros-header">
+        <h3 class="filtros-titulo">Filtros</h3>
       </div>
 
-      <!-- Filtro por Categoría de Equipo (Solo para Audiovisual) -->
-      <div class="filter-section" *ngIf="filtroTipoActivo === 'equipos'">
-        <h3 class="filter-section-title">Categoría</h3>
-        <div class="filter-divider"></div>
+      <!-- Filtro por Género (solo libros) -->
+      <div class="filtro-grupo" *ngIf="filtroTipoActivo !== 'equipos' && generos.length > 0">
+        <h4 class="filtro-grupo-titulo">Género</h4>
+        <div class="filtro-opciones">
+          <label class="filtro-opcion" *ngFor="let genero of generos">
+            <input type="checkbox" [checked]="isGeneroSeleccionado(genero.id)"
+              (change)="toggleGenero(genero.id)">
+            <span class="checkbox-custom" aria-hidden="true">
+              <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="filtro-texto">{{ genero.nombre }}</span>
+          </label>
+        </div>
+      </div>
 
-        <div class="checkbox-group">
-          <label class="checkbox-label" *ngFor="let cat of categoriasEquipos">
+      <!-- Filtro por Categoría de Equipo -->
+      <div class="filtro-grupo" *ngIf="filtroTipoActivo !== 'libros' && categoriasEquipos.length > 0">
+        <h4 class="filtro-grupo-titulo">Categoría</h4>
+        <div class="filtro-opciones">
+          <label class="filtro-opcion" *ngFor="let cat of categoriasEquipos">
             <input type="checkbox" [checked]="isCategoriaEquipoSeleccionada(cat.id)"
               (change)="toggleCategoriaEquipo(cat.id)">
-            <span>{{ cat.nombre }}</span>
+            <span class="checkbox-custom" aria-hidden="true">
+              <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="filtro-texto">{{ cat.nombre }}</span>
           </label>
         </div>
       </div>
 
-      <!-- Filtro por Nombre de Equipo (Solo para Audiovisual) -->
-      <div class="filter-section" *ngIf="filtroTipoActivo === 'equipos'">
-        <h3 class="filter-section-title">Nombre de Equipo</h3>
-        <div class="filter-divider"></div>
-
-        <div class="checkbox-group">
-          <label class="checkbox-label" *ngFor="let nombre of nombresEquipo">
-            <input type="checkbox" [checked]="isNombreSeleccionado(nombre.id)" (change)="toggleNombreEquipo(nombre.id)">
-            <span>{{ nombre.nombre }}</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Filtro por Género (Solo para Libros) -->
-      <div class="filter-section" *ngIf="filtroTipoActivo === 'libros'">
-        <h3 class="filter-section-title">Género</h3>
-        <div class="filter-divider"></div>
-
-        <div class="checkbox-group">
-          <label class="checkbox-label" *ngFor="let genero of generos">
-            <input type="checkbox" [checked]="isGeneroSeleccionado(genero.id)" (change)="toggleGenero(genero.id)">
-            <span>{{ genero.nombre }}</span>
+      <!-- Filtro por Nombre de Equipo -->
+      <div class="filtro-grupo" *ngIf="filtroTipoActivo !== 'libros' && nombresEquipo.length > 0">
+        <h4 class="filtro-grupo-titulo">Tipo de Equipo</h4>
+        <div class="filtro-opciones">
+          <label class="filtro-opcion" *ngFor="let nombre of nombresEquipo">
+            <input type="checkbox" [checked]="isNombreSeleccionado(nombre.id)"
+              (change)="toggleNombreEquipo(nombre.id)">
+            <span class="checkbox-custom" aria-hidden="true">
+              <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span class="filtro-texto">{{ nombre.nombre }}</span>
           </label>
         </div>
       </div>
     </aside>
 
-    <!-- GRID DE MATERIALES -->
-    <main class="materials-grid">
+    <!-- Grid de materiales -->
+    <main class="materiales-main">
 
-      <!-- Loading -->
-      <div *ngIf="isLoading" class="loading-state">
-        Cargando materiales...
+      <!-- Estado de carga -->
+      <div class="estado-carga" *ngIf="isLoading">
+        <div class="spinner" aria-label="Cargando materiales"></div>
+        <p>Cargando materiales...</p>
       </div>
 
       <!-- Error -->
-      <div *ngIf="errorMessage" class="error-state">
-        {{ errorMessage }}
+      <div class="estado-error" *ngIf="errorMessage && !isLoading">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-reintentar" (click)="ngOnInit()">Reintentar</button>
       </div>
 
       <!-- Sin resultados -->
-      <div *ngIf="!isLoading && !errorMessage && materialesFiltrados.length === 0" class="empty-state">
-        No se encontraron materiales con los filtros seleccionados.
+      <div class="estado-vacio" *ngIf="!isLoading && !errorMessage && materialesFiltrados.length === 0">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <h3>No se encontraron materiales</h3>
+        <p>Prueba con otros términos de búsqueda o filtros</p>
       </div>
 
-      <!-- Cards de materiales -->
-      <article class="material-card" *ngFor="let material of materialesFiltrados">
+      <!-- Contador de resultados -->
+      <div class="resultados-info" *ngIf="!isLoading && !errorMessage && materialesFiltrados.length > 0">
+        <span>{{ materialesFiltrados.length }} material(es) encontrado(s)</span>
+      </div>
 
-        <!-- Imagen -->
-        <div class="material-image">
-          <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo">
-          <div *ngIf="!material.imagenUrl" class="image-placeholder">
-            {{ material.tipo === 'libro' ? '📚' : '📷' }}
+      <!-- Grid de tarjetas -->
+      <div class="materiales-grid" *ngIf="!isLoading && !errorMessage && materialesFiltrados.length > 0">
+        <article class="material-card" *ngFor="let material of materialesFiltrados"
+          [class.en-solicitud]="estaEnSolicitud(material)">
+
+          <!-- Imagen -->
+          <div class="card-imagen">
+            <img *ngIf="material.imagenUrl" [src]="material.imagenUrl" [alt]="material.titulo"
+              loading="lazy">
+            <div class="card-placeholder" *ngIf="!material.imagenUrl">
+              <svg *ngIf="material.tipo === 'libro'" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg *ngIf="material.tipo === 'equipo'" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" />
+              </svg>
+            </div>
+            <!-- Badge agregado -->
+            <span class="badge-agregado" *ngIf="estaEnSolicitud(material)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              Agregado
+            </span>
           </div>
-        </div>
 
-        <!-- Información -->
-        <div class="material-info">
-          <h3 class="material-title">{{ material.titulo }}</h3>
-          <p class="material-category">{{ material.categoria }}</p>
-          <p class="material-brand">{{ material.marcaModelo }}</p>
-          <p class="material-description">{{ material.descripcion }}</p>
-        </div>
+          <!-- Contenido -->
+          <div class="card-content">
+            <h3 class="card-titulo">{{ material.titulo }}</h3>
+            <p class="card-meta">{{ material.categoria }}</p>
+            <p class="card-autor">{{ material.marcaModelo }}</p>
+          </div>
 
-        <!-- Botón Solicitar -->
-        <button class="btn-solicitar" (click)="solicitarPrestamo(material)">
-          Solicitar
-        </button>
+          <!-- Acciones -->
+          <div class="card-acciones">
+            <button class="btn-agregar" *ngIf="!estaEnSolicitud(material)"
+              (click)="agregarASolicitud(material)" [disabled]="!material.disponible">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              {{ material.disponible ? 'Agregar' : 'No disponible' }}
+            </button>
+            <button class="btn-quitar" *ngIf="estaEnSolicitud(material)" (click)="quitarDeSolicitud(material)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              Quitar
+            </button>
+          </div>
 
-      </article>
+        </article>
+      </div>
 
     </main>
+  </div>
 
+  <!-- Botón flotante de solicitud -->
+  <div class="solicitud-flotante" *ngIf="materialesEnSolicitud.length > 0" @fadeSlideUp>
+    <div class="solicitud-info">
+      <span class="solicitud-count">{{ materialesEnSolicitud.length }}</span>
+      <span class="solicitud-texto">material(es) seleccionado(s)</span>
+    </div>
+    <button class="btn-realizar-solicitud" (click)="abrirModalSolicitud()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Realizar Solicitud
+    </button>
+    <button class="btn-vaciar" (click)="vaciarSolicitud()" aria-label="Vaciar selección">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Notificación toast -->
+  <div class="toast-notificacion" *ngIf="mostrarNotificacion" @fadeSlideUp role="alert">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" />
+    </svg>
+    <span>{{ mensajeNotificacion }}</span>
   </div>
 
 </div>
 
 <!-- Modal Solicitar Préstamo -->
-<app-solicitar-prestamo [isOpen]="mostrarModalSolicitud" [material]="materialSeleccionado"
-  [todosLosMateriales]="materiales" (close)="cerrarModalSolicitud()"
-  (solicitudCreada)="onSolicitudCreada()"></app-solicitar-prestamo>
+<app-solicitar-prestamo 
+  [isOpen]="mostrarModalSolicitud" 
+  [material]="materialSeleccionado"
+  [materialesPreseleccionados]="materialesEnSolicitud"
+  [todosLosMateriales]="materiales" 
+  (close)="cerrarModalSolicitud()"
+  (solicitudCreada)="onSolicitudCreada()">
+</app-solicitar-prestamo>
