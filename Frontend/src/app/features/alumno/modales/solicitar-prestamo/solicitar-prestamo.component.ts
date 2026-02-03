@@ -17,6 +17,13 @@ interface MaterialVista {
 }
 
 /**
+ * Interface para material con cantidad
+ */
+interface MaterialConCantidad extends MaterialVista {
+  cantidad: number;
+}
+
+/**
  * Modal de Solicitar Préstamo
  * 
  * Permite al alumno solicitar un préstamo de uno o varios materiales
@@ -35,9 +42,14 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   @Input() isOpen: boolean = false;
 
   /**
-   * Material seleccionado inicialmente
+   * Material seleccionado inicialmente (individual)
    */
   @Input() material: MaterialVista | null = null;
+
+  /**
+   * Lista de materiales preseleccionados (desde catálogo)
+   */
+  @Input() materialesPreseleccionados: MaterialVista[] = [];
 
   /**
    * Todos los materiales disponibles (para búsqueda)
@@ -59,7 +71,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   private authService = inject(AuthService);
 
   // ===== MATERIALES SELECCIONADOS =====
-  materialesSeleccionados: MaterialVista[] = [];
+  materialesSeleccionados: MaterialConCantidad[] = [];
 
   // ===== BUSCADOR =====
   mostrarBuscador: boolean = false;
@@ -98,9 +110,17 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && changes['isOpen'].currentValue) {
       this.inicializarFormulario();
-      // Agregar material inicial si existe
-      if (this.material && !this.yaEstaSeleccionado(this.material)) {
-        this.materialesSeleccionados.push(this.material);
+      
+      // Agregar materiales preseleccionados (desde catálogo)
+      if (this.materialesPreseleccionados && this.materialesPreseleccionados.length > 0) {
+        this.materialesSeleccionados = this.materialesPreseleccionados.map(m => ({
+          ...m,
+          cantidad: 1
+        }));
+      }
+      // Agregar material individual si existe
+      else if (this.material && !this.yaEstaSeleccionado(this.material)) {
+        this.materialesSeleccionados.push({ ...this.material, cantidad: 1 });
       }
     }
   }
@@ -119,7 +139,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    */
   agregarMaterial(material: MaterialVista): void {
     if (!this.yaEstaSeleccionado(material)) {
-      this.materialesSeleccionados.push(material);
+      this.materialesSeleccionados.push({ ...material, cantidad: 1 });
       this.busquedaTexto = '';
       this.resultadosBusqueda = [];
     }
@@ -130,6 +150,31 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
    */
   eliminarMaterial(index: number): void {
     this.materialesSeleccionados.splice(index, 1);
+  }
+
+  /**
+   * Aumenta la cantidad de un material
+   */
+  aumentarCantidad(index: number): void {
+    if (this.materialesSeleccionados[index].cantidad < 10) {
+      this.materialesSeleccionados[index].cantidad++;
+    }
+  }
+
+  /**
+   * Disminuye la cantidad de un material
+   */
+  disminuirCantidad(index: number): void {
+    if (this.materialesSeleccionados[index].cantidad > 1) {
+      this.materialesSeleccionados[index].cantidad--;
+    }
+  }
+
+  /**
+   * Obtiene el total de items
+   */
+  get totalItems(): number {
+    return this.materialesSeleccionados.reduce((sum, m) => sum + m.cantidad, 0);
   }
 
   // ===== MÉTODOS - BUSCADOR =====
@@ -275,9 +320,13 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
     const usuarioActual = this.authService.currentUser();
     const gradoId = usuarioActual?.grado_id;
 
-    // Preparar items
-    const items = this.materialesSeleccionados.map(mat => {
-      return mat.tipo === 'libro' ? { libro_id: mat.id } : { equipo_id: mat.id };
+    // Preparar items con cantidad
+    const items: any[] = [];
+    this.materialesSeleccionados.forEach(mat => {
+      // Crear un item por cada unidad de cantidad
+      for (let i = 0; i < mat.cantidad; i++) {
+        items.push(mat.tipo === 'libro' ? { libro_id: mat.id } : { equipo_id: mat.id });
+      }
     });
 
     const datos: any = {
@@ -298,7 +347,7 @@ export class SolicitarPrestamoComponent implements OnInit, OnChanges {
         console.log('✅ Solicitud creada:', response);
         this.tipoModalNotificacion = 'exito';
         this.tituloModalNotificacion = 'Solicitud Registrada';
-        this.mensajeModalNotificacion = `Tu solicitud de ${this.materialesSeleccionados.length} material(es) ha sido registrada correctamente.`;
+        this.mensajeModalNotificacion = `Tu solicitud de ${this.totalItems} item(s) ha sido registrada correctamente.`;
         this.mostrarModalNotificacion = true;
         this.enviandoSolicitud = false;
         this.solicitudCreada.emit();

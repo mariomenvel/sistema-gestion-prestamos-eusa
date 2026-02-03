@@ -5,12 +5,9 @@
   <!-- Modal Container -->
   <div class="modal-container" (click)="$event.stopPropagation()">
 
-    <!-- Header -->
+    <!-- Header Azul -->
     <div class="modal-header">
-      <div class="header-content">
-        <h2 class="modal-title" id="modal-titulo">Solicitar Préstamo</h2>
-        <p class="modal-subtitle">{{ materialesSeleccionados.length }} material(es) seleccionado(s)</p>
-      </div>
+      <h2 class="modal-title" id="modal-titulo">Solicitar Prestamo Material</h2>
       <button class="btn-close" (click)="cerrarModal()" type="button" aria-label="Cerrar modal">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true">
@@ -19,129 +16,133 @@
       </button>
     </div>
 
-    <!-- Body -->
+    <!-- Body con scroll -->
     <div class="modal-body">
 
-      <!-- Lista de Materiales Seleccionados -->
-      <div class="materiales-lista" *ngIf="materialesSeleccionados.length > 0">
-        <div class="material-item" *ngFor="let item of materialesSeleccionados; let i = index">
-          <div class="material-icon" [ngClass]="item.tipo" aria-hidden="true">
-            <!-- Icono Libro -->
-            <svg *ngIf="item.tipo === 'libro'" width="22" height="22" viewBox="0 0 24 24" fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <!-- Icono Equipo -->
-            <svg *ngIf="item.tipo === 'equipo'" width="22" height="22" viewBox="0 0 24 24" fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" />
-            </svg>
-          </div>
-          <div class="material-info">
-            <span class="material-titulo">{{ item.titulo }}</span>
-            <span class="material-meta">{{ item.categoria }}</span>
-          </div>
-          <button type="button" class="btn-eliminar" (click)="eliminarMaterial(i)" 
-            [attr.aria-label]="'Eliminar ' + item.titulo">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Botón Agregar Más -->
-      <button type="button" class="btn-agregar-mas" *ngIf="!mostrarBuscador" (click)="abrirBuscador()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true">
-          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        Agregar más materiales
-      </button>
-
-      <!-- Buscador de Materiales -->
-      <div class="buscador-container" *ngIf="mostrarBuscador">
-        <div class="buscador-header">
-          <h4 class="buscador-titulo">Buscar materiales</h4>
-          <button type="button" class="btn-cerrar-buscador" (click)="cerrarBuscador()" aria-label="Cerrar buscador">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true">
-              <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Input de búsqueda -->
-        <div class="buscador-input-wrapper">
-          <svg class="buscador-icono" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
-            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <input type="text" class="buscador-input" placeholder="Buscar por título, autor, marca..."
-            [(ngModel)]="busquedaTexto" (ngModelChange)="buscarMateriales()" name="busquedaTexto"
-            aria-label="Buscar materiales">
-        </div>
-
-        <!-- Filtros de tipo -->
-        <div class="buscador-filtros" role="group" aria-label="Filtrar por tipo">
-          <button type="button" [class.activo]="filtroTipoBusqueda === 'todos'"
-            (click)="cambiarFiltroTipo('todos')">Todos</button>
-          <button type="button" [class.activo]="filtroTipoBusqueda === 'libro'"
-            (click)="cambiarFiltroTipo('libro')">Libros</button>
-          <button type="button" [class.activo]="filtroTipoBusqueda === 'equipo'"
-            (click)="cambiarFiltroTipo('equipo')">Equipos</button>
-        </div>
-
-        <!-- Resultados -->
-        <div class="buscador-resultados" *ngIf="resultadosBusqueda.length > 0">
-          <div class="resultado-item" *ngFor="let mat of resultadosBusqueda">
-            <div class="resultado-info">
-              <span class="resultado-titulo">{{ mat.titulo }}</span>
-              <span class="resultado-meta">{{ mat.categoria }} · {{ mat.marcaModelo }}</span>
+      <!-- Material Seleccionado -->
+      <section class="seccion" *ngIf="materialesSeleccionados.length > 0">
+        <h3 class="seccion-titulo">Material Seleccionado</h3>
+        
+        <div class="materiales-lista">
+          <div class="material-item" *ngFor="let item of materialesSeleccionados; let i = index">
+            <div class="material-imagen">
+              <img *ngIf="item.imagenUrl" [src]="item.imagenUrl" [alt]="item.titulo">
+              <div class="material-placeholder" *ngIf="!item.imagenUrl">
+                <svg *ngIf="item.tipo === 'libro'" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <svg *ngIf="item.tipo === 'equipo'" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" />
+                </svg>
+              </div>
             </div>
-            <button type="button" class="btn-agregar-item" (click)="agregarMaterial(mat)"
-              [disabled]="yaEstaSeleccionado(mat)">
-              {{ yaEstaSeleccionado(mat) ? 'Añadido' : 'Agregar' }}
+            <div class="material-info">
+              <span class="material-nombre">{{ item.titulo }}</span>
+              <span class="material-tipo">{{ item.tipo === 'libro' ? 'Libro' : 'Equipo' }} - {{ item.marcaModelo }}</span>
+              <span class="material-disponible">Disponible</span>
+            </div>
+            
+            <!-- Controles de cantidad -->
+            <div class="cantidad-controls">
+              <button type="button" class="btn-cantidad" (click)="disminuirCantidad(i)" 
+                [disabled]="item.cantidad <= 1"
+                [attr.aria-label]="'Disminuir cantidad de ' + item.titulo">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true">
+                  <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+              </button>
+              <span class="cantidad-valor">{{ item.cantidad }}</span>
+              <button type="button" class="btn-cantidad" (click)="aumentarCantidad(i)"
+                [disabled]="item.cantidad >= 10"
+                [attr.aria-label]="'Aumentar cantidad de ' + item.titulo">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+            
+            <button type="button" class="btn-eliminar" (click)="eliminarMaterial(i)" 
+              [attr.aria-label]="'Eliminar ' + item.titulo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
             </button>
           </div>
         </div>
 
-        <!-- Sin resultados -->
-        <div class="sin-resultados" *ngIf="busquedaTexto.length > 0 && resultadosBusqueda.length === 0">
-          <p>No se encontraron materiales</p>
+        <!-- Boton agregar mas -->
+        <button type="button" class="btn-agregar-mas" *ngIf="!mostrarBuscador" (click)="abrirBuscador()">
+          + Agregar mas materiales
+        </button>
+
+        <!-- Buscador -->
+        <div class="buscador-container" *ngIf="mostrarBuscador">
+          <div class="buscador-header">
+            <span class="buscador-titulo">Buscar materiales</span>
+            <button type="button" class="btn-cerrar-buscador" (click)="cerrarBuscador()" aria-label="Cerrar buscador">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <input type="text" class="buscador-input" placeholder="Buscar por titulo, autor, marca..."
+            [(ngModel)]="busquedaTexto" (ngModelChange)="buscarMateriales()" name="busquedaTexto">
+          <div class="buscador-filtros">
+            <button type="button" [class.activo]="filtroTipoBusqueda === 'todos'"
+              (click)="cambiarFiltroTipo('todos')">Todos</button>
+            <button type="button" [class.activo]="filtroTipoBusqueda === 'libro'"
+              (click)="cambiarFiltroTipo('libro')">Libros</button>
+            <button type="button" [class.activo]="filtroTipoBusqueda === 'equipo'"
+              (click)="cambiarFiltroTipo('equipo')">Equipos</button>
+          </div>
+          <div class="buscador-resultados" *ngIf="resultadosBusqueda.length > 0">
+            <div class="resultado-item" *ngFor="let mat of resultadosBusqueda">
+              <div class="resultado-info">
+                <span class="resultado-titulo">{{ mat.titulo }}</span>
+                <span class="resultado-meta">{{ mat.categoria }}</span>
+              </div>
+              <button type="button" class="btn-agregar-item" (click)="agregarMaterial(mat)"
+                [disabled]="yaEstaSeleccionado(mat)">
+                {{ yaEstaSeleccionado(mat) ? 'Agregado' : 'Agregar' }}
+              </button>
+            </div>
+          </div>
+          <div class="sin-resultados" *ngIf="busquedaTexto.length > 0 && resultadosBusqueda.length === 0">
+            <p>No se encontraron materiales</p>
+          </div>
         </div>
-      </div>
+      </section>
 
       <!-- Formulario -->
       <form class="solicitud-form" (ngSubmit)="enviarSolicitud()">
 
         <!-- Fila: Tipo de Solicitud + Fecha -->
         <div class="form-row">
-
           <!-- Tipo de Solicitud -->
           <fieldset class="form-group">
             <legend class="form-label required">Tipo de Solicitud</legend>
-
-            <label class="radio-label">
-              <input type="radio" name="tipo" [value]="'prof_trabajo'" [(ngModel)]="tipoSolicitud"
-                (change)="cambiarTipo('prof_trabajo')">
-              <span class="radio-custom" aria-hidden="true"></span>
-              <span class="radio-text">Tipo A - Trabajo Académico</span>
-            </label>
-
-            <label class="radio-label">
-              <input type="radio" name="tipo" [value]="'uso_propio'" [(ngModel)]="tipoSolicitud"
-                (change)="cambiarTipo('uso_propio')">
-              <span class="radio-custom" aria-hidden="true"></span>
-              <span class="radio-text">Tipo B - Uso Personal</span>
-            </label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="tipo" [value]="'prof_trabajo'" [(ngModel)]="tipoSolicitud"
+                  (change)="cambiarTipo('prof_trabajo')">
+                <span class="radio-custom"></span>
+                <span class="radio-text">Tipo A - Trabajo Academico</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="tipo" [value]="'uso_propio'" [(ngModel)]="tipoSolicitud"
+                  (change)="cambiarTipo('uso_propio')">
+                <span class="radio-custom"></span>
+                <span class="radio-text">Tipo B - Uso Personal</span>
+              </label>
+            </div>
           </fieldset>
 
           <!-- Fecha de Solicitud -->
@@ -150,85 +151,68 @@
             <div class="input-fecha-wrapper">
               <input type="text" id="fecha-solicitud" class="form-input" [value]="fechaSolicitud" readonly>
               <span class="fecha-icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" />
                   <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
               </span>
             </div>
           </div>
-
         </div>
 
         <!-- Campos Condicionales para Tipo A -->
         <div class="tipo-a-fields" *ngIf="tipoSolicitud === 'prof_trabajo'">
-
-          <!-- Nombre del Profesor -->
           <div class="form-group">
             <label class="form-label required" for="nombre-profesor">Nombre del Profesor</label>
             <input type="text" id="nombre-profesor" class="form-input" placeholder="Escribe el nombre del profesor"
               [(ngModel)]="nombreProfesor" name="nombreProfesor">
           </div>
-
-          <!-- Asignatura -->
           <div class="form-group">
             <label class="form-label required" for="asignatura">Asignatura</label>
             <input type="text" id="asignatura" class="form-input" placeholder="Escribe el nombre de la asignatura"
               [(ngModel)]="asignatura" name="asignatura">
           </div>
-
         </div>
 
         <!-- Cuadro Informativo -->
         <div class="info-box">
-          <div class="info-header">
-            <span class="info-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-                <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              </svg>
-            </span>
-            <h4 class="info-title">Información sobre recogida y devolución</h4>
+          <div class="info-icon-container">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+              <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </div>
-          <ul class="info-list">
-            <li>Recogida: Después de las 15:00h del día solicitado</li>
-            <li>Devolución: Día lectivo siguiente de 8:30 a 9:00 AM</li>
-          </ul>
-          <button type="button" class="info-link" (click)="verNormasCompletas()">
-            Ver normas completas de solicitud de material
-          </button>
+          <div class="info-content">
+            <h4 class="info-title">INFORMACION SOBRE RECOGIDA Y DEVOLUCION</h4>
+            <ul class="info-list">
+              <li>Recogida: Despues de las 15:00h del dia solicitado</li>
+              <li>Devolucion: Dia lectivo siguiente de 8:30 a 9:00 AM</li>
+            </ul>
+            <button type="button" class="info-link" (click)="verNormasCompletas()">
+              Ver normas completas de solicitud de material
+            </button>
+          </div>
         </div>
 
         <!-- Checkbox Normas -->
-        <div class="form-group">
+        <div class="form-group normas-group">
           <label class="checkbox-label">
             <input type="checkbox" [(ngModel)]="normasAceptadas" name="normasAceptadas" [disabled]="!normasLeidas">
-            <span class="checkbox-custom" aria-hidden="true">
-              <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <span class="checkbox-custom">
+              <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 5L4.5 8.5L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   stroke-linejoin="round" />
               </svg>
             </span>
-            <span class="checkbox-text">
-              He leído y acepto las normas de préstamos
-              <span class="required-asterisk" aria-hidden="true">*</span>
-            </span>
+            <span class="checkbox-text">He leido y acepto las normas de prestamos</span>
           </label>
-          <p class="warning-text" *ngIf="!normasLeidas">
-            Debes leer las normas antes de aceptar
-          </p>
-          <p class="warning-text" *ngIf="normasLeidas && !normasAceptadas">
-            Debes aceptar las normas para continuar
+          <p class="warning-text" *ngIf="!normasLeidas" role="alert">
+            Primero debes ver las normas completas
           </p>
         </div>
 
         <!-- Error -->
         <div class="error-message" *ngIf="errorSolicitud" role="alert">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          </svg>
           {{ errorSolicitud }}
         </div>
 
@@ -236,19 +220,11 @@
         <app-normas [isOpen]="mostrarModalNormas" (close)="cerrarModalNormas()"
           (normasAceptadas)="onNormasAceptadas()"></app-normas>
 
-        <!-- Botones -->
+        <!-- Boton Solicitar -->
         <div class="form-actions">
-          <button type="button" class="btn-secundario" (click)="cerrarModal()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-primario" [disabled]="!formularioValido || enviandoSolicitud">
-            <svg *ngIf="!enviandoSolicitud" width="20" height="20" viewBox="0 0 24 24" fill="none"
-              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+          <button type="submit" class="btn-solicitar" [disabled]="!formularioValido || enviandoSolicitud">
             <span class="spinner" *ngIf="enviandoSolicitud" aria-hidden="true"></span>
-            {{ enviandoSolicitud ? 'Enviando...' : 'Enviar Solicitud' }}
+            {{ enviandoSolicitud ? 'Enviando...' : 'Solicitar' }}
           </button>
         </div>
 
