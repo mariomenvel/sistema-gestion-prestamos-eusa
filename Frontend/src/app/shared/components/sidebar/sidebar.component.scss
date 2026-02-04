@@ -1,38 +1,36 @@
 // ========================================
-// VARIABLES (del mockup de Figma)
+// VARIABLES
 // ========================================
 
 $color-white: #FFFFFF;
-$color-border: #E0E0E0;
-$color-bg-blue-light: #E3F2FD;
+$color-border: #F0F2F5;
+$color-bg-blue-light: #F0F7FF;
 $color-primary-blue: #0066CC;
-$color-text-secondary: #6C757D;
+$color-primary-dark: #004C99;
+$color-text-primary: #1A1C1E;
+$color-text-secondary: #5F6368;
+$color-shadow: rgba(0, 0, 0, 0.04);
 
 $font-family: 'Inter', sans-serif;
+$transition-speed: 0.25s;
 
 // ========================================
 // SIDEBAR PRINCIPAL
 // ========================================
 
 .sidebar {
-  // Dimensiones según Figma
-  width: 240px;
-  height: calc(100vh - 64px);  // Altura completa menos el header
-  
-  // Estilo según Figma
+  width: 260px;
+  height: calc(100vh - 64px);
   background: $color-white;
-  border-right: 2px solid $color-border;
-  
-  // Posicionamiento
+  border-right: 1px solid $color-border;
   position: fixed;
-  top: 64px;  // Debajo del header
+  top: 64px;
   left: 0;
-  
-  // Overflow por si hay muchos items
   overflow-y: auto;
-  
-  // Z-index
+  overflow-x: hidden;
   z-index: 90;
+  padding: 16px 12px;
+  box-shadow: 4px 0 12px $color-shadow;
 }
 
 // ========================================
@@ -42,6 +40,13 @@ $font-family: 'Inter', sans-serif;
 .sidebar-menu {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
 }
 
 // ========================================
@@ -49,50 +54,69 @@ $font-family: 'Inter', sans-serif;
 // ========================================
 
 .menu-item {
-  // Dimensiones según Figma: 240px x 48px
-  width: 240px;
-  height: 48px;
-  
-  // Estilo según Figma (estado normal)
-  background: $color-white;
-  border: 2px solid $color-border;
-  
-  // Tipografía según Figma
-  font-family: $font-family;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 17px;
-  letter-spacing: -0.03em;
-  color: $color-text-secondary;
-  
-  // Padding interno
-  padding-left: 24px;
-  
-  // Centrar texto verticalmente
   display: flex;
   align-items: center;
-  
-  // Cursor
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
   cursor: pointer;
-  
-  // Transición suave
-  transition: all 0.3s ease;
-  
+  transition: all $transition-speed cubic-bezier(0.4, 0, 0.2, 1);
+  color: $color-text-secondary;
+  margin-bottom: 2px;
+  border: none; // Eliminamos el borde de diseño anterior
+
+  // Icono
+  i {
+    width: 24px;
+    font-size: 18px;
+    margin-right: 14px;
+    display: flex;
+    justify-content: center;
+    transition: transform $transition-speed ease;
+  }
+
+  // Label
+  .menu-item-label {
+    font-family: $font-family;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
   // Hover
   &:hover {
-    background: lighten($color-bg-blue-light, 3%);
+    background: #F8F9FA;
+    color: $color-primary-blue;
+
+    i {
+      transform: scale(1.1);
+    }
   }
-  
-  // Estado ACTIVO (según Figma)
+
+  // Estado ACTIVO (Estilo Premium)
   &.active {
     background: $color-bg-blue-light;
     color: $color-primary-blue;
-    font-weight: 700;
-    
-    // Sin hover en activo
-    &:hover {
-      background: $color-bg-blue-light;
+    box-shadow: inset 0 0 0 1px rgba($color-primary-blue, 0.1);
+
+    .menu-item-label {
+      font-weight: 600;
+    }
+
+    i {
+      color: $color-primary-blue;
+    }
+
+    // Indicador lateral sutil
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 4px;
+      height: 24px;
+      background: $color-primary-blue;
+      border-radius: 0 4px 4px 0;
     }
   }
 }
@@ -103,11 +127,11 @@ $font-family: 'Inter', sans-serif;
 
 @media (max-width: 768px) {
   .sidebar {
-    // En móvil, ocultar por defecto
+    width: 280px;
     transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    
-    // Si se añade clase .open, mostrar
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.1);
+
     &.open {
       transform: translateX(0);
     }

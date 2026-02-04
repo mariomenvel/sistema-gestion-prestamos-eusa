@@ -10,7 +10,8 @@
         <div class="menu-item" [class.active]="isActive(item.route)"
           [attr.aria-current]="isActive(item.route) ? 'page' : null" (click)="navigateTo(item.route)" role="button"
           tabindex="0" [attr.aria-label]="item.label">
-          {{ item.label }}
+          <i *ngIf="item.icon" [class]="item.icon" aria-hidden="true"></i>
+          <span class="menu-item-label">{{ item.label }}</span>
         </div>
       </li>
     </ul>

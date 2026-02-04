@@ -91,20 +91,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (this.currentRole === 'alumno' || this.currentRole === 'profesor') {
       // Menú para Alumno/Profesor
       this.menuItems = [
-        { label: 'Dashboard', route: '/alumno/dashboard' },
-        { label: 'Catálogo', route: '/alumno/catalogo' },
-        { label: 'Mis Préstamos', route: '/alumno/mis-prestamos' },
-        { label: 'Mi Perfil', route: '/alumno/mi-perfil' }
+        { label: 'Dashboard', route: '/alumno/dashboard', icon: 'fas fa-chart-line' },
+        { label: 'Catálogo', route: '/alumno/catalogo', icon: 'fas fa-book' },
+        { label: 'Mis Préstamos', route: '/alumno/mis-prestamos', icon: 'fas fa-hand-holding' },
+        { label: 'Mi Perfil', route: '/alumno/mi-perfil', icon: 'fas fa-user' }
       ];
     } else if (this.currentRole === 'pas') {
       // Menú para PAS
       this.menuItems = [
-        { label: 'Dashboard', route: '/pas/dashboard' },
-        { label: 'Solicitudes', route: '/pas/solicitudes' },
-        { label: 'Préstamos Activos', route: '/pas/prestamos-activos' },
-        { label: 'Materiales', route: '/pas/materiales' },
-        { label: 'Reportes', route: '/pas/reportes' },
-        { label: 'Usuarios', route: '/pas/usuarios' }
+        { label: 'Dashboard', route: '/pas/dashboard', icon: 'fas fa-chart-line' },
+        { label: 'Solicitudes', route: '/pas/solicitudes', icon: 'fas fa-file-invoice' },
+        { label: 'Préstamos Activos', route: '/pas/prestamos-activos', icon: 'fas fa-hand-holding-hand' },
+        { label: 'Materiales', route: '/pas/materiales', icon: 'fas fa-box' },
+        { label: 'Reportes', route: '/pas/reportes', icon: 'fas fa-clipboard-list' },
+        { label: 'Usuarios', route: '/pas/usuarios', icon: 'fas fa-users-cog' }
       ];
     }
   }
