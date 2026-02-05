@@ -94,9 +94,19 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
   nuevoNombreTexto: string = '';
 
   // ===== ESTADO =====
-
   enviando: boolean = false;
   error: string = '';
+
+  // ===== MODAL DE NOTIFICACIÓN =====
+  modalData = {
+    mostrar: false,
+    tipo: 'info' as 'exito' | 'error' | 'info' | 'confirmacion',
+    titulo: '',
+    mensaje: '',
+    esConfirmacion: false,
+    textoBtnPrincipal: 'Aceptar',
+    accion: () => { }
+  };
 
   // ===== CONSTRUCTOR =====
 
@@ -150,6 +160,24 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
       // Los ejemplares se gestionan desde la fila expandida.
       this.ejemplares = [];
     }
+  }
+
+  // ===== MÉTODOS DE MODAL =====
+
+  mostrarModal(config: Partial<typeof this.modalData>): void {
+    this.modalData = {
+      mostrar: true,
+      tipo: config.tipo || 'info',
+      titulo: config.titulo || 'Información',
+      mensaje: config.mensaje || '',
+      esConfirmacion: config.tipo === 'confirmacion',
+      textoBtnPrincipal: config.textoBtnPrincipal || 'Aceptar',
+      accion: config.accion || (() => { this.cerrarModalInfo(); })
+    };
+  }
+
+  cerrarModalInfo(): void {
+    this.modalData.mostrar = false;
   }
 
   // ===== MÉTODOS PÚBLICOS =====
@@ -261,13 +289,13 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
 
       // Validar tipo
       if (!archivo.type.startsWith('image/')) {
-        alert('Por favor selecciona una imagen válida');
+        this.mostrarModal({ tipo: 'error', titulo: 'Archivo no válido', mensaje: 'Por favor selecciona una imagen válida' });
         return;
       }
 
       // Validar tamaño (máx 5MB)
       if (archivo.size > 5 * 1024 * 1024) {
-        alert('La imagen no puede superar los 5MB');
+        this.mostrarModal({ tipo: 'error', titulo: 'Imagen muy grande', mensaje: 'La imagen no puede superar los 5MB' });
         return;
       }
 
@@ -282,6 +310,9 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Validar formulario según el tipo
+   */
   /**
    * Validar formulario según el tipo
    */
@@ -320,7 +351,7 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
    */
   guardarMaterial(): void {
     if (!this.formularioValido()) {
-      alert('Por favor completa todos los campos obligatorios');
+      this.mostrarModal({ tipo: 'error', titulo: 'Campos incompletos', mensaje: 'Por favor completa todos los campos obligatorios' });
       return;
     }
 
@@ -398,9 +429,15 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
   }
 
   private finalizarEdicion(): void {
-    alert('Material actualizado correctamente');
-    this.materialCreado.emit();
-    this.cerrarModal();
+    this.mostrarModal({
+      tipo: 'exito',
+      titulo: 'Actualizado',
+      mensaje: 'Material actualizado correctamente',
+      accion: () => {
+        this.materialCreado.emit();
+        this.cerrarModal();
+      }
+    });
   }
 
   /**
@@ -454,8 +491,12 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
       error: (err: any) => {
         console.error('❌ Error al subir imagen:', err);
         // Aunque falle la imagen, el equipo ya está creado
-        alert('Equipo creado correctamente, pero hubo un error al subir la imagen');
-        this.finalizar();
+        this.mostrarModal({
+          tipo: 'info',
+          titulo: 'Atención',
+          mensaje: 'Equipo creado correctamente, pero hubo un error al subir la imagen',
+          accion: () => this.finalizar()
+        });
       }
     });
   }
@@ -517,9 +558,21 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
    * Finalizar creación
    */
   private finalizar(): void {
-    alert('Material creado correctamente');
-    this.materialCreado.emit();
-    this.cerrarModal();
+    if (!this.modalData.mostrar) { // Evitar doble modal si viene de error imagen
+      this.mostrarModal({
+        tipo: 'exito',
+        titulo: 'Éxito',
+        mensaje: 'Material creado correctamente',
+        accion: () => {
+          this.materialCreado.emit();
+          this.cerrarModal();
+        }
+      });
+    } else {
+      // Si ya hay modal (ej: error imagen), emitir y cerrar al cerrar ese modal
+      this.materialCreado.emit();
+      this.cerrarModal();
+    }
   }
 
   /**
@@ -571,7 +624,7 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
    */
   crearCategoria(): void {
     if (!this.nuevaCategoriaNombre.trim()) {
-      alert('Por favor introduce el nombre de la categoría');
+      this.mostrarModal({ tipo: 'error', titulo: 'Campo vacío', mensaje: 'Por favor introduce el nombre de la categoría' });
       return;
     }
 
@@ -591,11 +644,11 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
         this.equipoCategoria = categoria.id;
         this.limpiarFormularioCategoria();
         this.mostrarFormularioCategoria = false;
-        alert('Categoría creada correctamente');
+        this.mostrarModal({ tipo: 'exito', titulo: 'Creado', mensaje: 'Categoría creada correctamente' });
       },
       error: (err: any) => {
         console.error('❌ Error al crear categoría:', err);
-        alert('Error al crear la categoría');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'Error al crear la categoría' });
       }
     });
   }
@@ -615,11 +668,11 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
         this.libroCategoria = genero.id;
         this.limpiarFormularioCategoria();
         this.mostrarFormularioCategoria = false;
-        alert('Género creado correctamente');
+        this.mostrarModal({ tipo: 'exito', titulo: 'Creado', mensaje: 'Género creado correctamente' });
       },
       error: (err: any) => {
         console.error('❌ Error al crear género:', err);
-        alert('Error al crear el género');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'Error al crear el género' });
       }
     });
   }
@@ -639,7 +692,7 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
    */
   crearNombre(): void {
     if (!this.nuevoNombreTexto.trim()) {
-      alert('Por favor introduce el nombre');
+      this.mostrarModal({ tipo: 'error', titulo: 'Campo vacío', mensaje: 'Por favor introduce el nombre' });
       return;
     }
 
@@ -656,11 +709,11 @@ export class AniadirMaterialComponent implements OnInit, OnChanges {
         this.equipoNombreId = nombre.id;
         this.nuevoNombreTexto = '';
         this.mostrarFormularioNombre = false;
-        alert('Nombre genérico creado correctamente');
+        this.mostrarModal({ tipo: 'exito', titulo: 'Creado', mensaje: 'Nombre genérico creado correctamente' });
       },
       error: (err: any) => {
         console.error('❌ Error al crear nombre:', err);
-        alert('Error al crear el nombre genérico');
+        this.mostrarModal({ tipo: 'error', titulo: 'Error', mensaje: 'Error al crear el nombre genérico' });
       }
     });
   }
