@@ -147,38 +147,41 @@ async function seed() {
     // ============================================================
     console.log('👨‍🎓 Creando alumnos...');
     var alumnos = await models.Usuario.bulkCreate([
+      // Alumno principal para testing - TODOS LOS DATOS COMPLETOS
+      { email: 'alumno1@eusa.es', password_hash: '123456', nombre: 'Alumno', apellidos: 'Uno Testing', telefono: '+34622000000', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2028-06-30') },
+
       // Periodismo
       { email: 'alba.periodismo@eusa.es', password_hash: '123456', nombre: 'Alba', apellidos: 'Moreno Díaz', telefono: '+34622001001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2029-06-30') },
       { email: 'carlos.periodismo@eusa.es', password_hash: '123456', nombre: 'Carlos', apellidos: 'Fernández Ruiz', telefono: '+34622001002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2028-06-30') },
       { email: 'lucia.periodismo@eusa.es', password_hash: '123456', nombre: 'Lucía', apellidos: 'García Martín', telefono: '+34622001003', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 3, fecha_inicio_est: new Date('2023-09-15'), fecha_fin_prev: new Date('2027-06-30') },
       { email: 'miguel.periodismo@eusa.es', password_hash: '123456', nombre: 'Miguel', apellidos: 'López Sánchez', telefono: '+34622001004', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 4, fecha_inicio_est: new Date('2022-09-15'), fecha_fin_prev: new Date('2026-06-30') },
-      
+
       // Publicidad y RRPP
       { email: 'paula.publicidad@eusa.es', password_hash: '123456', nombre: 'Paula', apellidos: 'Navarro Torres', telefono: '+34622002001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Publicidad y RRPP', grado_id: gPub.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2029-06-30') },
       { email: 'sergio.publicidad@eusa.es', password_hash: '123456', nombre: 'Sergio', apellidos: 'Ramírez Jiménez', telefono: '+34622002002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Publicidad y RRPP', grado_id: gPub.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2028-06-30') },
       { email: 'elena.publicidad@eusa.es', password_hash: '123456', nombre: 'Elena', apellidos: 'Gómez Blanco', telefono: '+34622002003', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Publicidad y RRPP', grado_id: gPub.id, curso: 3, fecha_inicio_est: new Date('2023-09-15'), fecha_fin_prev: new Date('2027-06-30') },
-      
+
       // Comunicación Audiovisual
       { email: 'daniel.cav@eusa.es', password_hash: '123456', nombre: 'Daniel', apellidos: 'Herrera Castro', telefono: '+34622003001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Comunicación Audiovisual', grado_id: gCav.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2029-06-30') },
       { email: 'marta.cav@eusa.es', password_hash: '123456', nombre: 'Marta', apellidos: 'Ortiz Vega', telefono: '+34622003002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Comunicación Audiovisual', grado_id: gCav.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2028-06-30') },
       { email: 'javier.cav@eusa.es', password_hash: '123456', nombre: 'Javier', apellidos: 'Ramos Peña', telefono: '+34622003003', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Comunicación Audiovisual', grado_id: gCav.id, curso: 3, fecha_inicio_est: new Date('2023-09-15'), fecha_fin_prev: new Date('2027-06-30') },
       { email: 'irene.cav@eusa.es', password_hash: '123456', nombre: 'Irene', apellidos: 'Silva Molina', telefono: '+34622003004', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Comunicación Audiovisual', grado_id: gCav.id, curso: 4, fecha_inicio_est: new Date('2022-09-15'), fecha_fin_prev: new Date('2026-06-30') },
-      
+
       // Doble Grado
       { email: 'andrea.doble@eusa.es', password_hash: '123456', nombre: 'Andrea', apellidos: 'Delgado Romero', telefono: '+34622004001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Doble Grado PER+CAV', grado_id: gDoble.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2029-06-30') },
       { email: 'pablo.doble@eusa.es', password_hash: '123456', nombre: 'Pablo', apellidos: 'Santos Iglesias', telefono: '+34622004002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_uni', grado: 'Doble Grado PER+CAV', grado_id: gDoble.id, curso: 3, fecha_inicio_est: new Date('2023-09-15'), fecha_fin_prev: new Date('2028-06-30') },
-      
+
       // Ciclo DAM
       { email: 'marcos.dam@eusa.es', password_hash: '123456', nombre: 'Marcos', apellidos: 'Prieto Cano', telefono: '+34622005001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_sup', grado: 'Ciclo DAM', grado_id: gDam.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2027-06-30') },
       { email: 'sofia.dam@eusa.es', password_hash: '123456', nombre: 'Sofía', apellidos: 'Méndez Gil', telefono: '+34622005002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_sup', grado: 'Ciclo DAM', grado_id: gDam.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2026-06-30') },
-      
+
       // Ciclo DAW
       { email: 'raul.daw@eusa.es', password_hash: '123456', nombre: 'Raúl', apellidos: 'Guerrero Muñoz', telefono: '+34622006001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_sup', grado: 'Ciclo DAW', grado_id: gDaw.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2027-06-30') },
       { email: 'nuria.daw@eusa.es', password_hash: '123456', nombre: 'Nuria', apellidos: 'Vargas Reyes', telefono: '+34622006002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'grado_sup', grado: 'Ciclo DAW', grado_id: gDaw.id, curso: 2, fecha_inicio_est: new Date('2024-09-15'), fecha_fin_prev: new Date('2026-06-30') },
-      
+
       // Máster
       { email: 'victor.master@eusa.es', password_hash: '123456', nombre: 'Víctor', apellidos: 'Campos Serrano', telefono: '+34622007001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'activo', tipo_estudios: 'master', grado: 'Máster Comunicación Digital', grado_id: gMaster.id, curso: 1, fecha_inicio_est: new Date('2025-09-15'), fecha_fin_prev: new Date('2026-06-30') },
-      
+
       // Estados especiales para testing
       { email: 'alumno.bloqueado@eusa.es', password_hash: '123456', nombre: 'Test', apellidos: 'Bloqueado User', telefono: '+34622008001', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'bloqueado', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 2 },
       { email: 'alumno.inactivo@eusa.es', password_hash: '123456', nombre: 'Test', apellidos: 'Inactivo User', telefono: '+34622008002', codigo_tarjeta: generarCodigoTarjetaSeed(), rol: 'alumno', estado_perfil: 'inactivo', tipo_estudios: 'grado_uni', grado: 'Periodismo', grado_id: gPer.id, curso: 3 }
@@ -240,7 +243,7 @@ async function seed() {
       { nombre_id: nombres[1].id, categoria_id: catFoto.id, marca: 'Panasonic', modelo: 'GH5', descripcion: 'Micro 4/3 para video profesional. 4K 60fps, 10-bit interno. Referencia en video.', foto_url: 'assets/images/panasonic_gh5.jpg' },
       { nombre_id: nombres[3].id, categoria_id: catFoto.id, marca: 'Manfrotto', modelo: '055XPRO3', descripcion: 'Trípode aluminio profesional. Carga máx 8kg, columna horizontal para macro.', foto_url: 'assets/images/manfrotto_055.jpg' },
       { nombre_id: nombres[3].id, categoria_id: catFoto.id, marca: 'Manfrotto', modelo: 'Befree Advanced', descripcion: 'Trípode viaje compacto. Plegado 40cm, carga 8kg, ideal para exteriores.', foto_url: 'assets/images/manfrotto_befree.jpg' },
-      
+
       // VIDEO
       { nombre_id: nombres[2].id, categoria_id: catVid.id, marca: 'Manfrotto', modelo: 'MVH502AH + 546B', descripcion: 'Trípode video con cabezal fluido profesional. Carga 7kg, contrapeso ajustable.', foto_url: 'assets/images/manfrotto_video.jpg' },
       { nombre_id: nombres[2].id, categoria_id: catVid.id, marca: 'Sachtler', modelo: 'Ace M', descripcion: 'Trípode broadcast ligero. Cabezal fluido profesional para documental.', foto_url: 'assets/images/sachtler_ace.jpg' },
@@ -248,7 +251,7 @@ async function seed() {
       { nombre_id: nombres[15].id, categoria_id: catVid.id, marca: 'DJI', modelo: 'Ronin SC', descripcion: 'Gimbal compacto para mirrorless. Carga 2kg, control por app, muy portátil.', foto_url: 'assets/images/dji_ronin_sc.jpg' },
       { nombre_id: nombres[16].id, categoria_id: catVid.id, marca: 'DJI', modelo: 'Mini 3 Pro', descripcion: 'Drone <250g sin licencia. 4K60, sensor 1/1.3", evita obstáculos en 3 direcciones.', foto_url: 'assets/images/dji_mini3.jpg' },
       { nombre_id: nombres[16].id, categoria_id: catVid.id, marca: 'DJI', modelo: 'Air 2S', descripcion: 'Drone sensor 1 pulgada. 5.4K, MasterShots, 12km transmisión O3.', foto_url: 'assets/images/dji_air2s.jpg' },
-      
+
       // SONIDO
       { nombre_id: nombres[4].id, categoria_id: catSon.id, marca: 'Sennheiser', modelo: 'EW 112P G4', descripcion: 'Sistema inalámbrico profesional. Rango 100m, 20 canales, calidad broadcast.', foto_url: 'assets/images/sennheiser_g4.jpg' },
       { nombre_id: nombres[4].id, categoria_id: catSon.id, marca: 'Rode', modelo: 'Wireless GO II', descripcion: 'Sistema dual inalámbrico compacto. Grabación interna 40h, 200m alcance.', foto_url: 'assets/images/rode_wireless_go.jpg' },
@@ -258,7 +261,7 @@ async function seed() {
       { nombre_id: nombres[6].id, categoria_id: catSon.id, marca: 'Rode', modelo: 'NT-USB Mini', descripcion: 'Micrófono USB compacto. Calidad broadcast, plug & play, filtro pop integrado.', foto_url: 'assets/images/rode_nt_usb.jpg' },
       { nombre_id: nombres[12].id, categoria_id: catSon.id, marca: 'Zoom', modelo: 'H6', descripcion: 'Grabadora 6 pistas profesional. Cápsulas intercambiables, 4 XLR/TRS.', foto_url: 'assets/images/zoom_h6.jpg' },
       { nombre_id: nombres[12].id, categoria_id: catSon.id, marca: 'Zoom', modelo: 'F3', descripcion: 'Grabadora 2 canales 32-bit float. Nunca clipea, ideal para campo.', foto_url: 'assets/images/zoom_f3.jpg' },
-      
+
       // ILUMINACIÓN
       { nombre_id: nombres[9].id, categoria_id: catIlu.id, marca: 'Aputure', modelo: '120d II', descripcion: 'Foco LED daylight 120W. CRI 96+, control remoto, bowens mount universal.', foto_url: 'assets/images/aputure_120d.jpg' },
       { nombre_id: nombres[9].id, categoria_id: catIlu.id, marca: 'Aputure', modelo: '300d II', descripcion: 'Foco LED daylight 300W. Equivale a HMI 575W, muy potente para cine.', foto_url: 'assets/images/aputure_300d.jpg' },
@@ -266,19 +269,19 @@ async function seed() {
       { nombre_id: nombres[10].id, categoria_id: catIlu.id, marca: 'Nanlite', modelo: 'Forza 60', descripcion: 'LED compacto 60W muy versátil. Ideal entrevistas, producto y YouTube.', foto_url: 'assets/images/nanlite_forza60.jpg' },
       { nombre_id: nombres[11].id, categoria_id: catIlu.id, marca: 'Aputure', modelo: 'Light Dome II', descripcion: 'Softbox parabólico 90cm. Luz suave envolvente, montaje rápido, con grid.', foto_url: 'assets/images/aputure_lightdome.jpg' },
       { nombre_id: nombres[11].id, categoria_id: catIlu.id, marca: 'Godox', modelo: 'Softbox 60x90', descripcion: 'Softbox rectangular con grid incluido. Bowens mount, económico y efectivo.', foto_url: 'assets/images/godox_softbox.jpg' },
-      
+
       // INFORMÁTICA
       { nombre_id: nombres[7].id, categoria_id: catInfo.id, marca: 'Dell', modelo: 'XPS 15 9520', descripcion: 'i7-12700H, 32GB RAM, RTX 3050 Ti, SSD 1TB. Pantalla OLED 3.5K táctil.', foto_url: 'assets/images/dell_xps15.jpg' },
       { nombre_id: nombres[7].id, categoria_id: catInfo.id, marca: 'Lenovo', modelo: 'ThinkPad X1 Carbon', descripcion: 'i7-1260P, 16GB RAM, SSD 512GB. Ultraligero 1.12kg, empresarial premium.', foto_url: 'assets/images/lenovo_x1.jpg' },
       { nombre_id: nombres[8].id, categoria_id: catInfo.id, marca: 'Apple', modelo: 'MacBook Pro 14"', descripcion: 'M3 Pro, 18GB RAM, SSD 512GB. Pantalla Liquid Retina XDR, edición pro.', foto_url: 'assets/images/macbook_pro14.jpg' },
       { nombre_id: nombres[8].id, categoria_id: catInfo.id, marca: 'Apple', modelo: 'MacBook Air 13" M2', descripcion: 'M2, 16GB RAM, SSD 512GB. Ultraportátil silencioso, 18h batería.', foto_url: 'assets/images/macbook_air.jpg' },
-      
+
       // STREAMING
       { nombre_id: nombres[17].id, categoria_id: catStr.id, marca: 'Logitech', modelo: 'Brio 4K', descripcion: 'Webcam 4K HDR profesional. Windows Hello, zoom 5x digital, gran angular.', foto_url: 'assets/images/logitech_brio.jpg' },
       { nombre_id: nombres[17].id, categoria_id: catStr.id, marca: 'Elgato', modelo: 'Facecam', descripcion: 'Webcam 1080p60 para streaming. Sensor Sony STARVIS, sin compresión.', foto_url: 'assets/images/elgato_facecam.jpg' },
       { nombre_id: nombres[18].id, categoria_id: catStr.id, marca: 'Elgato', modelo: 'HD60 S+', descripcion: 'Capturadora HDMI 4K60 passthrough, graba 1080p60. USB 3.0, baja latencia.', foto_url: 'assets/images/elgato_hd60.jpg' },
       { nombre_id: nombres[18].id, categoria_id: catStr.id, marca: 'Elgato', modelo: 'Cam Link 4K', descripcion: 'Convierte cualquier cámara HDMI en webcam. 4K30 / 1080p60.', foto_url: 'assets/images/elgato_camlink.jpg' },
-      
+
       // ACCESORIOS
       { nombre_id: nombres[13].id, categoria_id: catAcc.id, marca: 'SanDisk', modelo: 'Extreme PRO 128GB', descripcion: 'UHS-I V30, 170MB/s lectura, 90MB/s escritura. Ideal 4K video.', foto_url: 'assets/images/sandisk_sd.jpg' },
       { nombre_id: nombres[13].id, categoria_id: catAcc.id, marca: 'Sony', modelo: 'TOUGH SF-G 64GB', descripcion: 'UHS-II V90, 300MB/s. Resistente agua/polvo/caídas, profesional.', foto_url: 'assets/images/sony_sd.jpg' },
@@ -310,7 +313,7 @@ async function seed() {
         var letra = String.fromCharCode(65 + j);
         var estado = (i === 2 && j === 0) ? 'en_reparacion' : (i === 5 && j === 1) ? 'falla' : 'funciona';
         var prestado = (i === 0 && j === 0) || (i === 3 && j === 0);
-        
+
         var unidad = await models.Unidad.create({
           equipo_id: equipos[i].id,
           numero_serie: 'SN-' + equipos[i].id.toString().padStart(3, '0') + '-' + letra + '-' + (1000 + i * 10 + j),
@@ -355,39 +358,39 @@ async function seed() {
       { titulo: 'JavaScript: The Good Parts', autor: 'Douglas Crockford', editorial: "O'Reilly Media", genero_id: gTec.id, libro_numero: 'L003', foto_url: 'assets/images/js_good_parts.jpg' },
       { titulo: 'Eloquent JavaScript', autor: 'Marijn Haverbeke', editorial: 'No Starch Press', genero_id: gTec.id, libro_numero: 'L004', foto_url: 'assets/images/eloquent_js.jpg' },
       { titulo: 'Design Patterns', autor: 'Gang of Four', editorial: 'Addison-Wesley', genero_id: gTec.id, libro_numero: 'L005', foto_url: 'assets/images/design_patterns.jpg' },
-      
+
       // Cine y Audiovisual
       { titulo: 'El ojo del fotógrafo', autor: 'Michael Freeman', editorial: 'Blume', genero_id: gArt.id, libro_numero: 'L006', foto_url: 'assets/images/ojo_fotografo.jpg' },
       { titulo: 'La luz en el cine', autor: 'Vittorio Storaro', editorial: 'Electa', genero_id: gCine.id, libro_numero: 'L007', foto_url: 'assets/images/luz_cine.jpg' },
       { titulo: 'In the Blink of an Eye', autor: 'Walter Murch', editorial: 'Silman-James Press', genero_id: gCine.id, libro_numero: 'L008', foto_url: 'assets/images/blink_eye.jpg' },
       { titulo: 'Directing', autor: 'Michael Rabiger', editorial: 'Focal Press', genero_id: gCine.id, libro_numero: 'L009', foto_url: 'assets/images/directing.jpg' },
       { titulo: 'Cinematography: Theory and Practice', autor: 'Blain Brown', editorial: 'Focal Press', genero_id: gCine.id, libro_numero: 'L010', foto_url: 'assets/images/cinematography.jpg' },
-      
+
       // Guión
       { titulo: 'El guión', autor: 'Robert McKee', editorial: 'Alba Editorial', genero_id: gGui.id, libro_numero: 'L011', foto_url: 'assets/images/mckee_guion.jpg' },
       { titulo: 'Save the Cat!', autor: 'Blake Snyder', editorial: 'Michael Wiese Productions', genero_id: gGui.id, libro_numero: 'L012', foto_url: 'assets/images/save_the_cat.jpg' },
       { titulo: 'El viaje del escritor', autor: 'Christopher Vogler', editorial: 'Ma Non Troppo', genero_id: gGui.id, libro_numero: 'L013', foto_url: 'assets/images/viaje_escritor.jpg' },
-      
+
       // Comunicación y Periodismo
       { titulo: 'Teoría de la Comunicación', autor: 'Manuel Martín Serrano', editorial: 'McGraw-Hill', genero_id: gCom.id, libro_numero: 'L014', foto_url: 'assets/images/teoria_comunicacion.jpg' },
       { titulo: 'Redacción Periodística', autor: 'José Luis Martínez Albertos', editorial: 'Paraninfo', genero_id: gPeriod.id, libro_numero: 'L015', foto_url: 'assets/images/redaccion_periodistica.jpg' },
       { titulo: 'Manual de Estilo El País', autor: 'El País', editorial: 'Aguilar', genero_id: gPeriod.id, libro_numero: 'L016', foto_url: 'assets/images/manual_elpais.jpg' },
       { titulo: 'Periodismo Digital', autor: 'Ramón Salaverría', editorial: 'Ariel', genero_id: gPeriod.id, libro_numero: 'L017', foto_url: 'assets/images/periodismo_digital.jpg' },
-      
+
       // Marketing y Publicidad
       { titulo: 'Positioning', autor: 'Al Ries & Jack Trout', editorial: 'McGraw-Hill', genero_id: gMark.id, libro_numero: 'L018', foto_url: 'assets/images/positioning.jpg' },
       { titulo: 'Ogilvy on Advertising', autor: 'David Ogilvy', editorial: 'Vintage Books', genero_id: gMark.id, libro_numero: 'L019', foto_url: 'assets/images/ogilvy.jpg' },
       { titulo: 'Hey Whipple, Squeeze This', autor: 'Luke Sullivan', editorial: 'Wiley', genero_id: gMark.id, libro_numero: 'L020', foto_url: 'assets/images/hey_whipple.jpg' },
-      
+
       // Diseño
       { titulo: 'No me hagas pensar', autor: 'Steve Krug', editorial: 'Pearson', genero_id: gDis.id, libro_numero: 'L021', foto_url: 'assets/images/no_me_hagas_pensar.jpg' },
       { titulo: 'The Design of Everyday Things', autor: 'Don Norman', editorial: 'Basic Books', genero_id: gDis.id, libro_numero: 'L022', foto_url: 'assets/images/design_everyday.jpg' },
       { titulo: 'Grid Systems', autor: 'Josef Müller-Brockmann', editorial: 'Niggli', genero_id: gDis.id, libro_numero: 'L023', foto_url: 'assets/images/grid_systems.jpg' },
-      
+
       // Ensayos
       { titulo: 'Sapiens', autor: 'Yuval Noah Harari', editorial: 'Debate', genero_id: gEns.id, libro_numero: 'L024', foto_url: 'assets/images/sapiens.jpg' },
       { titulo: 'El arte de la guerra', autor: 'Sun Tzu', editorial: 'Edaf', genero_id: gEns.id, libro_numero: 'L025', foto_url: 'assets/images/arte_guerra.jpg' },
-      
+
       // Novelas
       { titulo: 'Don Quijote de la Mancha', autor: 'Miguel de Cervantes', editorial: 'RAE', genero_id: gNov.id, libro_numero: 'L026', foto_url: 'assets/images/quijote.jpg' },
       { titulo: '1984', autor: 'George Orwell', editorial: 'Debolsillo', genero_id: gNov.id, libro_numero: 'L027', foto_url: 'assets/images/1984.jpg' },
@@ -408,7 +411,7 @@ async function seed() {
       for (let j = 0; j < numEjemplares; j++) {
         var letra = String.fromCharCode(65 + j);
         var estado = (i === 0 && j === 0) ? 'no_disponible' : (i === 3 && j === 1) ? 'en_reparacion' : (i === 5 && j === 0) ? 'bloqueado' : 'disponible';
-        
+
         var ejemplar = await models.Ejemplar.create({
           libro_id: libros[i].id,
           codigo_barra: 'BK-' + libros[i].id.toString().padStart(3, '0') + '-' + letra,
@@ -684,7 +687,7 @@ async function seed() {
       var tipo = f.duracion === 1 ? 'a' : f.duracion === 5 ? 'b' : 'c';
       var alumno = alumnos[i % alumnos.length];
       var prof = (i % 3 === 0) ? profes[i % profes.length].id : null;
-      
+
       var pCerrado = await models.Prestamo.create({
         usuario_id: alumno.id,
         tipo: tipo,
@@ -694,7 +697,7 @@ async function seed() {
         fecha_devolucion_real: new Date(Date.now() - (f.inicio - f.devolucion) * 86400000),
         profesor_solicitante_id: prof
       });
-      
+
       // Alternar entre unidades y ejemplares
       if (i % 2 === 0) {
         await models.PrestamoItem.create({
@@ -904,14 +907,14 @@ async function seed() {
     console.log('\n' + '═'.repeat(60));
     console.log('✅ SEED COMPLETO FINALIZADO');
     console.log('═'.repeat(60));
-    
+
     console.log('\n📊 RESUMEN DE DATOS CREADOS:\n');
     console.log('   ⚙️  Configuraciones:    14');
     console.log('   ❌ Motivos rechazo:    8');
     console.log('   🎓 Grados:             9');
     console.log('   👥 Usuarios PAS:       4');
     console.log('   👨‍🏫 Profesores:         7');
-    console.log('   👨‍🎓 Alumnos:            21');
+    console.log('   👨‍🎓 Alumnos:            22');
     console.log('   📁 Categorías:         8');
     console.log('   📝 Tipos equipo:       20');
     console.log('   📷 Equipos:            ' + equipos.length);
@@ -934,12 +937,13 @@ async function seed() {
     console.log('   Profesor: manuel.chaves@eusa.es');
     console.log('   Profesor: laura.video@eusa.es');
     console.log('   Profesor: david.codigo@eusa.es');
+    console.log('   ⭐ Alumno: alumno1@eusa.es (PERFIL COMPLETO)');
     console.log('   Alumno:   alba.periodismo@eusa.es');
     console.log('   Alumno:   daniel.cav@eusa.es');
     console.log('   Alumno:   marcos.dam@eusa.es');
     console.log('   Alumno:   nuria.daw@eusa.es');
     console.log('   Alumno:   victor.master@eusa.es');
-    
+
     console.log('\n📸 NOTA: Las imágenes deben estar en frontend/src/assets/images/\n');
 
     process.exit(0);
